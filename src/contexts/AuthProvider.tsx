@@ -1,0 +1,120 @@
+// src/contexts/AuthProvider.tsx
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { AuthContext } from "./AuthContext";
+import { login as loginAPI, getUserProfile } from "../api/auth";
+import { storeTokens, getTokens, clearTokens } from "../api/tokenStorage";
+import { toast } from "react-toastify";
+import type { User } from "../types/User";
+import { registerLogoutCallback } from "../api/globalLogout";
+import { Box, CircularProgress, Typography } from "@mui/material";
+import logo from "../assets/logo.png"; // ✅ ton logo
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 📌 Sauvegarde la dernière page visitée
+  useEffect(() => {
+    if (location.pathname !== "/login") {
+      localStorage.setItem("lastPage", location.pathname);
+    }
+  }, [location.pathname]);
+
+  // 🔑 Connexion
+  const login = async (email: string, password: string) => {
+    const { access, refresh } = await loginAPI(email, password);
+    storeTokens(access, refresh);
+    const userData = await getUserProfile();
+    setUser(userData);
+
+    toast.success("Connexion réussie");
+
+    // 🔄 Redirige vers la dernière page visitée ou dashboard
+    const lastPage = localStorage.getItem("lastPage") || "/dashboard";
+    navigate(lastPage, { replace: true });
+  };
+
+  // 🚪 Déconnexion
+  const logout = (redirect = true, expired = false) => {
+    clearTokens();
+    setUser(null);
+
+    if (expired) {
+      toast.error("⚠️ Session expirée, veuillez vous reconnecter.");
+    } else {
+      toast.info("Déconnexion réussie");
+    }
+
+    if (redirect) {
+      navigate("/login", { replace: true });
+    }
+  };
+
+  // 🔁 Restaure la session au chargement
+  useEffect(() => {
+    registerLogoutCallback(() => logout(true, true));
+
+    const restoreSession = async () => {
+      try {
+        const { access } = getTokens();
+        if (access) {
+          const userData = await getUserProfile();
+          setUser(userData);
+        }
+      } catch {
+        clearTokens();
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    restoreSession();
+  }, []);
+
+  // ⏳ Splash screen pendant restauration session
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+          backgroundColor: (theme) =>
+            theme.palette.mode === "light" ? "#f9f9f9" : "#121212",
+        }}
+      >
+        <img
+          src={logo}
+          alt="Logo"
+          style={{ height: 80, marginBottom: 20 }}
+        />
+        <CircularProgress size={60} />
+        <Typography
+          variant="h6"
+          sx={{ mt: 2, color: "text.secondary", fontWeight: 500 }}
+        >
+          Chargement...
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        isLoading,
+        login,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
