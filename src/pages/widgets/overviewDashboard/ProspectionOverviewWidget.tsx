@@ -8,6 +8,7 @@ import {
   MenuItem,
   CircularProgress,
   Alert,
+  Divider,
 } from "@mui/material";
 
 import {
@@ -123,6 +124,20 @@ export default function ProspectionOverviewWidget({
           {title}
         </Typography>
       </Box>
+
+      <Divider />
+
+      {/* Total prospections */}
+      {!isLoading && !error && (
+        <Box textAlign="center">
+          <Typography variant="h6" fontWeight="bold" color="primary">
+            {overview?.kpis.total ?? 0}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            prospections au total
+          </Typography>
+        </Box>
+      )}
 
       {/* Filtres */}
       <Box display="flex" gap={1} flexWrap="wrap">

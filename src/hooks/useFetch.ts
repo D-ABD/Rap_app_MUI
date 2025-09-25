@@ -38,7 +38,6 @@ export default function useFetch<T>(
       const response = await api.get(url, { params: stableParams });
       const raw = response.data;
 
-      console.log('🔍 Réponse brute de l’API :', raw);
 
       let parsed: unknown;
 
