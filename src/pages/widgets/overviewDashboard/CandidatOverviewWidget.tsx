@@ -36,8 +36,8 @@ import {
 const STATUS_COLORS = [
   "#fb8c00", // En appairage
   "#6d4c41", // En accompagnement
-  "#1e88e5", // En attente entretien
-  "#ef5350", // Sans suivi
+  "#1e88e5", // En attente entretien (placeholder pour évolution)
+  "#ef5350", // Sans suivi (placeholder pour évolution)
 ];
 
 export default function CandidatOverviewWidget({
@@ -124,6 +124,18 @@ export default function CandidatOverviewWidget({
       </Box>
 
       <Divider />
+
+      {/* Total candidats */}
+      {!isLoading && !error && (
+        <Box textAlign="center">
+          <Typography variant="h6" fontWeight="bold" color="primary">
+            {k?.total ?? 0}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            candidats au total
+          </Typography>
+        </Box>
+      )}
 
       {/* Filtres */}
       <Box display="flex" flexWrap="wrap" gap={1}>

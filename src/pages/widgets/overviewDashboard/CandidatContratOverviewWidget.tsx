@@ -134,6 +134,18 @@ export default function CandidatContratOverviewWidget({
 
       <Divider />
 
+      {/* Total candidats */}
+      {!isLoading && !error && (
+        <Box textAlign="center">
+          <Typography variant="h6" fontWeight="bold" color="primary">
+            {k?.total ?? 0}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            candidats au total
+          </Typography>
+        </Box>
+      )}
+
       {/* Filtres */}
       <Box display="flex" flexWrap="wrap" gap={1}>
         <Select
