@@ -29,9 +29,7 @@ export function useCommentaires(formationId?: number) {
         const res = await api.get<WrappedResponse<Commentaire[]>>(
           `/formations/${formationId}/commentaires/`
         );
-        console.log("✅ Commentaires reçus :", res.data.data);
         if (res.data?.data?.length > 0) {
-          console.log("🧪 Exemple contenu HTML :", res.data.data[0].contenu);
         }
         setCommentaires(res.data.data);
         setError(null);

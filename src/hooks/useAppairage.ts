@@ -21,7 +21,6 @@ export function useListAppairages(
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log('📡 [useListAppairages] Fetching with params:', params, 'reloadKey:', reloadKey);
     setLoading(true);
     setError(null);
 
@@ -29,7 +28,6 @@ export function useListAppairages(
       .get('/appairages/', { params })
       .then((res) => {
         const actualData = res.data.data || res.data;
-        console.log('✅ [useListAppairages] Data received:', actualData);
         setData(actualData as PaginatedResults<AppairageListItem>);
       })
       .catch((err) => {
@@ -48,14 +46,12 @@ export function useAppairage(id: number) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log('📡 [useAppairage] Fetching appairage ID:', id);
     setLoading(true);
     setError(null);
 
     api
       .get(`/appairages/${id}/`)
       .then((res) => {
-        console.log('✅ [useAppairage] Appairage loaded:', res.data);
         setData(res.data as Appairage);
       })
       .catch((err) => {
@@ -73,11 +69,9 @@ export function useCreateAppairage() {
   const [error, setError] = useState<Error | null>(null);
 
   const create = async (payload: AppairageCreatePayload) => {
-    console.log('📤 [useCreateAppairage] Creating with payload:', payload);
     setLoading(true);
     try {
       const res = await api.post('/appairages/', payload);
-      console.log('✅ [useCreateAppairage] Created:', res.data);
       return res.data as Appairage;
     } catch (err) {
       console.error('❌ [useCreateAppairage] Error:', err);
@@ -96,11 +90,9 @@ export function useUpdateAppairage(id: number) {
   const [error, setError] = useState<Error | null>(null);
 
   const update = async (payload: AppairageUpdatePayload) => {
-    console.log('📤 [useUpdateAppairage] Updating appairage ID:', id, 'with payload:', payload);
     setLoading(true);
     try {
       const res = await api.patch(`/appairages/${id}/`, payload);
-      console.log('✅ [useUpdateAppairage] Updated:', res.data);
       return res.data as Appairage;
     } catch (err) {
       console.error('❌ [useUpdateAppairage] Error:', err);
@@ -139,7 +131,6 @@ export function useAppairageMeta() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log('📡 [useAppairageMeta] Fetching metadata');
     setLoading(true);
     setError(null);
 
@@ -147,7 +138,6 @@ export function useAppairageMeta() {
       .get('/appairages/meta/')
       .then((res) => {
         const metaData = res.data.data || res.data;
-        console.log('✅ [useAppairageMeta] Meta loaded:', metaData);
         setData(metaData as AppairageMeta);
       })
       .catch((err) => {
@@ -166,14 +156,12 @@ export function useAppairageHistoriques(appairageId: number) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    console.log('📡 [useAppairageHistoriques] Fetching for appairage ID:', appairageId);
     setLoading(true);
     setError(null);
 
     api
       .get(`/appairages/${appairageId}/historiques/`)
       .then((res) => {
-        console.log('✅ [useAppairageHistoriques] Historiques loaded:', res.data);
         setData(res.data as HistoriqueAppairage[]);
       })
       .catch((err) => {

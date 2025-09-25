@@ -56,7 +56,6 @@ const ParametresPage = () => {
 
   const handleToggleTheme = () => {
     // TODO: branche ton vrai toggle theme ici
-    console.log("Basculer thème");
   };
 
   return (

@@ -59,14 +59,12 @@ function toResultsArray<T>(v: unknown): T[] {
 
 /** Détail: accepte {data:T} ou T directement */
 function safeGetDetail<T>(payload: unknown, tag: string): T {
-  console.log(`[${tag}] 🔎 safeGetDetail payload:`, payload);
   if (isDRFDetail<T>(payload)) return payload.data;
   return payload as T;
 }
 
 /** Liste paginée: accepte {data:{...}} ou {...} ou objet DRF classique */
 function safeGetList<T>(payload: unknown, tag: string): PaginatedResults<T> {
-  console.log(`[${tag}] 🔎 safeGetList payload:`, payload);
 
   // Cas enveloppé: { data: {...} }
   if (isDRFDetail<unknown>(payload)) {
@@ -157,7 +155,6 @@ export function useProspections(params: ProspectionFiltresValues = {}, reloadKey
   const fetchData = useCallback(() => {
     const raw = JSON.parse(paramsKey) as ProspectionFiltresValues;
     const parsedParams = normalizeFilters(raw);
-    console.log('[useProspections] 📤 GET /prospections/ params =', parsedParams);
 
     setLoading(true);
     setError(null);
@@ -165,7 +162,6 @@ export function useProspections(params: ProspectionFiltresValues = {}, reloadKey
     api
       .get<unknown>('/prospections/', { params: parsedParams })
       .then((res) => {
-        console.log('[useProspections] ✅ status:', res.status, 'data:', res.data);
         const list = safeGetList<Prospection>(res.data, 'useProspections');
         setPageData(list);
       })
@@ -196,7 +192,6 @@ export function useProspection(id: number | string | null) {
 
   useEffect(() => {
     if (id == null) {
-      console.log('[useProspection] ℹ️ id nul — reset état.');
       setData(null);
       setLoading(false);
       setError(null);
@@ -207,12 +202,10 @@ export function useProspection(id: number | string | null) {
     setError(null);
 
     const url = `/prospections/${id}/`;
-    console.log('[useProspection] 📤 GET', url);
 
     api
       .get<unknown>(url)
       .then((res) => {
-        console.log('[useProspection] ✅ status:', res.status, 'data:', res.data);
         const detail = safeGetDetail<Prospection>(res.data, 'useProspection');
         setData(detail);
       })
@@ -241,10 +234,8 @@ export function useCreateProspection() {
       const cleanPayload = Object.fromEntries(
         Object.entries(payload).filter(([, v]) => v !== null && v !== undefined)
       );
-      console.log('[useCreateProspection] 📤 POST /prospections/ payload =', cleanPayload);
 
       const res = await api.post<unknown>('/prospections/', cleanPayload);
-      console.log('[useCreateProspection] ✅ status:', res.status, 'data:', res.data);
 
       const created = safeGetDetail<Prospection>(res.data, 'useCreateProspection');
       return created;
@@ -275,10 +266,8 @@ export function useUpdateProspection(id: number | string) {
         Object.entries(payload).filter(([, v]) => v !== null && v !== undefined)
       );
       const url = `/prospections/${id}/`;
-      console.log('[useUpdateProspection] 📤 PATCH', url, 'payload =', cleanPayload);
 
       const res = await api.patch<unknown>(url, cleanPayload);
-      console.log('[useUpdateProspection] ✅ status:', res.status, 'data:', res.data);
 
       const updated = safeGetDetail<Prospection>(res.data, 'useUpdateProspection');
       return updated;
@@ -306,9 +295,7 @@ export function useDeleteProspection(id: number | string) {
     setError(null);
     const url = `/prospections/${id}/`;
     try {
-      console.log('[useDeleteProspection] 🗑️ DELETE', url);
       const res = await api.delete(url);
-      console.log('[useDeleteProspection] ✅ status:', res.status);
     } catch (err) {
       logAxiosError('useDeleteProspection', err);
       setError(err as Error);
@@ -333,9 +320,7 @@ export function useChangerStatut(id: number | string) {
     setError(null);
     const url = `/prospections/${id}/changer-statut/`;
     try {
-      console.log('[useChangerStatut] 🔄 POST', url, 'payload =', payload);
       const res = await api.post<unknown>(url, payload);
-      console.log('[useChangerStatut] ✅ status:', res.status, 'data:', res.data);
 
       const updated = safeGetDetail<Prospection>(res.data, 'useChangerStatut');
       return updated;
@@ -361,7 +346,6 @@ export function useHistoriqueProspections(id: number | string | null) {
 
   useEffect(() => {
     if (id == null) {
-      console.log('[useHistoriqueProspections] ℹ️ id nul — reset état.');
       setData(null);
       setLoading(false);
       setError(null);
@@ -372,12 +356,10 @@ export function useHistoriqueProspections(id: number | string | null) {
     setError(null);
 
     const url = `/prospections/${id}/historiques/`;
-    console.log('[useHistoriqueProspections] 📤 GET', url);
 
     api
       .get<unknown>(url)
       .then((res) => {
-        console.log('[useHistoriqueProspections] ✅ status:', res.status, 'data:', res.data);
         const arr = safeGetDetail<HistoriqueProspection[]>(res.data, 'useHistoriqueProspections');
         setData(arr);
       })
@@ -405,12 +387,10 @@ export function useProspectionChoices() {
     setError(null);
 
     const url = '/prospections/choices/';
-    console.log('[useProspectionChoices] 📤 GET', url);
 
     api
       .get<unknown>(url)
       .then((res) => {
-        console.log('[useProspectionChoices] ✅ status:', res.status, 'data:', res.data);
         // Réponses possibles: { success, message, data:{...} } OU {statut:[],...}
         if (isDRFDetail<ProspectionChoicesResponse['data']>(res.data)) {
           setChoices(res.data.data);
@@ -463,12 +443,10 @@ export default function useFiltresProspections() {
     const url = '/prospections/filtres/';
     const fetchFiltres = async () => {
       try {
-        console.log('[useFiltresProspections] 📤 GET', url);
         setLoading(true);
         setError(null);
 
         const res = await api.get<unknown>(url);
-        console.log('[useFiltresProspections] ✅ status:', res.status, 'data:', res.data);
 
         // Formats possibles:
         // 1) { success, message, data: {...} }
@@ -489,7 +467,6 @@ export default function useFiltresProspections() {
         setFiltres(null);
       } finally {
         setLoading(false);
-        console.log('[useFiltresProspections] ⏹️ Chargement terminé');
       }
     };
 

@@ -1,33 +1,39 @@
-// src/components/candidats/CandidatForm.tsx
-import React, { useEffect, useMemo, useState } from "react";
+// =============================================
+// components/candidats/CandidatForm.tsx
+// =============================================
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
-  Button,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  FormHelperText,
-  Grid,
-  MenuItem,
-  Paper,
-  Select,
-  TextField,
+  Card,
+  CardHeader,
+  CardContent,
   Typography,
-} from "@mui/material";
-
+  Grid,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  FormLabel,
+  FormHelperText,
+  FormControlLabel,
+  Checkbox,
+  Button,
+  Chip,
+  Divider,
+} from '@mui/material';
 import type {
   CandidatFormData,
   CandidatMeta,
   Candidat,
   CVStatutValue,
   Choice,
-} from "../../types/candidat";
-import { User } from "../../types/User";
+} from '../../types/candidat';
+import { User } from '../../types/User';
+import FormationSelectModal, {
+  type FormationPick,
+} from '../../components/modals/FormationSelectModal';
+import UsersSelectModal, { type UserPick } from '../../components/modals/UsersSelectModal';
 
-import UsersSelectModal, { UserPick } from "../../components/modals/UsersSelectModal";
-import FormationSelectModal, { FormationPick } from "../../components/modals/FormationSelectModal";
-
-/* ---------- Types ---------- */
 export type FormationOption = { value: number; label: string };
 export type Option = { value: number; label: string };
 
@@ -42,79 +48,33 @@ type Props = {
   submitting?: boolean;
   onSubmit: (values: CandidatFormData) => void | Promise<void>;
   onCancel?: () => void;
-  initialFormationInfo?: Candidat["formation_info"] | null;
+  initialFormationInfo?: Candidat['formation_info'] | null;
 };
 
-/* ---------- Fallback ---------- */
+/* ====================== Constantes ====================== */
 const CV_STATUT_FALLBACK: Choice[] = [
-  { value: "oui", label: "Oui" },
-  { value: "en_cours", label: "En cours" },
-  { value: "a_modifier", label: "À modifier" },
+  { value: 'oui',        label: 'Oui' },
+  { value: 'en_cours',   label: 'En cours' },
+  { value: 'a_modifier', label: 'À modifier' },
 ];
 
-/* ---------- Helpers ---------- */
-function field<T extends keyof CandidatFormData>(
-  key: T,
-  value: CandidatFormData[T] | undefined,
-  setForm: React.Dispatch<React.SetStateAction<CandidatFormData>>
-) {
-  return {
-    value: (value as unknown as string) ?? "",
-    onChange: (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) => {
-      const v =
-        e.target.type === "number"
-          ? e.target.value === ""
-            ? undefined
-            : Number(e.target.value)
-          : e.target.value === ""
-          ? undefined
-          : e.target.value;
-      setForm((f) => ({ ...f, [key]: v as CandidatFormData[T] }));
-    },
-  };
-}
-
-const setSelectNumber =
-  (
-    setForm: React.Dispatch<React.SetStateAction<CandidatFormData>>,
-    key: keyof CandidatFormData
-  ) =>
-  (e: React.ChangeEvent<{ value: unknown }>) => {
-    const raw = e.target.value as string;
-    const v = raw === "" ? undefined : Number(raw);
-    setForm((f) => ({ ...f, [key]: v as any }));
-  };
-
-const mapFormationInfo = (
-  fi?: Candidat["formation_info"] | null
-): FormationPick | null => {
+/* Helpers */
+const mapFormationInfo = (fi?: Candidat['formation_info'] | null): FormationPick | null => {
   if (!fi) return null;
   return {
     id: fi.id,
     nom: fi.nom ?? null,
-    centre: fi.centre
-      ? { id: fi.centre.id, nom: fi.centre.nom }
-      : null,
+    centre: fi.centre ? { id: fi.centre.id, nom: fi.centre.nom } : null,
     type_offre: fi.type_offre
-      ? {
-          id: fi.type_offre.id,
-          nom: fi.type_offre.nom ?? null,
-          libelle: fi.type_offre.libelle ?? null,
-          couleur: fi.type_offre.couleur ?? null,
-        }
+      ? { id: fi.type_offre.id, nom: fi.type_offre.nom ?? null, libelle: fi.type_offre.libelle ?? null, couleur: fi.type_offre.couleur ?? null }
       : null,
     num_offre: fi.num_offre ?? null,
   };
 };
-
 const formatFormation = (p: FormationPick) =>
-  `${p.nom ?? "—"} — ${p.centre?.nom ?? "—"} · ${p.num_offre ?? "—"}`;
+  `${p.nom ?? '—'} — ${p.centre?.nom ?? '—'} · ${p.num_offre ?? '—'}`;
 
-/* ---------- Component ---------- */
+/* ========================= Composant ========================= */
 export default function CandidatForm({
   initialValues,
   initialFormationInfo,
@@ -128,49 +88,32 @@ export default function CandidatForm({
   onCancel,
 }: Props) {
   const [form, setForm] = useState<CandidatFormData>({
-    nom: "",
-    prenom: "",
-    email: "",
-    telephone: "",
-    ville: "",
-    code_postal: "",
+    nom: '', prenom: '', email: '', telephone: '', ville: '', code_postal: '',
     statut: undefined,
     cv_statut: undefined,
-    rqth: false,
-    permis_b: false,
-    entretien_done: false,
-    test_is_ok: false,
-    courrier_rentree: false,
-    admissible: false,
+    rqth: false, permis_b: false, entretien_done: false, test_is_ok: false,
+    courrier_rentree: false, admissible: false,
     inscrit_gespers: false,
-    date_naissance: undefined,
-    date_rentree: undefined,
-    date_placement: undefined,
+    date_naissance: undefined, date_rentree: undefined, date_placement: undefined,
     numero_osia: null,
     formation: undefined,
-    type_contrat: undefined,
-    disponibilite: undefined,
-    communication: undefined,
-    experience: undefined,
-    csp: undefined,
-    responsable_placement: undefined,
-    entreprise_placement: undefined,
-    entreprise_validee: undefined,
-    resultat_placement: undefined,
-    contrat_signe: undefined,
-    vu_par: undefined,
+    type_contrat: undefined, disponibilite: undefined,
+    communication: undefined, experience: undefined, csp: undefined,
+    responsable_placement: undefined, entreprise_placement: undefined,
+    entreprise_validee: undefined, resultat_placement: undefined,
+    contrat_signe: undefined, vu_par: undefined,
     origine_sourcing: undefined,
     ...initialValues,
   });
 
+  // Modals & labels
   const [showFormationModal, setShowFormationModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
-  const [formationInfo, setFormationInfo] = useState<FormationPick | null>(
-    mapFormationInfo(initialFormationInfo)
-  );
-  const [formationLabel, setFormationLabel] = useState("");
-  const [vuParLabel, setVuParLabel] = useState("");
+  const [formationInfo, setFormationInfo] = useState<FormationPick | null>(mapFormationInfo(initialFormationInfo));
+  const [formationLabel, setFormationLabel] = useState<string>('');
+  const [vuParLabel, setVuParLabel] = useState<string>('');
 
+  // CV statut avec fallback
   const cvStatutChoices: Choice[] = useMemo(() => {
     const server = meta?.cv_statut_choices ?? [];
     return server.length ? server : CV_STATUT_FALLBACK;
@@ -178,25 +121,21 @@ export default function CandidatForm({
 
   useEffect(() => {
     const pick = mapFormationInfo(initialFormationInfo);
-    if (pick) {
-      setFormationInfo(pick);
-      if (!form.formation || form.formation === pick.id) {
-        setForm((f) => ({ ...f, formation: f.formation ?? pick.id }));
-        setFormationLabel(formatFormation(pick));
-      }
+    if (!pick) return;
+    setFormationInfo(pick);
+    if (!form.formation || form.formation === pick.id) {
+      setForm(f => ({ ...f, formation: f.formation ?? pick.id }));
+      setFormationLabel(formatFormation(pick));
     }
   }, [initialFormationInfo]);
 
   useEffect(() => {
-    if (!form.formation) {
-      setFormationLabel("");
-      return;
-    }
+    if (!form.formation) { setFormationLabel(''); return; }
     if (formationInfo && formationInfo.id === form.formation) {
       setFormationLabel(formatFormation(formationInfo));
       return;
     }
-    const opt = formationOptions.find((o) => o.value === form.formation);
+    const opt = formationOptions.find(o => o.value === form.formation);
     if (opt?.label) setFormationLabel(opt.label);
   }, [form.formation, formationOptions, formationInfo]);
 
@@ -208,7 +147,7 @@ export default function CandidatForm({
 
   useEffect(() => {
     if (form.vu_par && userOptions.length) {
-      const opt = userOptions.find((u) => u.value === form.vu_par);
+      const opt = userOptions.find(u => u.value === form.vu_par);
       if (opt?.label) setVuParLabel(opt.label);
     }
   }, [form.vu_par, userOptions]);
@@ -216,14 +155,12 @@ export default function CandidatForm({
   const effectiveCanEditFormation = useMemo(() => {
     if (!canEditFormation) return false;
     const role = currentUser?.role;
-    return !["candidat", "stagiaire"].includes(role ?? "");
+    return !['candidat', 'stagiaire'].includes(role ?? '');
   }, [canEditFormation, currentUser?.role]);
 
-  const handleCheckbox =
-    (key: keyof CandidatFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((f) => ({ ...f, [key]: e.target.checked as any }));
-    };
+  const handleCheckbox = (key: keyof CandidatFormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm((f) => ({ ...f, [key]: e.target.checked as CandidatFormData[typeof key] }));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,165 +169,190 @@ export default function CandidatForm({
 
   return (
     <>
-      <Box
-        component="form"
-        onSubmit={handleSubmit}
-        aria-busy={!!submitting}
-        sx={{ display: "grid", gap: 2 }}
-      >
-        {/* Identité */}
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Identité & contact</Typography>
-          <Grid container spacing={2} mt={1}>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Nom *"
-                required
-                fullWidth
-                {...field("nom", form.nom, setForm)}
-              />
+      <Box component="form" onSubmit={handleSubmit} display="grid" gap={2} aria-busy={!!submitting}>
+        
+        {/* Identité & contact */}
+        <Card variant="outlined">
+          <CardHeader title="Identité & contact" subheader="Les champs marqués * sont obligatoires." />
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}><TextField fullWidth required label="Nom" value={form.nom ?? ''} onChange={e => setForm(f => ({ ...f, nom: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={6}><TextField fullWidth required label="Prénom" value={form.prenom ?? ''} onChange={e => setForm(f => ({ ...f, prenom: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={6}><TextField fullWidth type="email" label="Email" value={form.email ?? ''} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={6}><TextField fullWidth label="Téléphone" value={form.telephone ?? ''} onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={6}><TextField fullWidth label="Ville" value={form.ville ?? ''} onChange={e => setForm(f => ({ ...f, ville: e.target.value }))} /></Grid>
+              <Grid item xs={12} md={6}><TextField fullWidth label="Code postal" value={form.code_postal ?? ''} onChange={e => setForm(f => ({ ...f, code_postal: e.target.value }))} /></Grid>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Prénom *"
-                required
-                fullWidth
-                {...field("prenom", form.prenom, setForm)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Email"
-                type="email"
-                fullWidth
-                {...field("email", form.email, setForm)}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label="Téléphone"
-                fullWidth
-                {...field("telephone", form.telephone, setForm)}
-              />
-            </Grid>
-          </Grid>
-        </Paper>
+          </CardContent>
+        </Card>
 
-        {/* Situation */}
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Situation & dates</Typography>
-          <Grid container spacing={2} mt={1}>
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <Typography variant="body2">Statut</Typography>
-                <Select
-                  value={form.statut ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      statut: e.target.value || undefined,
-                    }))
-                  }
-                >
-                  <MenuItem value="">— Choisir —</MenuItem>
-                  {(meta?.statut_choices ?? []).map((c) => (
-                    <MenuItem key={String(c.value)} value={String(c.value)}>
-                      {c.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+        {/* Situation & dates */}
+        <Card variant="outlined">
+          <CardHeader title="Situation & dates" />
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <FormLabel>Statut</FormLabel>
+                  <Select value={form.statut ?? ''} onChange={e => setForm(f => ({ ...f, statut: e.target.value || undefined }))}>
+                    <MenuItem value="">— Choisir —</MenuItem>
+                    {(meta?.statut_choices ?? []).map(c => (
+                      <MenuItem key={String(c.value)} value={String(c.value)}>{c.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <FormLabel>CV</FormLabel>
+                  <Select value={form.cv_statut ?? ''} onChange={e => setForm(f => ({ ...f, cv_statut: (e.target.value || undefined) as CVStatutValue | undefined }))}>
+                    <MenuItem value="">— Choisir —</MenuItem>
+                    {cvStatutChoices.map(c => (
+                      <MenuItem key={String(c.value)} value={String(c.value)}>{c.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField fullWidth type="date" label="Date de naissance" InputLabelProps={{ shrink: true }} value={form.date_naissance ?? ''} onChange={e => setForm(f => ({ ...f, date_naissance: e.target.value || undefined }))} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* Formation & OSIA */}
+        <Card variant="outlined">
+          <CardHeader title="Formation & OSIA" subheader={!effectiveCanEditFormation ? "La formation n’est pas modifiable pour votre rôle." : undefined} />
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Formation" value={formationLabel || (form.formation ? `#${form.formation}` : '')} InputProps={{ readOnly: true }} placeholder={effectiveCanEditFormation ? '— Aucune sélection —' : 'Non modifiable'} />
+                {effectiveCanEditFormation && (
+                  <Box display="flex" gap={1} mt={1}>
+                    <Button variant="outlined" onClick={() => setShowFormationModal(true)}>🔍 Sélectionner</Button>
+                    {form.formation && <Button color="error" variant="outlined" onClick={() => { setForm(f => ({ ...f, formation: undefined })); setFormationLabel(''); setFormationInfo(null); }}>✖ Effacer</Button>}
+                  </Box>
+                )}
+                {formationInfo && form.formation === formationInfo.id && (
+                  <Box mt={2} p={1.5} borderLeft={3} borderColor="primary.main" bgcolor="grey.50" borderRadius={1}>
+                    <Typography variant="body2"><b>Nom :</b> {formationInfo.nom ?? '—'}</Typography>
+                    <Typography variant="body2"><b>Centre :</b> {formationInfo.centre?.nom ?? '—'}</Typography>
+                    <Typography variant="body2"><b>Type d’offre :</b> <Chip size="small" label={formationInfo.type_offre?.nom ?? '—'} /></Typography>
+                    <Typography variant="body2"><b>N° d’offre :</b> {formationInfo.num_offre ?? '—'}</Typography>
+                  </Box>
+                )}
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Numéro OSIA" value={form.numero_osia ?? ''} onChange={e => setForm(f => ({ ...f, numero_osia: e.target.value }))} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* Prospection & placement */}
+        <Card variant="outlined">
+          <CardHeader title="Prospection & placement" />
+          <CardContent>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <FormLabel>Type de contrat</FormLabel>
+                  <Select value={form.type_contrat ?? ''} onChange={e => setForm(f => ({ ...f, type_contrat: e.target.value || undefined }))}>
+                    <MenuItem value="">—</MenuItem>
+                    {(meta?.type_contrat_choices ?? []).map(c => (
+                      <MenuItem key={String(c.value)} value={String(c.value)}>{c.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <FormLabel>Disponibilité</FormLabel>
+                  <Select value={form.disponibilite ?? ''} onChange={e => setForm(f => ({ ...f, disponibilite: e.target.value || undefined }))}>
+                    <MenuItem value="">—</MenuItem>
+                    {(meta?.disponibilite_choices ?? []).map(c => (
+                      <MenuItem key={String(c.value)} value={String(c.value)}>{c.label}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField fullWidth label="Origine sourcing" value={form.origine_sourcing ?? ''} onChange={e => setForm(f => ({ ...f, origine_sourcing: e.target.value }))} />
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+
+        {/* Niveaux & indicateurs */}
+        <Card variant="outlined">
+          <CardHeader title="Niveaux & indicateurs" />
+          <CardContent>
+            <Grid container spacing={2}>
+              {['communication','experience','csp'].map((key) => (
+                <Grid item xs={12} md={4} key={key}>
+                  <FormControl fullWidth>
+                    <FormLabel>{key.charAt(0).toUpperCase()+key.slice(1)}</FormLabel>
+                    <Select value={(form as any)[key] ?? ''} onChange={e => setForm(f => ({ ...f, [key]: e.target.value ? Number(e.target.value) : undefined }))}>
+                      <MenuItem value="">—</MenuItem>
+                      {(meta?.niveau_choices ?? []).map(n => (
+                        <MenuItem key={String(n.value)} value={String(n.value)}>{n.label}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              ))}
             </Grid>
 
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <Typography variant="body2">CV</Typography>
-                <Select
-                  value={form.cv_statut ?? ""}
-                  onChange={(e) =>
-                    setForm((f) => ({
-                      ...f,
-                      cv_statut: (e.target.value ||
-                        undefined) as CVStatutValue | undefined,
-                    }))
-                  }
-                >
-                  <MenuItem value="">— Choisir —</MenuItem>
-                  {cvStatutChoices.map((c) => (
-                    <MenuItem key={String(c.value)} value={String(c.value)}>
-                      {c.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+            <Divider sx={{ my:2 }} />
+            <Grid container spacing={2}>
+              {[
+                ['rqth','RQTH'],
+                ['permis_b','Permis B'],
+                ['entretien_done','Entretien OK'],
+                ['test_is_ok','Test OK'],
+                ['admissible','Admissible'],
+                ['courrier_rentree','Courrier rentrée'],
+                ['inscrit_gespers','Inscrit GESPERS'],
+              ].map(([key,label]) => (
+                <Grid item xs={12} md={3} key={key}>
+                  <FormControlLabel control={<Checkbox checked={(form as any)[key]} onChange={handleCheckbox(key as keyof CandidatFormData)} />} label={label} />
+                </Grid>
+              ))}
             </Grid>
-          </Grid>
-        </Paper>
+          </CardContent>
+        </Card>
 
-        {/* Checkboxes */}
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Indicateurs</Typography>
-          <Box display="flex" flexWrap="wrap" gap={2} mt={1}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={!!form.rqth}
-                  onChange={handleCheckbox("rqth")}
-                />
-              }
-              label="RQTH"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={!!form.permis_b}
-                  onChange={handleCheckbox("permis_b")}
-                />
-              }
-              label="Permis B"
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={!!form.inscrit_gespers}
-                  onChange={handleCheckbox("inscrit_gespers")}
-                />
-              }
-              label="Inscrit GESPERS"
-            />
-          </Box>
-        </Paper>
+        {/* Assignations */}
+        <Card variant="outlined">
+          <CardHeader title="Assignations & visibilité" />
+          <CardContent>
+            <TextField fullWidth label="Vu par" value={vuParLabel || (form.vu_par ? `Utilisateur #${form.vu_par}` : '')} InputProps={{ readOnly: true }} placeholder="— Aucune sélection —" />
+            <Box display="flex" gap={1} mt={1}>
+              <Button variant="outlined" onClick={() => setShowUsersModal(true)}>🔍 Choisir un utilisateur</Button>
+              {form.vu_par && <Button color="error" variant="outlined" onClick={() => { setForm(f => ({ ...f, vu_par: undefined })); setVuParLabel(''); }}>✖ Effacer</Button>}
+            </Box>
+            <FormHelperText>Recherche sur nom et email. Rôles proposés : staff, admin, superadmin.</FormHelperText>
+          </CardContent>
+        </Card>
 
         {/* Notes */}
-        <Paper sx={{ p: 2 }}>
-          <Typography variant="h6">Notes</Typography>
-          <TextField
-            fullWidth
-            multiline
-            minRows={4}
-            placeholder="Saisir une note…"
-            {...field("notes", form.notes, setForm)}
-          />
-        </Paper>
+        <Card variant="outlined">
+          <CardHeader title="Notes" subheader="Ajoutez tout contexte utile (entretien, contraintes, remarques…)" />
+          <CardContent>
+            <TextField fullWidth multiline minRows={4} placeholder="Saisir une note…" value={form.notes ?? ''} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+          </CardContent>
+        </Card>
 
         {/* Actions */}
         <Box display="flex" justifyContent="flex-end" gap={2}>
-          {onCancel && (
-            <Button onClick={onCancel} variant="outlined">
-              Annuler
-            </Button>
-          )}
-          <Button
-            type="submit"
-            variant="contained"
-            disabled={submitting}
-          >
-            {submitting ? "Enregistrement…" : "Enregistrer"}
+          {onCancel && <Button variant="outlined" onClick={onCancel}>Annuler</Button>}
+          <Button type="submit" variant="contained" disabled={submitting}>
+            {submitting ? 'Enregistrement…' : 'Enregistrer'}
           </Button>
         </Box>
       </Box>
 
-      {/* Modals */}
+      {/* Modal sélection formation */}
       <FormationSelectModal
         show={showFormationModal}
         onClose={() => setShowFormationModal(false)}
@@ -401,16 +363,16 @@ export default function CandidatForm({
           setShowFormationModal(false);
         }}
       />
+
+      {/* Modal sélection utilisateur (vu_par) */}
       <UsersSelectModal
         show={showUsersModal}
         onClose={() => setShowUsersModal(false)}
-        allowedRoles={["staff", "admin", "superadmin"]}
+        allowedRoles={['staff', 'admin', 'superadmin']}
         onlyActive
         onSelect={(pick: UserPick) => {
           setForm((f) => ({ ...f, vu_par: pick.id }));
-          setVuParLabel(
-            pick.full_name || pick.email || `Utilisateur #${pick.id}`
-          );
+          setVuParLabel(pick.full_name || pick.email || `Utilisateur #${pick.id}`);
           setShowUsersModal(false);
         }}
       />

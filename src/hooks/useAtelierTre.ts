@@ -18,7 +18,6 @@ const DEBUG_ATELIERS = true;
 
 const dbg = (...args: ReadonlyArray<unknown>): void => {
   if (!DEBUG_ATELIERS) return;
-  console.log("[AteliersTRE]", ...args);
 };
 // ──────────────────────────────────────────────────────────────────────────────
 

@@ -31,7 +31,6 @@ export function useProspections(params: ProspectionFiltresValues = {}, reloadKey
 
   const fetchData = useCallback(() => {
     const parsedParams = JSON.parse(paramsKey);
-    console.log('[useProspections] 📤 Envoi requête avec params :', parsedParams);
 
     setLoading(true);
     setError(null);
@@ -274,13 +273,11 @@ export default function useFiltresProspections() {
   useEffect(() => {
     const fetchFiltres = async () => {
       try {
-        console.log('[useFiltresProspections] 🚀 Requête en cours...');
         setLoading(true);
         setError(null);
 
         const res = await api.get<ApiResponse<typeof filtres>>('/prospections/filtres/');
         
-        console.log('[useFiltresProspections] ✅ Filtres reçus :', res.data.data);
         setFiltres(res.data.data);
       } catch (err) {
         console.error('[useFiltresProspections] ❌ Erreur lors du fetch :', err);
@@ -288,7 +285,6 @@ export default function useFiltresProspections() {
         setFiltres(null);
       } finally {
         setLoading(false);
-        console.log('[useFiltresProspections] ⏹️ Chargement terminé');
       }
     };
 

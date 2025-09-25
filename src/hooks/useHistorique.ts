@@ -15,13 +15,11 @@ export function useHistoriqueFormation() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log("📤 Chargement initial de tout l’historique depuis /formations/historique/");
     setLoading(true);
 
     api
       .get("/formations/historique/")
       .then((res) => {
-        console.log("✅ Réponse historique :", res.data);
         const historique = res.data.data || [];
         setData(historique);
       })
@@ -43,13 +41,11 @@ export function useHistoriqueFormationGroupe(filtres: HistoriqueFormationFiltres
   const params = useMemo(() => ({ ...filtres }), [filtres]);
 
   useEffect(() => {
-    console.log("📤 Envoi des filtres à /formations/historique/grouped/", params);
     setLoading(true);
 
     api
       .get("/formations/historique/grouped/", { params })
       .then((res) => {
-        console.log("✅ Réponse historique groupé :", res.data);
         const groupe = res.data.data || [];
         setData(groupe);
       })
@@ -65,7 +61,6 @@ export function useHistoriqueFormationGroupe(filtres: HistoriqueFormationFiltres
 
 // 🔁 Export CSV
 export async function exportHistoriqueCSV(filtres: HistoriqueFormationFiltres = {}) {
-  console.log("📤 Export CSV avec filtres :", filtres);
   try {
     const response = await api.get("/formations/historique/export/csv/", {
       params: filtres,
@@ -88,7 +83,6 @@ export async function exportHistoriqueCSV(filtres: HistoriqueFormationFiltres = 
 
 // 🔁 Export PDF
 export async function exportHistoriquePDF(filtres: HistoriqueFormationFiltres = {}) {
-  console.log("📤 Export PDF avec filtres :", filtres);
   try {
     const response = await api.get("/formations/historique/export/pdf/", {
       params: filtres,
@@ -116,7 +110,6 @@ export async function exportHistoriquePDFSelection(historiqueIds: number[]) {
     return;
   }
 
-  console.log("📤 Export PDF sélection – IDs :", historiqueIds);
   try {
     const response = await api.post(
       "/formations/historique/export/pdf/",
@@ -145,7 +138,6 @@ export async function exportHistoriqueCSVSelection(historiqueIds: number[]) {
     return;
   }
 
-  console.log("📤 Export CSV sélection – IDs :", historiqueIds);
   try {
     const response = await api.post(
       "/formations/historique/export/csv/",

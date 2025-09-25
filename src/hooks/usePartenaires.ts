@@ -311,11 +311,8 @@ export function useCreatePartenaire() {
       if (err instanceof Error) setError(err);
       // logs utiles en dev
       console.groupCollapsed("⛔ create partenaire failed");
-      console.log("📤 payload:", cleaned);
       if (isRecord(err) && "response" in err) {
         const r = (err as { response?: { status?: number; data?: unknown } }).response;
-        console.log("🔎 status:", r?.status);
-        console.log("🩺 details:", r?.data);
       }
       console.groupEnd();
       throw err;
@@ -344,11 +341,8 @@ export function useUpdatePartenaire(id: number) {
     } catch (err) {
       if (err instanceof Error) setError(err);
       console.groupCollapsed("⛔ update partenaire failed");
-      console.log("📤 payload:", cleaned);
       if (isRecord(err) && "response" in err) {
         const r = (err as { response?: { status?: number; data?: unknown } }).response;
-        console.log("🔎 status:", r?.status);
-        console.log("🩺 details:", r?.data);
       }
       console.groupEnd();
       throw err;
