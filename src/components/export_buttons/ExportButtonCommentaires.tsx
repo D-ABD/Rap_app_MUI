@@ -1,4 +1,3 @@
-// src/components/export/ExportButtonCommentaires.tsx
 import { useState } from "react";
 import {
   Button,
@@ -8,39 +7,58 @@ import {
   DialogActions,
   Typography,
   Box,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import ExportSelect, { ExportFormat } from "./ExportSelect";
-import { Commentaire } from "../../types/commentaire";
+import api from "../../api/axios";
+import ExportSelect from "./ExportSelect";
+import { ExportFormat } from "../../types/export";
 
+export type CommentaireRow = {
+  id: number;
+  formation_nom?: string | null;
+  centre_nom?: string | null;
+  num_offre?: string | null;
+  type_offre?: string | null;
+  statut?: string | null;
+  saturation_formation?: number | null;
+  contenu: string;
+  auteur?: string | null;
+  created_at: string;
+};
 
 type Props = {
-  data: Commentaire[];
+  data: CommentaireRow[];
+  selectedIds?: number[];
   label?: string;
-  filenameBase?: string;
 };
 
 export default function ExportButtonCommentaires({
   data,
-  label = "⬇️ Exporter les commentaires",
-  filenameBase = "commentaires",
+  selectedIds = [],
+  label = "⬇️ Exporter",
 }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
+  const [scope, setScope] = useState<"all" | "selected">("all");
   const [busy, setBusy] = useState(false);
 
-  const count = data?.length ?? 0;
-  const countBadge = count > 0 ? ` (${count})` : "";
-  const today = new Date().toISOString().slice(0, 10);
-  const filename = `${filenameBase}_${today}`;
+  const total = data?.length ?? 0;
+  const selectedCount = selectedIds.length;
 
-  const openModal = () => setShowModal(true);
+  const openModal = () => {
+    setScope(selectedCount > 0 ? "selected" : "all");
+    setShowModal(true);
+  };
   const closeModal = () => {
-    if (!busy) setShowModal(false);
+    if (busy) return;
+    setShowModal(false);
   };
 
   const handleExport = async () => {
-    if (!data || data.length === 0) {
+    if (total === 0) {
       toast.warning("Aucun commentaire à exporter.");
       return;
     }
@@ -48,43 +66,52 @@ export default function ExportButtonCommentaires({
     try {
       setBusy(true);
 
-      await exportData<Commentaire>(exportFormat, {
-        data,
-        filename,
-        headers: [
-          "Formation",
-          "Centre",
-          "Numéro offre",
-          "Type d’offre",
-          "Statut",
-          "Saturation formation",
-          "Contenu",
-          "Auteur",
-          "Date",
-        ],
-        mapper: (c) => [
-          c.formation_nom || "—",
-          c.centre_nom || "—",
-          c.num_offre || "—",
-          c.type_offre || "—",
-          c.statut || "—",
-          typeof c.saturation_formation === "number"
-            ? `${c.saturation_formation}%`
-            : "—",
-          (c.contenu ?? "").toString(),
-          c.auteur || "",
-          c.date || "",
-        ],
+      const baseUrl = `/commentaires/export/`;
+      let res;
+
+      if (scope === "selected" && selectedCount > 0) {
+        res = await api.post(
+          baseUrl,
+          { ids: selectedIds, format: exportFormat },
+          { responseType: "blob" }
+        );
+      } else {
+        res = await api.post(
+          baseUrl,
+          { all: true, format: exportFormat },
+          { responseType: "blob" }
+        );
+      }
+
+      const blob = new Blob([res.data], {
+        type:
+          exportFormat === "pdf"
+            ? "application/pdf"
+            : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
+      const filename =
+        res.headers["content-disposition"]?.split("filename=")[1]?.replace(/"/g, "") ||
+        `commentaires.${exportFormat}`;
+
+      const link = document.createElement("a");
+      const urlBlob = URL.createObjectURL(blob);
+      link.href = urlBlob;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(urlBlob);
+
       toast.success(
-        `Export ${exportFormat.toUpperCase()} de ${count} commentaire(s) prêt.`
+        `${exportFormat.toUpperCase()} prêt · ${
+          scope === "selected" && selectedCount > 0 ? selectedCount : total
+        } commentaire(s) exporté(s).`
       );
       setShowModal(false);
     } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Erreur lors de l’export.";
-      toast.error(msg);
+      console.error("❌ Erreur export :", e);
+      toast.error("Erreur lors de l’export.");
     } finally {
       setBusy(false);
     }
@@ -96,32 +123,51 @@ export default function ExportButtonCommentaires({
         variant="outlined"
         color="secondary"
         onClick={openModal}
-        disabled={busy || count === 0}
-        aria-label={`${label}${countBadge}`}
+        disabled={busy || total === 0}
         title={
-          count === 0
+          total === 0
             ? "Aucun commentaire à exporter"
-            : `Exporter ${count} commentaire(s)`
+            : `Exporter ${selectedCount || total} commentaire(s)`
         }
       >
         {busy ? "⏳ " : "⬇️ "}
-        {label}
-        {countBadge}
+        {label} {selectedCount > 0 ? `(${selectedCount})` : `(${total})`}
       </Button>
 
       <Dialog open={showModal} onClose={closeModal} maxWidth="sm" fullWidth>
         <DialogTitle>Exporter les commentaires</DialogTitle>
         <DialogContent dividers>
-          <Box sx={{ display: "grid", gap: 1.5 }}>
-            <Typography fontWeight={600}>Format d’export</Typography>
-            <ExportSelect
-              value={exportFormat}
-              onChange={(v) => setExportFormat(v)}
-            />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Le fichier sera nommé <code>{filename}</code> avec l’extension du
-              format choisi.
-            </Typography>
+          <Box sx={{ display: "grid", gap: 2 }}>
+            <Box>
+              <Typography fontWeight={600}>Format d’export</Typography>
+              <ExportSelect
+                value={exportFormat}
+                onChange={(v) => setExportFormat(v)}
+                options={["pdf", "xlsx"]}
+              />
+            </Box>
+
+            {selectedCount > 0 && (
+              <Box>
+                <Typography fontWeight={600}>Portée</Typography>
+                <RadioGroup
+                  row
+                  value={scope}
+                  onChange={(e) => setScope(e.target.value as "all" | "selected")}
+                >
+                  <FormControlLabel
+                    value="all"
+                    control={<Radio />}
+                    label={`Tout (${total})`}
+                  />
+                  <FormControlLabel
+                    value="selected"
+                    control={<Radio />}
+                    label={`Seulement la sélection (${selectedCount})`}
+                  />
+                </RadioGroup>
+              </Box>
+            )}
           </Box>
 
           {busy && (
@@ -141,7 +187,7 @@ export default function ExportButtonCommentaires({
           </Button>
           <Button
             onClick={handleExport}
-            disabled={busy || count === 0}
+            disabled={busy}
             variant="contained"
             color="primary"
           >
@@ -152,7 +198,3 @@ export default function ExportButtonCommentaires({
     </>
   );
 }
-function exportData<T>(exportFormat: string, arg1: { data: Commentaire[]; filename: string; headers: string[]; mapper: (c: any) => any[]; }) {
-  throw new Error("Function not implemented.");
-}
-

@@ -106,9 +106,19 @@ export default function MainLayout() {
       <CssBaseline />
 
       {/* 🔹 Navbar */}
-      <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+      <AppBar
+        position="fixed"
+        sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          background: (theme) =>
+            theme.palette.mode === "light"
+              ? "linear-gradient(90deg, #1976d2, #1565c0)"
+              : "linear-gradient(90deg, #212121, #000)",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+        }}
+      >
         <Toolbar sx={{ px: { xs: 1, sm: 2 } }}>
-          {/* 🔹 Bouton menu burger (ouvre toujours la sidebar) */}
+          {/* 🔹 Bouton menu burger */}
           <IconButton color="inherit" edge="start" onClick={toggleDrawer} sx={{ mr: 1 }}>
             <MenuIcon />
           </IconButton>
@@ -125,6 +135,7 @@ export default function MainLayout() {
                 color: "inherit",
                 textDecoration: "none",
                 fontSize: { xs: "1rem", sm: "1.2rem" },
+                fontWeight: 600,
               }}
             >
               Rap App
@@ -241,6 +252,9 @@ export default function MainLayout() {
           "& .MuiDrawer-paper": {
             width: drawerWidth,
             boxSizing: "border-box",
+            borderRight: (theme) => `1px solid ${theme.palette.divider}`,
+            borderTopRightRadius: 12,
+            borderBottomRightRadius: 12,
           },
         }}
       >
@@ -256,6 +270,22 @@ export default function MainLayout() {
                 onClick={() => {
                   if (item.children) toggleSubmenu(item.label);
                   if (item.path) toggleDrawer();
+                }}
+                sx={{
+                  borderRadius: 1,
+                  mx: 1,
+                  "&.Mui-selected": {
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === "light" ? "#e3f2fd" : "#333",
+                    "& .MuiListItemIcon-root, & .MuiListItemText-primary": {
+                      fontWeight: "bold",
+                      color: (theme) => theme.palette.primary.main,
+                    },
+                  },
+                  "&:hover": {
+                    backgroundColor: (theme) =>
+                      theme.palette.mode === "light" ? "#f5f5f5" : "#2a2a2a",
+                  },
                 }}
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
@@ -297,13 +327,21 @@ export default function MainLayout() {
           mt: { xs: 7, sm: 8 },
           backgroundColor: (theme) =>
             theme.palette.mode === "light" ? "#f9f9f9" : "#121212",
+          transition: "background-color 0.3s ease",
         }}
       >
         {/* ✅ Fil d’Ariane */}
         <Breadcrumbs
           aria-label="breadcrumb"
           separator={<NavigateNextIcon fontSize="small" />}
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            p: 1,
+            borderRadius: 1,
+            backgroundColor: (theme) =>
+              theme.palette.mode === "light" ? "#fff" : "#1e1e1e",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+          }}
         >
           <MuiLink component={Link} to="/" underline="hover" color="inherit">
             Accueil
@@ -331,7 +369,18 @@ export default function MainLayout() {
       </Box>
 
       {/* 🔹 Footer */}
-      <Footer />
+      <Box
+        component="footer"
+        sx={{
+          py: 2,
+          textAlign: "center",
+          borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+          backgroundColor: (theme) =>
+            theme.palette.mode === "light" ? "#fafafa" : "#1a1a1a",
+        }}
+      >
+        <Footer />
+      </Box>
     </Box>
   );
 }

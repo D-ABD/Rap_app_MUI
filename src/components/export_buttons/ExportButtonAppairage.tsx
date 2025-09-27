@@ -64,10 +64,10 @@ export default function ExportButtonAppairage({
   selectedIds,
   label = "⬇️ Exporter",
   filenameBase = "appairages",
-  endpointBase = "/appairages",
+  endpointBase = "/api/appairages",
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<ExportFormat>("csv");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("xlsx"); // ✅ forcé à XLSX
   const [busy, setBusy] = useState(false);
 
   const openModal = () => setShowModal(true);
@@ -81,31 +81,31 @@ export default function ExportButtonAppairage({
       setBusy(true);
       const qs =
         typeof window !== "undefined" ? window.location.search || "" : "";
-      const base = (endpointBase || "/appairages").replace(/\/$/, "");
-      const url = `${base}/export-${exportFormat}/${qs}`;
+      const base = (endpointBase || "/api/appairages").replace(/\/$/, "");
+      const url = `${base}/export-${exportFormat}${qs.startsWith("?") ? qs : ""}`;
 
-      const res = await api.post(
-        url,
-        { ids: selectedIds },
-        { responseType: "blob" }
-      );
 
-      const contentType =
-        (res.headers && (res.headers["content-type"] as string)) || "";
+
+      let res;
+      if (selectedIds.length > 0) {
+        console.log("   méthode = POST, body.ids =", selectedIds);
+        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
+      } else {
+        console.log("   méthode = GET (aucune sélection)");
+        res = await api.get(url, { responseType: "blob" });
+      }
+
+
+      const contentType = res.headers["content-type"] || "";
       const fallbackMime =
-        exportFormat === "pdf"
-          ? "application/pdf"
-          : "text/csv;charset=utf-8";
-      const blob = new Blob([res.data], {
-        type: contentType || fallbackMime,
-      });
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-      const disposition =
-        (res.headers &&
-          (res.headers["content-disposition"] as string)) ||
-        null;
+      const blob = new Blob([res.data], { type: contentType || fallbackMime });
+
+      const disposition = res.headers["content-disposition"] || null;
       const defaultName = `${filenameBase}.${exportFormat}`;
       const filename = getFilenameFromDisposition(disposition, defaultName);
+
 
       const link = document.createElement("a");
       const urlBlob = URL.createObjectURL(blob);
@@ -122,11 +122,12 @@ export default function ExportButtonAppairage({
 
       toast.success(
         selectedIds.length
-          ? `Export ${exportFormat.toUpperCase()} des ${selectedIds.length} sélection(s) prêt.`
-          : `Export ${exportFormat.toUpperCase()} du jeu filtré prêt.`
+          ? `Export XLSX des ${selectedIds.length} sélection(s) prêt.`
+          : "Export XLSX du jeu filtré prêt."
       );
       setShowModal(false);
     } catch (e: unknown) {
+      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -162,7 +163,8 @@ export default function ExportButtonAppairage({
             <Typography fontWeight={600}>Format d’export</Typography>
             <ExportSelect
               value={exportFormat}
-              onChange={(v) => setExportFormat(v)}
+              onChange={setExportFormat}
+              options={["xlsx"]} // ✅ limite à XLSX uniquement
             />
           </Box>
 

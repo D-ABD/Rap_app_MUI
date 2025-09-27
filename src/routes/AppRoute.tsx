@@ -61,6 +61,7 @@ import ProspectionEditPage from "../pages/prospection/ProspectionEditCandidatPag
 import ProspectionCommentPage from "../pages/prospection/prospectioncomments/ProspectionCommentPage";
 import ProspectionCommentCreatePage from "../pages/prospection/prospectioncomments/ProspectionCommentCreate";
 import ProspectionCommentEditPage from "../pages/prospection/prospectioncomments/ProspectionCommentEdit";
+import RegisterPage from "../pages/auth/RegisterPage";
 
 
 /* ---------- SecureRoute ---------- */
@@ -80,6 +81,8 @@ export default function AppRoute() {
     <Routes>
       {/* 🔓 Routes publiques */}
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
+
 
       {/* 🔐 Routes protégées avec layout */}
       <Route element={<MainLayout />}>

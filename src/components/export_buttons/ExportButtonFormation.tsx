@@ -10,14 +10,11 @@ import {
   Box,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import axiosLib from "axios"; // for isAxiosError
+import axiosLib from "axios"; // pour isAxiosError
 import api from "../../api/axios";
-import { ExportFormat } from "../../types/export";
 import ExportSelect from "./ExportSelect";
-import { Formation } from "../../types/formation";
 
 type Props = {
-  data?: Formation[];   // 👈 ajouter ici
   selectedIds: number[];
   label?: string;
   filenameBase?: string;
@@ -26,7 +23,7 @@ type Props = {
 
 function getFilenameFromDisposition(
   disposition?: string | null,
-  fallback = "export"
+  fallback = "formations.xlsx"
 ) {
   if (!disposition) return fallback;
   const match =
@@ -62,14 +59,14 @@ function getErrorMessage(err: unknown): string | null {
   }
 }
 
-export default function FormationExportButton({
+export default function ExportButtonFormations({
   selectedIds,
   label = "⬇️ Exporter",
   filenameBase = "formations",
-  endpointBase = "/formations",
+  endpointBase = "/formations", // ✅ pas de /api ici (déjà dans axios.ts)
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<ExportFormat>("csv");
+  const [exportFormat] = useState<"xlsx">("xlsx"); // ✅ forcé à XLSX
   const [busy, setBusy] = useState(false);
 
   const openModal = () => setShowModal(true);
@@ -84,28 +81,24 @@ export default function FormationExportButton({
       const qs =
         typeof window !== "undefined" ? window.location.search || "" : "";
       const base = (endpointBase || "/formations").replace(/\/$/, "");
-      const url = `${base}/export-${exportFormat}/${qs}`;
+      const url = `${base}/export-${exportFormat}/${qs.startsWith("?") ? qs : ""}`;
 
-      const res = await api.post(
-        url,
-        { ids: selectedIds },
-        { responseType: "blob" }
-      );
+      let res;
+      if (selectedIds.length > 0) {
+        console.log("👉 POST avec ids =", selectedIds);
+        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
+      } else {
+        console.log("👉 GET (aucune sélection)");
+        res = await api.get(url, { responseType: "blob" });
+      }
 
-      const contentType =
-        (res.headers && (res.headers["content-type"] as string)) || "";
+      const contentType = res.headers["content-type"] || "";
       const fallbackMime =
-        exportFormat === "pdf"
-          ? "application/pdf"
-          : "text/csv;charset=utf-8";
-      const blob = new Blob([res.data], {
-        type: contentType || fallbackMime,
-      });
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-      const disposition =
-        (res.headers &&
-          (res.headers["content-disposition"] as string)) ||
-        null;
+      const blob = new Blob([res.data], { type: contentType || fallbackMime });
+
+      const disposition = res.headers["content-disposition"] || null;
       const defaultName = `${filenameBase}.${exportFormat}`;
       const filename = getFilenameFromDisposition(disposition, defaultName);
 
@@ -124,11 +117,12 @@ export default function FormationExportButton({
 
       toast.success(
         selectedIds.length
-          ? `Export ${exportFormat.toUpperCase()} des ${selectedIds.length} formation(s) prêt.`
-          : `Export ${exportFormat.toUpperCase()} du jeu filtré prêt.`
+          ? `Export XLSX des ${selectedIds.length} formation(s) prêt.`
+          : "Export XLSX du jeu filtré prêt."
       );
       setShowModal(false);
     } catch (e: unknown) {
+      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -152,7 +146,7 @@ export default function FormationExportButton({
         aria-label={`${label}${countBadge}`}
         title={buttonTitle}
       >
-        {busy ? "⏳ " : "📄 "}
+        {busy ? "⏳ " : "⬇️ "}
         {label}
         {countBadge}
       </Button>
@@ -164,26 +158,19 @@ export default function FormationExportButton({
             <Typography fontWeight={600}>Format d’export</Typography>
             <ExportSelect
               value={exportFormat}
-              onChange={(v) => setExportFormat(v)}
+              onChange={() => {}}
+              options={["xlsx"]} // ✅ uniquement XLSX
             />
           </Box>
 
           {typeof window !== "undefined" && window.location.search ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Les filtres/tri actuels (
               <code>{window.location.search}</code>) seront appliqués si aucune
               sélection n’est fournie.
             </Typography>
           ) : (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble
               du jeu courant.
             </Typography>

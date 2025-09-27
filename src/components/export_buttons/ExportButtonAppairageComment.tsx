@@ -1,4 +1,4 @@
-// src/components/export/ExportButtonAppairageComment.tsx
+// src/components/export_buttons/ExportButtonAppairageComment.tsx
 import { useState } from "react";
 import {
   Button,
@@ -10,8 +10,10 @@ import {
   Box,
 } from "@mui/material";
 import { toast } from "react-toastify";
+import api from "../../api/axios";
 
-import ExportSelect, { ExportFormat } from "./ExportSelect";
+import ExportSelect from "./ExportSelect";
+import { ExportFormat } from "../../types/export"; // "pdf" | "xlsx"
 
 /** Aligné sur AppairageCommentSerializer (lecture) */
 export type AppairageCommentRow = {
@@ -29,21 +31,6 @@ type Props = {
   selectedIds: number[];
 };
 
-const toStr = (v: unknown, fallback = "—"): string => {
-  if (v === null || v === undefined) return fallback;
-  if (typeof v === "string") return v;
-  if (typeof v === "number" || typeof v === "boolean") return String(v);
-  return fallback;
-};
-
-const fmtDateTime = (iso?: string | null): string => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : d.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-};
-
 export default function ExportButtonAppairageComment({
   data,
   selectedIds,
@@ -54,8 +41,6 @@ export default function ExportButtonAppairageComment({
 
   const total = data?.length ?? 0;
   const selectedCount = selectedIds.length;
-  const today = new Date().toISOString().slice(0, 10);
-  const filename = `appairage_comments_${today}`;
 
   const openModal = () => setShowModal(true);
   const closeModal = () => {
@@ -64,12 +49,7 @@ export default function ExportButtonAppairageComment({
   };
 
   const handleExport = async () => {
-    const toExport =
-      selectedCount > 0
-        ? data.filter((d) => selectedIds.includes(d.id))
-        : data;
-
-    if (!toExport || toExport.length === 0) {
+    if (total === 0) {
       toast.warning("Aucun commentaire à exporter.");
       return;
     }
@@ -77,41 +57,48 @@ export default function ExportButtonAppairageComment({
     try {
       setBusy(true);
 
-      const headers = [
-        "#",
-        "Appairage",
-        "Partenaire",
-        "Candidat",
-        "Auteur",
-        "Date",
-        "Commentaire",
-      ];
+      // ✅ Choix de l’endpoint en fonction du format
+      const url =
+        exportFormat === "pdf"
+          ? "appairage-commentaires/export-pdf/"
+          : "appairage-commentaires/export-xlsx/";
 
-      const mapper = (c: AppairageCommentRow): string[] => [
-        `#${c.id}`,
-        `#${c.appairage}`,
-        toStr(c.partenaire_nom),
-        toStr(c.candidat_nom),
-        toStr(c.created_by_username),
-        fmtDateTime(c.created_at),
-        toStr(c.body),
-      ];
+      let res;
+      if (selectedIds.length > 0) {
+        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
+      } else {
+        res = await api.get(url, { responseType: "blob" });
+      }
 
-      await exportData<AppairageCommentRow>(exportFormat, {
-        data: toExport,
-        headers,
-        mapper,
-        filename,
+      const blob = new Blob([res.data], {
+        type:
+          exportFormat === "pdf"
+            ? "application/pdf"
+            : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
+      const filename =
+        res.headers["content-disposition"]?.split("filename=")[1]?.replace(/"/g, "") ||
+        `commentaires_appairage.${exportFormat}`;
+
+      const link = document.createElement("a");
+      const urlBlob = URL.createObjectURL(blob);
+      link.href = urlBlob;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(urlBlob);
+
       toast.success(
-        `${exportFormat.toUpperCase()} prêt · ${toExport.length} commentaire(s) exporté(s).`
+        `${exportFormat.toUpperCase()} prêt · ${
+          selectedCount > 0 ? selectedCount : total
+        } commentaire(s) exporté(s).`
       );
       setShowModal(false);
     } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Erreur lors de l’export.";
-      toast.error(msg);
+      console.error("❌ Erreur export :", e);
+      toast.error("Erreur lors de l’export.");
     } finally {
       setBusy(false);
     }
@@ -144,6 +131,7 @@ export default function ExportButtonAppairageComment({
             <ExportSelect
               value={exportFormat}
               onChange={(v) => setExportFormat(v)}
+              options={["pdf", "xlsx"]} // ✅ limite aux formats backend
             />
           </Box>
 
@@ -175,7 +163,3 @@ export default function ExportButtonAppairageComment({
     </>
   );
 }
-function exportData<T>(exportFormat: string, arg1: { data: AppairageCommentRow[]; headers: string[]; mapper: (c: AppairageCommentRow) => string[]; filename: string; }) {
-  throw new Error("Function not implemented.");
-}
-

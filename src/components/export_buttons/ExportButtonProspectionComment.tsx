@@ -1,4 +1,3 @@
-// src/components/prospections/ExportButtonProspectionComment.tsx
 import { useState } from "react";
 import {
   Button,
@@ -10,15 +9,15 @@ import {
   Box,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import ExportSelect, { ExportFormat } from "./ExportSelect";
-
+import api from "../../api/axios";
+import ExportSelect from "./ExportSelect";
+import { ExportFormat } from "../../types/export"; // ✅ import du type
 
 export type ProspectionCommentRow = {
   id: number;
   prospection: number;
   partenaire_nom?: string | null;
   formation_nom?: string | null;
-  prospection_text?: string | null;
   body: string;
   is_internal: boolean;
   created_by_username: string | null;
@@ -29,48 +28,19 @@ type Props = {
   data: ProspectionCommentRow[];
   selectedIds: number[];
   label?: string;
-  filenameBase?: string;
-};
-
-const toStr = (v: unknown, fallback = "—"): string => {
-  if (v === null || v === undefined) return fallback;
-  if (typeof v === "string") return v;
-  if (typeof v === "number" || typeof v === "boolean") return String(v);
-  return fallback;
-};
-
-const fmtDateTime = (iso?: string | null): string => {
-  if (!iso) return "—";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : d.toLocaleString("fr-FR", {
-        dateStyle: "short",
-        timeStyle: "short",
-      });
 };
 
 export default function ExportButtonProspectionComment({
   data,
   selectedIds,
   label = "⬇️ Exporter",
-  filenameBase = "prospection_comments",
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<ExportFormat>("csv");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf"); // ✅ par défaut PDF
   const [busy, setBusy] = useState(false);
 
   const total = data?.length ?? 0;
   const selectedCount = selectedIds.length;
-  const today = new Date().toISOString().slice(0, 10);
-  const filename = `${filenameBase}_${today}`;
-
-  const countBadge =
-    selectedCount > 0
-      ? ` (${selectedCount})`
-      : total > 0
-      ? ` (${total})`
-      : "";
 
   const openModal = () => setShowModal(true);
   const closeModal = () => {
@@ -79,12 +49,7 @@ export default function ExportButtonProspectionComment({
   };
 
   const handleExport = async () => {
-    const toExport =
-      selectedCount > 0
-        ? data.filter((d) => selectedIds.includes(d.id))
-        : data;
-
-    if (!toExport || toExport.length === 0) {
+    if (total === 0) {
       toast.warning("Aucun commentaire à exporter.");
       return;
     }
@@ -92,43 +57,44 @@ export default function ExportButtonProspectionComment({
     try {
       setBusy(true);
 
-      const headers = [
-        "#",
-        "Prospection",
-        "Partenaire",
-        "Formation",
-        "Interne",
-        "Auteur",
-        "Date",
-        "Commentaire",
-      ];
+      const url = `prospection-comments/export-${exportFormat}/`;
 
-      const mapper = (c: ProspectionCommentRow): string[] => [
-        `#${c.id}`,
-        `#${c.prospection}`,
-        toStr(c.partenaire_nom),
-        toStr(c.formation_nom),
-        c.is_internal ? "Oui" : "Non",
-        toStr(c.created_by_username),
-        fmtDateTime(c.created_at),
-        toStr(c.body),
-      ];
+      let res;
+      if (selectedIds.length > 0) {
+        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
+      } else {
+        res = await api.get(url, { responseType: "blob" });
+      }
 
-      await exportData<ProspectionCommentRow>(exportFormat, {
-        data: toExport,
-        headers,
-        mapper,
-        filename,
+      const blob = new Blob([res.data], {
+        type:
+          exportFormat === "pdf"
+            ? "application/pdf"
+            : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
+      const filename =
+        res.headers["content-disposition"]?.split("filename=")[1]?.replace(/"/g, "") ||
+        `prospection_commentaires.${exportFormat}`;
+
+      const link = document.createElement("a");
+      const urlBlob = URL.createObjectURL(blob);
+      link.href = urlBlob;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(urlBlob);
+
       toast.success(
-        `${exportFormat.toUpperCase()} prêt · ${toExport.length} commentaire(s) exporté(s).`
+        `${exportFormat.toUpperCase()} prêt · ${
+          selectedIds.length > 0 ? selectedIds.length : total
+        } commentaire(s) exporté(s).`
       );
       setShowModal(false);
     } catch (e) {
-      const msg =
-        e instanceof Error ? e.message : "Erreur lors de l’export.";
-      toast.error(msg);
+      console.error("❌ Erreur export :", e);
+      toast.error("Erreur lors de l’export.");
     } finally {
       setBusy(false);
     }
@@ -141,7 +107,6 @@ export default function ExportButtonProspectionComment({
         color="secondary"
         onClick={openModal}
         disabled={busy || total === 0}
-        aria-label={`${label}${countBadge}`}
         title={
           total === 0
             ? "Aucun commentaire à exporter"
@@ -149,8 +114,7 @@ export default function ExportButtonProspectionComment({
         }
       >
         {busy ? "⏳ " : "⬇️ "}
-        {label}
-        {countBadge}
+        {label} {selectedCount > 0 ? `(${selectedCount})` : `(${total})`}
       </Button>
 
       <Dialog open={showModal} onClose={closeModal} maxWidth="sm" fullWidth>
@@ -161,15 +125,8 @@ export default function ExportButtonProspectionComment({
             <ExportSelect
               value={exportFormat}
               onChange={(v) => setExportFormat(v)}
+              options={["pdf", "xlsx"]} // ✅ prop correcte
             />
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 1 }}
-            >
-              Le fichier sera nommé <code>{filename}</code> avec l’extension du
-              format choisi.
-            </Typography>
           </Box>
 
           {busy && (
@@ -200,7 +157,3 @@ export default function ExportButtonProspectionComment({
     </>
   );
 }
-function exportData<T>(exportFormat: string, arg1: { data: ProspectionCommentRow[]; headers: string[]; mapper: (c: ProspectionCommentRow) => string[]; filename: string; }) {
-  throw new Error("Function not implemented.");
-}
-

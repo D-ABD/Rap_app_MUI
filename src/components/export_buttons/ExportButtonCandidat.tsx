@@ -10,10 +10,10 @@ import {
   Box,
 } from "@mui/material";
 import { toast } from "react-toastify";
-
-import ExportSelect, { ExportFormat } from "./ExportSelect";
 import axiosLib from "axios"; // for isAxiosError
 import api from "../../api/axios";
+import { ExportFormat } from "../../types/export";
+import ExportSelect from "./ExportSelect";
 
 type Props = {
   selectedIds: number[];
@@ -67,7 +67,7 @@ export default function ExportButtonCandidat({
   endpointBase = "/candidats",
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<ExportFormat>("csv");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("xlsx"); // ✅ forcé à XLSX
   const [busy, setBusy] = useState(false);
 
   const openModal = () => setShowModal(true);
@@ -80,38 +80,27 @@ export default function ExportButtonCandidat({
     try {
       setBusy(true);
 
-      const sp = new URLSearchParams(
-        typeof window !== "undefined" ? window.location.search || "" : ""
-      );
+      const qs =
+        typeof window !== "undefined" ? window.location.search || "" : "";
+      const base = (endpointBase || "/candidats").replace(/\/$/, "");
+      const url = `${base}/export-${exportFormat}${qs.startsWith("?") ? qs : ""}`;
 
-      if (selectedIds.length) {
-        sp.set("id__in", selectedIds.join(","));
+      let res;
+      if (selectedIds.length > 0) {
+        console.log("👉 POST avec ids =", selectedIds);
+        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
       } else {
-        sp.delete("id__in");
+        console.log("👉 GET sans sélection");
+        res = await api.get(url, { responseType: "blob" });
       }
 
-      const base = (endpointBase || "/candidats").replace(/\/$/, "");
-      const qsStr = sp.toString();
-      const url = `${base}/export-${exportFormat}/${
-        qsStr ? `?${qsStr}` : ""
-      }`;
-
-      const res = await api.get(url, { responseType: "blob" });
-
-      const contentType =
-        (res.headers && (res.headers["content-type"] as string)) || "";
+      const contentType = res.headers["content-type"] || "";
       const fallbackMime =
-        exportFormat === "pdf"
-          ? "application/pdf"
-          : "text/csv;charset=utf-8";
-      const blob = new Blob([res.data], {
-        type: contentType || fallbackMime,
-      });
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-      const disposition =
-        (res.headers &&
-          (res.headers["content-disposition"] as string)) ||
-        null;
+      const blob = new Blob([res.data], { type: contentType || fallbackMime });
+
+      const disposition = res.headers["content-disposition"] || null;
       const defaultName = `${filenameBase}.${exportFormat}`;
       const filename = getFilenameFromDisposition(disposition, defaultName);
 
@@ -130,11 +119,12 @@ export default function ExportButtonCandidat({
 
       toast.success(
         selectedIds.length
-          ? `Export ${exportFormat.toUpperCase()} des ${selectedIds.length} candidat(s) prêt.`
-          : `Export ${exportFormat.toUpperCase()} du jeu filtré de candidats prêt.`
+          ? `Export XLSX des ${selectedIds.length} candidat(s) prêt.`
+          : "Export XLSX du jeu filtré prêt."
       );
       setShowModal(false);
     } catch (e: unknown) {
+      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -170,26 +160,19 @@ export default function ExportButtonCandidat({
             <Typography fontWeight={600}>Format d’export</Typography>
             <ExportSelect
               value={exportFormat}
-              onChange={(v) => setExportFormat(v)}
+              onChange={setExportFormat}
+              options={["xlsx"]} // ✅ limite à XLSX uniquement
             />
           </Box>
 
           {typeof window !== "undefined" && window.location.search ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Les filtres/tri actuels (
               <code>{window.location.search}</code>) seront appliqués si aucune
               sélection n’est fournie.
             </Typography>
           ) : (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble
               du jeu courant.
             </Typography>

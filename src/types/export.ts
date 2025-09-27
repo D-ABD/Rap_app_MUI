@@ -1,2 +1,2 @@
 // src/types/export.ts
-export type ExportFormat = 'pdf' | 'csv' | 'word';
+export type ExportFormat =  "pdf" | "xlsx";

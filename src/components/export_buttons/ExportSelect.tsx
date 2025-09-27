@@ -1,23 +1,25 @@
-// src/components/export/ExportSelect.tsx
 import { Select, MenuItem, SelectChangeEvent } from "@mui/material";
-
-export type ExportFormat = "pdf" | "csv" | "word";
+import { ExportFormat } from "../../types/export";
 
 interface ExportSelectProps {
   value: ExportFormat;
   onChange: (value: ExportFormat) => void;
+  options?: ExportFormat[]; // ✅ permet de limiter les formats par page
 }
 
-const OPTIONS: { value: ExportFormat; label: string }[] = [
+const DEFAULT_OPTIONS: { value: ExportFormat; label: string }[] = [
   { value: "pdf", label: "📄 PDF" },
-  { value: "csv", label: "📊 CSV" },
-  { value: "word", label: "📝 Word" },
+  { value: "xlsx", label: "📑 Excel" },
 ];
 
-export default function ExportSelect({ value, onChange }: ExportSelectProps) {
+export default function ExportSelect({ value, onChange, options }: ExportSelectProps) {
   const handleChange = (e: SelectChangeEvent<ExportFormat>) => {
     onChange(e.target.value as ExportFormat);
   };
+
+  const visibleOptions = options
+    ? DEFAULT_OPTIONS.filter(opt => options.includes(opt.value))
+    : DEFAULT_OPTIONS;
 
   return (
     <Select
@@ -28,7 +30,7 @@ export default function ExportSelect({ value, onChange }: ExportSelectProps) {
       size="small"
       sx={{ minWidth: 180 }}
     >
-      {OPTIONS.map((opt) => (
+      {visibleOptions.map(opt => (
         <MenuItem key={opt.value} value={opt.value}>
           {opt.label}
         </MenuItem>

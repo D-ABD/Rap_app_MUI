@@ -12,6 +12,8 @@ import WorkIcon from "@mui/icons-material/Work";
 import SchoolIcon from "@mui/icons-material/School";
 import DescriptionIcon from "@mui/icons-material/Description";
 import BusinessIcon from "@mui/icons-material/Business";
+import CommentIcon from "@mui/icons-material/Comment";
+import AssignmentIcon from "@mui/icons-material/Assignment";
 
 // 🔹 Définition du type d’un item de sidebar
 export interface SidebarItem {
@@ -23,35 +25,35 @@ export interface SidebarItem {
 
 // 🔹 Liste des items de la sidebar
 export const sidebarItems: SidebarItem[] = [
-  { label: "Accueil", path: "/", icon: <HomeIcon /> },
-  { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon /> },
+  { label: "Accueil", path: "/", icon: <HomeIcon sx={{ color: "primary.main" }} /> },
+  { label: "Dashboard", path: "/dashboard", icon: <DashboardIcon sx={{ color: "secondary.main" }} /> },
 
   // CRM
   {
     label: "CRM",
-    icon: <SearchIcon />,
+    icon: <SearchIcon sx={{ color: "info.main" }} />,
     children: [
-      { label: "Prospections", path: "/prospection", icon: <SearchIcon /> },
-      { label: "Prospections commentaires", path: "/prospection-commentaires", icon: <SearchIcon /> },
-      { label: "Partenaires", path: "/partenaires", icon: <BusinessIcon /> },
-      { label: "Appairages commentaires", path: "/appairage-commentaires", icon: <SearchIcon /> },
-      { label: "Appairage", path: "/appairages", icon: <WorkIcon /> },
-      { label: "Candidats", path: "/candidats", icon: <PeopleIcon /> },
-      { label: "Ateliers TRE", path: "/ateliers-tre", icon: <SchoolIcon /> },
+      { label: "Prospections", path: "/prospection", icon: <SearchIcon sx={{ color: "info.main" }} /> },
+      { label: "Prospections commentaires", path: "/prospection-commentaires", icon: <CommentIcon sx={{ color: "info.main" }} /> },
+      { label: "Partenaires", path: "/partenaires", icon: <BusinessIcon sx={{ color: "info.main" }} /> },
+      { label: "Appairages commentaires", path: "/appairage-commentaires", icon: <CommentIcon sx={{ color: "info.main" }} /> },
+      { label: "Appairage", path: "/appairages", icon: <WorkIcon sx={{ color: "info.main" }} /> },
+      { label: "Candidats", path: "/candidats", icon: <PeopleIcon sx={{ color: "info.main" }} /> },
+      { label: "Ateliers TRE", path: "/ateliers-tre", icon: <SchoolIcon sx={{ color: "info.main" }} /> },
     ],
   },
 
   // Revue d’offres
   {
     label: "Revue d’offres",
-    icon: <FolderIcon />,
+    icon: <FolderIcon sx={{ color: "secondary.main" }} />,
     children: [
-      { label: "Formations", path: "/formations", icon: <FolderIcon /> },
-      { label: "Commentaires", path: "/commentaires", icon: <DescriptionIcon /> },
-      { label: "Documents", path: "/documents", icon: <FolderIcon /> },
+      { label: "Formations", path: "/formations", icon: <AssignmentIcon sx={{ color: "secondary.main" }} /> },
+      { label: "Commentaires", path: "/commentaires", icon: <CommentIcon sx={{ color: "secondary.main" }} /> },
+      { label: "Documents", path: "/documents", icon: <DescriptionIcon sx={{ color: "secondary.main" }} /> },
     ],
   },
 
   // Paramètres
-  { label: "Paramètres", path: "/parametres", icon: <SettingsIcon /> },
+  { label: "Paramètres", path: "/parametres", icon: <SettingsIcon sx={{ color: "grey.600" }} /> },
 ];
