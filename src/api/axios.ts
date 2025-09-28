@@ -1,41 +1,79 @@
-// src/api/axios.ts
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { triggerGlobalLogout } from "./globalLogout";
+import { getTokens, storeTokens, clearTokens } from "./tokenStorage";
 
 const api = axios.create({
   baseURL: "http://localhost:8000/api",
   withCredentials: true,
 });
 
-// 🔑 Ajouter automatiquement le token si dispo
+// 🔑 Ajouter automatiquement l’`access` token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access");
-  if (token) {
-    if (config.headers?.set) {
-      // ✅ AxiosHeaders (Axios v1)
-      config.headers.set("Authorization", `Bearer ${token}`);
-    } else {
-      // ✅ fallback pour compatibilité
-      (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
-    }
+  const { access } = getTokens();
+  if (access) {
+    (config.headers as Record<string, string>)["Authorization"] = `Bearer ${access}`;
   }
   return config;
 });
 
-// 🚨 Gérer les erreurs globales
+// 🚨 Rafraîchir automatiquement le token expiré
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error?.response?.status;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as any;
 
-    if (status === 401) {
-      console.warn("🔒 Session expirée");
-      triggerGlobalLogout(); // 👉 gère déconnexion + toast côté AuthProvider
-    }
+    // Si 401 et pas déjà en cours de refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      const { refresh } = getTokens();
+      if (!refresh) {
+        triggerGlobalLogout();
+        return Promise.reject(error);
+      }
 
-    if (status === 403) {
-      console.warn("⛔️ Accès interdit");
-      // ⚠️ Pas de toast ici → on laisse la gestion à l'app si besoin
+      if (isRefreshing) {
+        // Attente pendant le refresh
+        return new Promise(function (resolve, reject) {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = "Bearer " + token;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const res = await axios.post("http://localhost:8000/api/token/refresh/", { refresh });
+        const newAccess = res.data.access;
+        storeTokens(newAccess, refresh); // on garde le refresh
+        api.defaults.headers.common["Authorization"] = "Bearer " + newAccess;
+        processQueue(null, newAccess);
+        return api(originalRequest); // rejoue la requête initiale
+      } catch (err) {
+        processQueue(err, null);
+        clearTokens();
+        triggerGlobalLogout();
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
+      }
     }
 
     return Promise.reject(error);
@@ -43,3 +81,4 @@ api.interceptors.response.use(
 );
 
 export default api;
+   

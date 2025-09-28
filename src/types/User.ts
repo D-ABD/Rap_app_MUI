@@ -147,3 +147,35 @@ export type UserFiltresOptions = Record<
   keyof UserFiltresValues,
   { value: string | number; label: string }[]
 >;
+
+
+
+// types/user.ts
+
+// ✅ Profil utilisateur connecté (GET /api/me/)
+export interface MeResponse {
+  success: boolean;
+  message: string;
+  data: User; // ← tu as déjà défini User plus haut
+}
+
+// ✅ Mise à jour du profil (PATCH /api/me/)
+export interface MeUpdatePayload {
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  bio?: string;
+  avatar?: File | null;
+  // tu peux restreindre uniquement aux champs éditables
+}
+
+export interface MeUpdateResponse {
+  success: boolean;
+  message: string;
+  data: User;
+}
+
+// ✅ Liste des rôles (GET /api/roles/)
+export type RolesResponse = RoleChoice[];
+

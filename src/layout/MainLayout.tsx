@@ -223,10 +223,17 @@ export default function MainLayout() {
                 onClose={() => setAnchorUser(null)}
               >
                 <MenuItem disabled>{user?.username || user?.email}</MenuItem>
+
+                {/* ✅ Nouveau lien vers le profil */}
+                <MenuItem component={Link} to="/mon-profil" onClick={() => setAnchorUser(null)}>
+                  <AccountCircle fontSize="small" /> &nbsp;Mon profil
+                </MenuItem>
+
                 <MenuItem onClick={handleLogout}>
                   <LogoutIcon fontSize="small" /> &nbsp;Déconnexion
                 </MenuItem>
               </Menu>
+
             </>
           ) : (
             <Button

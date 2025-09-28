@@ -62,6 +62,8 @@ import ProspectionCommentPage from "../pages/prospection/prospectioncomments/Pro
 import ProspectionCommentCreatePage from "../pages/prospection/prospectioncomments/ProspectionCommentCreate";
 import ProspectionCommentEditPage from "../pages/prospection/prospectioncomments/ProspectionCommentEdit";
 import RegisterPage from "../pages/auth/RegisterPage";
+import MonProfil from "../pages/users/MonProfil";
+import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
 
 
 /* ---------- SecureRoute ---------- */
@@ -82,6 +84,7 @@ export default function AppRoute() {
       {/* 🔓 Routes publiques */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
 
 
       {/* 🔐 Routes protégées avec layout */}
@@ -92,6 +95,9 @@ export default function AppRoute() {
         {/* Dashboard */}
         <Route path="/dashboard" element={secure(<DashboardPage />)} />
 
+        {/* ✅ Profil utilisateur connecté */}
+        <Route path="/mon-profil" element={secure(<MonProfil />)} />
+        
         {/* ✅ Paramètres */}
         <Route path="/parametres" element={secure(<ParametresPage />)} />
 

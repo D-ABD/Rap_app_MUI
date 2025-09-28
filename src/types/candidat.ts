@@ -297,7 +297,8 @@ export interface CandidatReadMinimal {
   code_postal?: string | null;
   formation?: number | null;
   statut: string;
-  cv_statut: 'oui' | 'en_cours' | 'a_modifier' | null;
+  cv_statut: CVStatutValue | null; // ✅ plutôt que répéter les string
   created_at: string; // ISO
   updated_at: string; // ISO
 }
+

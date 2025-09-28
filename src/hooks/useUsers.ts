@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
-import { CustomUserRole, RoleChoice, SimpleUser, User,  UserFiltresOptions } from '../types/User';
 import api from '../api/axios';
+import {
+  CustomUserRole,
+  RoleChoice,
+  SimpleUser,
+  User,
+  UserFiltresOptions,
+  MeResponse,
+  RolesResponse,
+} from '../types/User';
 
 
 // 👤 Données de l’utilisateur connecté
@@ -10,7 +18,7 @@ export function useMe() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get('/users/me/')
+    api.get<MeResponse>('/users/me/')
       .then(res => setUser(res.data.data))
       .catch(err => setError(err))
       .finally(() => setLoading(false));
@@ -27,7 +35,7 @@ export function useUsers() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get('/users/')
+    api.get<{ results: User[] }>('/users/')
       .then(res => setUsers(res.data.results || []))
       .catch(err => setError(err))
       .finally(() => setLoading(false));
@@ -44,7 +52,7 @@ export function useSimpleUsers() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get('/users/liste-simple/')
+    api.get<{ data: SimpleUser[] }>('/users/liste-simple/')
       .then(res => setUsers(res.data.data))
       .catch(err => setError(err))
       .finally(() => setLoading(false));
@@ -61,10 +69,10 @@ export function useUserRoles() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get('/users/roles/')
+    api.get<{ data: Record<string, string> }>('/users/roles/')
       .then(res => {
         const entries = Object.entries(res.data.data);
-        const formatted = entries.map(([value, label]) => ({
+        const formatted: RoleChoice[] = entries.map(([value, label]) => ({
           value: value as CustomUserRole,
           label: String(label),
         }));
@@ -79,8 +87,6 @@ export function useUserRoles() {
 
 
 // 🔎 Filtres utilisateurs pour <FiltresPanel />
-
-
 export default function useUserFiltres() {
   const [filtresOptions, setFiltresOptions] = useState<UserFiltresOptions>({
     role: [],
@@ -92,8 +98,8 @@ export default function useUserFiltres() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get('/users/filtres/')
-      .then((res) => {
+    api.get<{ data: UserFiltresOptions }>('/users/filtres/')
+      .then(res => {
         const data = res.data?.data || {};
         setFiltresOptions({
           role: data.role ?? [],

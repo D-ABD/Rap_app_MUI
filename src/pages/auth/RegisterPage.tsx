@@ -1,6 +1,6 @@
 // src/pages/auth/RegisterPage.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import api from "../../api/axios";
 import { toast } from "react-toastify";
@@ -11,6 +11,8 @@ import {
   TextField,
   Button,
   Alert,
+  Checkbox,
+  FormControlLabel,
 } from "@mui/material";
 
 export default function RegisterPage() {
@@ -21,13 +23,17 @@ export default function RegisterPage() {
     password2: "",
     first_name: "",
     last_name: "",
+    acceptRGPD: false, // ✅ ajout consentement
   });
 
   const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const { name, type, checked, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,6 +42,11 @@ export default function RegisterPage() {
 
     if (form.password1 !== form.password2) {
       setError("Les mots de passe ne correspondent pas.");
+      return;
+    }
+
+    if (!form.acceptRGPD) {
+      setError("Vous devez accepter la politique de confidentialité (RGPD).");
       return;
     }
 
@@ -143,6 +154,28 @@ export default function RegisterPage() {
             margin="normal"
             fullWidth
             required
+          />
+
+          {/* ✅ Consentement RGPD */}
+          <FormControlLabel
+            control={
+              <Checkbox
+                name="acceptRGPD"
+                checked={form.acceptRGPD}
+                onChange={handleChange}
+                required
+              />
+            }
+            label={
+              <Typography variant="body2">
+                J’accepte la{" "}
+                <Link to="/politique-confidentialite" target="_blank">
+                  politique de confidentialité
+                </Link>{" "}
+                et le traitement de mes données personnelles.
+              </Typography>
+            }
+            sx={{ mt: 2 }}
           />
 
           {error && (
