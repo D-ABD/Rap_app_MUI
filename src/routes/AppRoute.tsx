@@ -66,6 +66,7 @@ import MonProfil from "../pages/users/MonProfil";
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
 import DashboardCandidatPage from "../pages/DashboardCandidatPage";
 import MainLayoutCandidat from "../layout/MainLayoutCandidat";
+import About from "../pages/About";
 
 
 /* ---------- SecureRoute ---------- */
@@ -88,6 +89,7 @@ export default function AppRoute() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/politique-confidentialite" element={<PolitiqueConfidentialite />} />
+      <Route path="/about" element={<About />} />
 
 
       {/* 🔐 Routes protégées avec layout */}

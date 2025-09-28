@@ -34,6 +34,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import InfoIcon from "@mui/icons-material/Info";
 
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 
@@ -200,6 +201,10 @@ export default function MainLayout() {
                 </>
               )}
 
+              <Button color="inherit" component={Link} to="/about">
+                À propos
+              </Button>
+
               <Button color="inherit" component={Link} to="/parametres">
                 Paramètres
               </Button>
@@ -317,6 +322,11 @@ export default function MainLayout() {
                         <ListItemText primary={child.label} />
                       </ListItemButton>
                     ))}
+                    <ListItemButton component={Link} to="/about" onClick={toggleDrawer}>
+                    <ListItemIcon><InfoIcon /></ListItemIcon>
+                    <ListItemText primary="À propos" />
+                  </ListItemButton>
+
                   </List>
                 </Collapse>
               )}

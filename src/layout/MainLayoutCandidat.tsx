@@ -19,6 +19,7 @@ import {
   useTheme,
   useMediaQuery,
 } from "@mui/material";
+import InfoIcon from "@mui/icons-material/Info";
 
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -114,6 +115,9 @@ export default function MainLayoutCandidat() {
               <Button color="inherit" component={Link} to="/prospection-commentaires">
                 Commentaires Prospection
               </Button>
+              <Button color="inherit" component={Link} to="/about">
+                À propos
+              </Button>
             </Box>
           )}
 
@@ -183,6 +187,11 @@ export default function MainLayoutCandidat() {
             <ListItemIcon><CommentIcon /></ListItemIcon>
             <ListItemText primary="Commentaires Prospection" />
           </ListItemButton>
+          <ListItemButton component={Link} to="/about" onClick={toggleDrawer}>
+          <ListItemIcon><InfoIcon /></ListItemIcon>
+          <ListItemText primary="À propos" />
+        </ListItemButton>
+
         </List>
       </Drawer>
 

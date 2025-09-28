@@ -1,7 +1,9 @@
-// src/pages/PolitiqueConfidentialite.tsx
-import { Box, Typography, Paper } from "@mui/material";
+import { Box, Typography, Paper, Button, Stack } from "@mui/material";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function PolitiqueConfidentialite() {
+  const navigate = useNavigate();
+
   return (
     <Box
       sx={{
@@ -21,15 +23,32 @@ export default function PolitiqueConfidentialite() {
           p: 4,
         }}
       >
+
+
+
         <Typography variant="h4" gutterBottom>
           Politique de confidentialité
+                          {/* 🔹 Boutons navigation */}
+        <Stack spacing={2} direction="row" justifyContent="center" mt={4}>
+          <Button variant="outlined" onClick={() => navigate(-1)}>
+            ⬅️ Retour
+          </Button>
+          <Button variant="contained" component={Link} to="/">
+            🏠 Accueil
+          </Button>
+          <Button variant="contained" color="primary" component={Link} to="/dashboard">
+            📊 Dashboard
+          </Button>
+        </Stack>
         </Typography>
+
 
         <Typography variant="body1" paragraph>
           Conformément au Règlement Général sur la Protection des Données (RGPD),
           nous vous informons de la manière dont vos données personnelles sont
           collectées, utilisées et protégées dans le cadre de l’utilisation de
           notre application.
+
         </Typography>
 
         <Typography variant="h6" gutterBottom>
@@ -78,6 +97,19 @@ export default function PolitiqueConfidentialite() {
         <Typography variant="body2" paragraph sx={{ mt: 3, fontStyle: "italic" }}>
           Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}
         </Typography>
+
+        {/* 🔹 Boutons navigation */}
+        <Stack spacing={2} direction="row" justifyContent="center" mt={4}>
+          <Button variant="outlined" onClick={() => navigate(-1)}>
+            ⬅️ Retour
+          </Button>
+          <Button variant="contained" component={Link} to="/">
+            🏠 Accueil
+          </Button>
+          <Button variant="contained" color="primary" component={Link} to="/dashboard">
+            📊 Dashboard
+          </Button>
+        </Stack>
       </Paper>
     </Box>
   );
