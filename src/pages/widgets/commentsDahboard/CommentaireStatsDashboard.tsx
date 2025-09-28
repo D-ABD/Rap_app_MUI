@@ -18,14 +18,10 @@ import {
   TableRow,
   Paper,
   TablePagination,
+  IconButton,
+  Divider,
 } from "@mui/material";
-import {
-  ChatBubbleOutline as ChatBubbleOutlineIcon,
-  Refresh as RefreshIcon,
-  CalendarToday as CalendarTodayIcon,
-  Business as BusinessIcon,
-  Person as PersonIcon,
-} from "@mui/icons-material";
+import { Refresh as RefreshIcon } from "@mui/icons-material";
 import {
   CommentaireFilters,
   CommentaireItem,
@@ -47,39 +43,27 @@ type GroupedRow = {
 
 function sanitize(obj: Record<string, unknown>) {
   const out: Record<string, unknown> = {};
-  Object.entries(obj).forEach(([k, v]) => {
-    if (v === undefined || v === null || v === "") return;
-    out[k] = v;
-  });
+  for (const [k, v] of Object.entries(obj)) {
+    if (v != null && v !== "") out[k] = v;
+  }
   return out;
 }
 
 function useCentreOptionsFromGrouped(filters: CommentaireFilters) {
-  const params = useMemo(
-    () => sanitize({ ...filters, centre: undefined }),
-    [filters]
-  );
-  return useQuery<Array<{ id: string | number; label: string }>, Error>({
+  const params = useMemo(() => sanitize({ ...filters, centre: undefined }), [filters]);
+  return useQuery({
     queryKey: ["commentaires:options:centre", params],
     queryFn: async () => {
-      const { data } = await api.get<{ results: GroupedRow[] }>(
-        "/commentaire-stats/grouped/",
-        { params: { ...params, by: "centre" } }
-      );
+      const { data } = await api.get<{ results: GroupedRow[] }>("/commentaire-stats/grouped/", {
+        params: { ...params, by: "centre" },
+      });
       return (data?.results ?? [])
         .map((r) => {
           const id =
-            (typeof r["formation__centre_id"] === "number"
-              ? r["formation__centre_id"]
-              : undefined) ??
-            (typeof r.group_key === "number" || typeof r.group_key === "string"
-              ? r.group_key
-              : undefined);
-          if (id == null) return null;
-          const label =
-            (r["formation__centre__nom"] as string) ??
-            (r.group_label as string) ??
-            `Centre #${id}`;
+            (typeof r["formation__centre_id"] === "number" ? r["formation__centre_id"] : undefined) ??
+            (typeof r.group_key === "string" || typeof r.group_key === "number" ? r.group_key : undefined);
+          if (!id) return null;
+          const label = r["formation__centre__nom"] ?? r.group_label ?? `Centre #${id}`;
           return { id, label };
         })
         .filter(Boolean) as Array<{ id: string | number; label: string }>;
@@ -90,25 +74,18 @@ function useCentreOptionsFromGrouped(filters: CommentaireFilters) {
 }
 
 function useDepartementOptionsFromGrouped(filters: CommentaireFilters) {
-  const params = useMemo(
-    () => sanitize({ ...filters, departement: undefined }),
-    [filters]
-  );
-  return useQuery<Array<{ code: string; label: string }>, Error>({
+  const params = useMemo(() => sanitize({ ...filters, departement: undefined }), [filters]);
+  return useQuery({
     queryKey: ["commentaires:options:departement", params],
     queryFn: async () => {
-      const { data } = await api.get<{ results: GroupedRow[] }>(
-        "/commentaire-stats/grouped/",
-        { params: { ...params, by: "departement" } }
-      );
+      const { data } = await api.get<{ results: GroupedRow[] }>("/commentaire-stats/grouped/", {
+        params: { ...params, by: "departement" },
+      });
       return (data?.results ?? [])
         .map((r) => {
-          const code =
-            (r.departement as string) ??
-            (typeof r.group_key === "string" ? r.group_key : "");
+          const code = r.departement ?? (typeof r.group_key === "string" ? r.group_key : "");
           if (!code) return null;
-          const label = (r.group_label as string) ?? code;
-          return { code, label };
+          return { code, label: r.group_label ?? code };
         })
         .filter(Boolean) as Array<{ code: string; label: string }>;
     },
@@ -118,172 +95,102 @@ function useDepartementOptionsFromGrouped(filters: CommentaireFilters) {
 }
 
 /* ──────────────────────────────
-   Page
+   Dashboard
 ────────────────────────────── */
-export default function CommentaireStatsDashboard({
-  title = "Derniers commentaires",
-}: {
-  title?: string;
-}) {
+export default function CommentaireStatsDashboard({ title = "Derniers commentaires" }: { title?: string }) {
   const [filters, setFilters] = useState<CommentaireFilters>({ limit: 10 });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error, refetch, isFetching } =
-    useCommentaireLatest(filters);
-
+  const { data, isLoading, error, refetch, isFetching } = useCommentaireLatest(filters);
   const total = data?.count ?? 0;
   const results = data?.results ?? [];
 
-  const {
-    data: centreOptions = [],
-    isLoading: loadingCentres,
-    error: errCentres,
-  } = useCentreOptionsFromGrouped(filters);
+  const { data: centreOptions = [], isLoading: loadingCentres } = useCentreOptionsFromGrouped(filters);
+  const { data: departementOptions = [], isLoading: loadingDeps } = useDepartementOptionsFromGrouped(filters);
+  const { data: formationOptions = [], isLoading: loadingFormations } = useFormationOptionsFromGrouped(filters);
 
-  const {
-    data: departementOptions = [],
-    isLoading: loadingDeps,
-    error: errDeps,
-  } = useDepartementOptionsFromGrouped(filters);
-
-  const {
-    data: formationOptions = [],
-    isLoading: loadingFormations,
-    error: errFormations,
-  } = useFormationOptionsFromGrouped(filters);
-
-  // Pagination
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
-  const paginated = results.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+
+  const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-end"
-        flexWrap="wrap"
-        gap={2}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
-
-        {/* Filtres rapides */}
-        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-          {/* Centre */}
-          <Select
-            size="small"
-            value={filters.centre ? String(filters.centre) : ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                centre: e.target.value ? Number(e.target.value) : undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 160 }}
-          >
-            <MenuItem value="">
-              {loadingCentres
-                ? "Chargement…"
-                : errCentres
-                ? "Centres indisponibles"
-                : "Tous centres"}
-            </MenuItem>
-            {centreOptions.map((c) => (
-              <MenuItem key={String(c.id)} value={String(c.id)}>
-                {c.label}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Dép */}
-          <Select
-            size="small"
-            value={filters.departement ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                departement: e.target.value || undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 140 }}
-          >
-            <MenuItem value="">
-              {loadingDeps
-                ? "Chargement…"
-                : errDeps
-                ? "Départements indisponibles"
-                : "Tous départements"}
-            </MenuItem>
-            {departementOptions.map((d) => (
-              <MenuItem key={d.code} value={d.code}>
-                {d.label}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Formation */}
-          <Select
-            size="small"
-            value={filters.formation ? String(filters.formation) : ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                formation: e.target.value ? Number(e.target.value) : undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 220 }}
-          >
-            <MenuItem value="">
-              {loadingFormations
-                ? "Chargement…"
-                : errFormations
-                ? "Formations indisponibles"
-                : "Toutes formations"}
-            </MenuItem>
-            {formationOptions.map((f) => (
-              <MenuItem key={f.id} value={String(f.id)}>
-                {f.nom} — {f.num_offre ?? "?"} ({f.type_offre_nom ?? "?"})
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Recherche */}
-          <TextField
-            size="small"
-            placeholder="Recherche"
-            value={filters.search ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, search: e.target.value || undefined }))
-            }
-            sx={{ minWidth: 180 }}
-          />
-
-          {/* Refresh */}
-          <RefreshIcon
-            fontSize="small"
-            onClick={() => refetch()}
-            style={{ cursor: "pointer" }}
-            titleAccess="Rafraîchir"
-            color={isFetching ? "disabled" : "action"}
-          />
-        </Box>
+        <IconButton onClick={() => refetch()} disabled={isFetching} size="small" title="Rafraîchir">
+          <RefreshIcon fontSize="small" />
+        </IconButton>
       </Box>
+
+      {/* Filtres */}
+      <Box display="flex" gap={1} flexWrap="wrap">
+        <Select
+          size="small"
+          value={filters.centre ? String(filters.centre) : ""}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, centre: e.target.value ? Number(e.target.value) : undefined }))
+          }
+          displayEmpty
+          sx={{ minWidth: 160 }}
+        >
+          <MenuItem value="">{loadingCentres ? "Chargement…" : "Tous centres"}</MenuItem>
+          {centreOptions.map((c) => (
+            <MenuItem key={c.id} value={String(c.id)}>
+              {c.label}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Select
+          size="small"
+          value={filters.departement ?? ""}
+          onChange={(e) => setFilters((f) => ({ ...f, departement: e.target.value || undefined }))}
+          displayEmpty
+          sx={{ minWidth: 140 }}
+        >
+          <MenuItem value="">{loadingDeps ? "Chargement…" : "Tous départements"}</MenuItem>
+          {departementOptions.map((d) => (
+            <MenuItem key={d.code} value={d.code}>
+              {d.label}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Select
+          size="small"
+          value={filters.formation ? String(filters.formation) : ""}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, formation: e.target.value ? Number(e.target.value) : undefined }))
+          }
+          displayEmpty
+          sx={{ minWidth: 220 }}
+        >
+          <MenuItem value="">{loadingFormations ? "Chargement…" : "Toutes formations"}</MenuItem>
+          {formationOptions.map((f) => (
+            <MenuItem key={f.id} value={String(f.id)}>
+              {f.nom} — {f.num_offre ?? "?"} ({f.type_offre_nom ?? "?"})
+            </MenuItem>
+          ))}
+        </Select>
+
+        <TextField
+          size="small"
+          placeholder="Recherche"
+          value={filters.search ?? ""}
+          onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value || undefined }))}
+          sx={{ minWidth: 180 }}
+        />
+      </Box>
+
+      <Divider />
 
       {/* Content */}
       {isLoading ? (
@@ -300,69 +207,36 @@ export default function CommentaireStatsDashboard({
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Date</TableCell>
                   <TableCell>Formation</TableCell>
-                  <TableCell>Centre</TableCell>
-                  <TableCell>Période</TableCell>
-                  <TableCell>Auteur</TableCell>
                   <TableCell>Commentaire</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginated.map((c: CommentaireItem) => (
                   <TableRow key={c.id} hover>
-                    {/* Date */}
-                    <TableCell>
-                      <ChatBubbleOutlineIcon fontSize="small" /> {c.date} ·{" "}
-                      {c.heure}
-                    </TableCell>
-
-                    {/* Formation */}
-                    <TableCell>
-                      <strong>
-                        {c.formation_nom ??
-                          `Formation #${c.formation_id ?? "—"}`}
-                      </strong>
-                    </TableCell>
-
-                    {/* Centre */}
-                    <TableCell>
-                      {c.centre_nom && (
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <BusinessIcon fontSize="small" />
-                          {c.centre_nom}
-                        </Box>
-                      )}
-                    </TableCell>
-
-                    {/* Dates */}
-                    <TableCell>
+                    {/* Colonne Formation */}
+                    <TableCell sx={{ maxWidth: 300 }}>
+                      <Typography variant="body2" fontWeight="bold">
+                        {c.formation_nom ?? `Formation #${c.formation_id ?? "—"}`}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {c.type_offre ?? "?"} — {c.num_offre ?? "?"}
+                      </Typography>
+                      <Typography variant="caption" display="block" color="text.secondary">
+                        {c.centre_nom ?? "Centre inconnu"}
+                      </Typography>
                       {(c.start_date || c.end_date) && (
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <CalendarTodayIcon fontSize="small" />
-                          {c.start_date?.slice(0, 10) ?? "?"} →{" "}
-                          {c.end_date?.slice(0, 10) ?? "?"}
-                        </Box>
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          {c.start_date?.slice(0, 10) ?? "?"} → {c.end_date?.slice(0, 10) ?? "?"}
+                        </Typography>
                       )}
                     </TableCell>
 
-                    {/* Auteur */}
+                    {/* Colonne Commentaire */}
                     <TableCell>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <PersonIcon fontSize="small" />
-                        <Typography
-                          variant="body2"
-                          noWrap
-                          title={c.auteur}
-                          sx={{ maxWidth: 150 }}
-                        >
-                          {c.auteur}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-
-                    {/* Commentaire (tronqué) */}
-                    <TableCell>
+                      <Typography variant="body2" fontWeight="bold">
+                        {c.auteur} • {c.date} {c.heure}
+                      </Typography>
                       <Typography
                         variant="body2"
                         sx={{
@@ -384,7 +258,6 @@ export default function CommentaireStatsDashboard({
             </Table>
           </TableContainer>
 
-          {/* Pagination */}
           <TablePagination
             component="div"
             count={results.length}

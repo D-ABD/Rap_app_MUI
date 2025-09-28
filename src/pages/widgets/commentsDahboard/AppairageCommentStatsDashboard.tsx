@@ -17,14 +17,10 @@ import {
   Chip,
   Paper,
   TablePagination,
+  IconButton,
+  Divider,
 } from "@mui/material";
-import {
-  ChatOutlined as ChatOutlinedIcon,
-  Refresh as RefreshIcon,
-  Business as BusinessIcon,
-  Person as PersonIcon,
-  Link as LinkIcon,
-} from "@mui/icons-material";
+import { Refresh as RefreshIcon, Link as LinkIcon } from "@mui/icons-material";
 import {
   AppairageCommentFilters,
   AppairageCommentItem,
@@ -42,14 +38,9 @@ export default function AppairageCommentStatsDashboard({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error, refetch, isFetching } =
-    useAppairageCommentLatest(filters);
+  const { data, isLoading, error, refetch, isFetching } = useAppairageCommentLatest(filters);
 
-  const { data: centresGrouped } = useAppairageCommentGrouped("centre", {
-    ...filters,
-    centre: undefined,
-  });
-
+  const { data: centresGrouped } = useAppairageCommentGrouped("centre", { ...filters, centre: undefined });
   const { data: depsGrouped } = useAppairageCommentGrouped("departement", {
     ...filters,
     departement: undefined,
@@ -82,85 +73,59 @@ export default function AppairageCommentStatsDashboard({
 
   // Pagination
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
-  const paginated = results.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+
+  const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-end"
-        flexWrap="wrap"
-        gap={2}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
-
-        {/* Filtres rapides */}
-        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-          {/* Centre */}
-          <Select
-            size="small"
-            value={filters.centre ? String(filters.centre) : ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                centre: e.target.value ? Number(e.target.value) : undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 160 }}
-          >
-            <MenuItem value="">Tous centres</MenuItem>
-            {centreOptions.map((c) => (
-              <MenuItem key={c.id} value={String(c.id)}>
-                {c.label}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Département */}
-          <Select
-            size="small"
-            value={filters.departement ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                departement: e.target.value || undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 120 }}
-          >
-            <MenuItem value="">Tous départements</MenuItem>
-            {departementOptions.map((code) => (
-              <MenuItem key={code} value={code}>
-                {code}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Refresh */}
-          <RefreshIcon
-            fontSize="small"
-            onClick={() => refetch()}
-            style={{ cursor: "pointer" }}
-            titleAccess="Rafraîchir"
-            color={isFetching ? "disabled" : "action"}
-          />
-        </Box>
+        <IconButton onClick={() => refetch()} disabled={isFetching} size="small" title="Rafraîchir">
+          <RefreshIcon fontSize="small" />
+        </IconButton>
       </Box>
+
+      {/* Filtres rapides */}
+      <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+        <Select
+          size="small"
+          value={filters.centre ? String(filters.centre) : ""}
+          onChange={(e) => setFilters((f) => ({ ...f, centre: e.target.value ? Number(e.target.value) : undefined }))}
+          displayEmpty
+          sx={{ minWidth: 160 }}
+        >
+          <MenuItem value="">Tous centres</MenuItem>
+          {centreOptions.map((c) => (
+            <MenuItem key={c.id} value={String(c.id)}>
+              {c.label}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Select
+          size="small"
+          value={filters.departement ?? ""}
+          onChange={(e) => setFilters((f) => ({ ...f, departement: e.target.value || undefined }))}
+          displayEmpty
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="">Tous départements</MenuItem>
+          {departementOptions.map((code) => (
+            <MenuItem key={code} value={code}>
+              {code}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+
+      <Divider />
 
       {/* Content */}
       {isLoading ? (
@@ -177,41 +142,43 @@ export default function AppairageCommentStatsDashboard({
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Date</TableCell>
                   <TableCell>Appairage</TableCell>
-                  <TableCell>Centre</TableCell>
-                  <TableCell>Auteur</TableCell>
-                  <TableCell>Statut</TableCell>
+                  <TableCell>Commentaire</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginated.map((c: AppairageCommentItem) => (
                   <TableRow key={c.id} hover>
-                    {/* Date */}
-                    <TableCell>
-                      <ChatOutlinedIcon fontSize="small" /> {c.date} · {c.heure}
+                    {/* Colonne Appairage */}
+                    <TableCell sx={{ maxWidth: 340 }}>
+                      <Typography variant="body2" fontWeight="bold">
+                        Appairage #{c.appairage_id}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        {[c.partenaire_nom, c.formation_nom].filter(Boolean).join(" • ") || "—"}
+                      </Typography>
+                      {(c.num_offre || c.type_offre_nom) && (
+                        <Typography variant="caption" color="text.secondary" display="block">
+                          Offre {c.num_offre ?? "?"} — {c.type_offre_nom ?? "?"}
+                        </Typography>
+                      )}
+                      {c.centre_nom && (
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          {c.centre_nom}
+                        </Typography>
+                      )}
+                      {c.statut_snapshot && (
+                        <Chip size="small" variant="outlined" label={c.statut_snapshot} sx={{ mt: 0.5 }} />
+                      )}
                     </TableCell>
 
-                    {/* Appairage */}
+                    {/* Colonne Commentaire */}
                     <TableCell>
-                      <strong>{`Appairage #${c.appairage_id}`}</strong>
-                      {(c.formation_nom || c.partenaire_nom) && (
-                        <Box
-                          component="span"
-                          sx={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            ml: 1,
-                            color: "text.secondary",
-                            fontSize: "0.8rem",
-                          }}
-                        >
-                          <LinkIcon fontSize="small" sx={{ mr: 0.5 }} />
-                          {[c.partenaire_nom, c.formation_nom]
-                            .filter(Boolean)
-                            .join(" • ")}
-                        </Box>
-                      )}
+                      <Typography variant="body2" fontWeight="bold">
+                        {c.auteur} • {c.date} {c.heure}
+                      </Typography>
+                      {c.is_recent && <Chip size="small" label="Récent" sx={{ ml: 1 }} />}
+                      {c.is_edited && <Chip size="small" label="Édité" sx={{ ml: 1 }} />}
                       <Typography
                         variant="body2"
                         sx={{
@@ -221,53 +188,12 @@ export default function AppairageCommentStatsDashboard({
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           mt: 0.5,
-                          color: "text.secondary",
+                          maxWidth: 400,
                         }}
+                        title={c.body}
                       >
                         {c.body}
                       </Typography>
-                    </TableCell>
-
-                    {/* Centre */}
-                    <TableCell>
-                      {c.centre_nom && (
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <BusinessIcon fontSize="small" />
-                          {c.centre_nom}
-                        </Box>
-                      )}
-                    </TableCell>
-
-                    {/* Auteur */}
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <PersonIcon fontSize="small" />
-                        <Typography
-                          variant="body2"
-                          noWrap
-                          title={c.auteur}
-                          sx={{ maxWidth: 150 }}
-                        >
-                          {c.auteur}
-                        </Typography>
-                      </Box>
-                      {c.is_recent && (
-                        <Chip size="small" label="Récent" sx={{ mt: 0.5 }} />
-                      )}
-                      {c.is_edited && (
-                        <Chip size="small" label="Édité" sx={{ mt: 0.5 }} />
-                      )}
-                    </TableCell>
-
-                    {/* Statut */}
-                    <TableCell>
-                      {c.statut_snapshot && (
-                        <Chip
-                          size="small"
-                          variant="outlined"
-                          label={c.statut_snapshot}
-                        />
-                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -275,7 +201,6 @@ export default function AppairageCommentStatsDashboard({
             </Table>
           </TableContainer>
 
-          {/* Pagination */}
           <TablePagination
             component="div"
             count={results.length}

@@ -14,7 +14,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip,
   Paper,
   TablePagination,
 } from "@mui/material";
@@ -23,7 +22,7 @@ import {
   Refresh as RefreshCwIcon,
   Business as Building2Icon,
   Person as UserIcon,
-  GppMaybe as ShieldAlertIcon,
+  CalendarToday as CalendarIcon,
   Link as Link2Icon,
 } from "@mui/icons-material";
 import {
@@ -177,110 +176,73 @@ export default function ProspectionCommentStatsDashboard({
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Prospection</TableCell>
-                  <TableCell>Centre</TableCell>
-                  <TableCell>Auteur</TableCell>
-                  <TableCell>Infos</TableCell>
+                  <TableCell>Formation / Prospection</TableCell>
+                  <TableCell>Commentaire</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {paginated.map((c: ProspectionCommentItem) => (
                   <TableRow key={c.id} hover>
-                    {/* Date */}
+                    {/* Formation / Prospection */}
                     <TableCell>
-                      <MessageSquareTextIcon fontSize="small" /> {c.date} ·{" "}
-                      {c.heure}
-                      {c.is_internal && (
-                        <Chip
-                          size="small"
-                          color="error"
-                          icon={<ShieldAlertIcon fontSize="small" />}
-                          label="Interne"
-                          variant="outlined"
-                          sx={{ ml: 1 }}
-                        />
-                      )}
+                      <Box display="flex" flexDirection="column" gap={0.5}>
+                        <Typography variant="body2" fontWeight="bold">
+                          {c.formation_nom ??
+                            `Prospection #${c.prospection_id ?? "—"}`}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {c.type_offre_nom ?? "?"} • #{c.num_offre ?? "?"}
+                        </Typography>
+                        {c.centre_nom && (
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <Building2Icon fontSize="small" />
+                            {c.centre_nom}
+                          </Box>
+                        )}
+                        {(c.start_date || c.end_date) && (
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <CalendarIcon fontSize="small" />
+                            {c.start_date?.slice(0, 10) ?? "?"} →{" "}
+                            {c.end_date?.slice(0, 10) ?? "?"}
+                          </Box>
+                        )}
+                      </Box>
                     </TableCell>
 
-                    {/* Prospection */}
+                    {/* Commentaire */}
                     <TableCell>
-                      <strong>
-                        {c.prospection_text ??
-                          `Prospection #${c.prospection_id ?? "—"}`}
-                      </strong>
-                      {(c.formation_nom || c.partenaire_nom) && (
-                        <Box
-                          component="span"
-                          sx={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            ml: 1,
-                            color: "text.secondary",
-                            fontSize: "0.8rem",
-                          }}
-                        >
-                          <Link2Icon fontSize="small" sx={{ mr: 0.5 }} />
-                          {[c.partenaire_nom, c.formation_nom]
-                            .filter(Boolean)
-                            .join(" • ")}
-                        </Box>
-                      )}
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          mt: 0.5,
-                          color: "text.secondary",
-                        }}
-                      >
-                        {c.body}
-                      </Typography>
-                    </TableCell>
-
-                    {/* Centre */}
-                    <TableCell>
-                      {c.centre_nom && (
+                      <Box display="flex" flexDirection="column" gap={0.5}>
                         <Box display="flex" alignItems="center" gap={0.5}>
-                          <Building2Icon fontSize="small" />
-                          {c.centre_nom}
+                          <UserIcon fontSize="small" />
+                          <Typography
+                            variant="body2"
+                            noWrap
+                            title={c.auteur}
+                            sx={{ maxWidth: 150 }}
+                          >
+                            {c.auteur}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                          >
+                            • {c.date} {c.heure}
+                          </Typography>
                         </Box>
-                      )}
-                    </TableCell>
-
-                    {/* Auteur */}
-                    <TableCell>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <UserIcon fontSize="small" />
                         <Typography
                           variant="body2"
-                          noWrap
-                          title={c.auteur}
-                          sx={{ maxWidth: 150 }}
+                          sx={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            maxWidth: 500,
+                          }}
+                          title={c.body}
                         >
-                          {c.auteur}
+                          {c.body}
                         </Typography>
-                      </Box>
-                      {c.is_recent && (
-                        <Chip size="small" label="Récent" sx={{ mt: 0.5 }} />
-                      )}
-                      {c.is_edited && (
-                        <Chip size="small" label="Édité" sx={{ mt: 0.5 }} />
-                      )}
-                    </TableCell>
-
-                    {/* Infos tags */}
-                    <TableCell>
-                      <Box display="flex" gap={0.5} flexWrap="wrap">
-                        {c.statut && <Chip size="small" label={c.statut} />}
-                        {c.type_prospection && (
-                          <Chip size="small" label={c.type_prospection} />
-                        )}
-                        {c.objectif && <Chip size="small" label={c.objectif} />}
                       </Box>
                     </TableCell>
                   </TableRow>

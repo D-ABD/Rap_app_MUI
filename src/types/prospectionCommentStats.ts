@@ -30,6 +30,12 @@ export type ProspectionCommentItem = {
   formation_nom?: string | null;
   partenaire_nom?: string | null;
 
+  // ✅ ajoutés
+  num_offre?: string | null;
+  type_offre_nom?: string | null;
+  start_date?: string | null;
+  end_date?: string | null;
+
   statut?: string | null;
   type_prospection?: string | null;
   objectif?: string | null;
@@ -59,12 +65,10 @@ export type ProspectionCommentLatestResponse = {
 export type ProspectionCommentGroupBy = "centre" | "departement";
 
 export type ProspectionCommentGroupRow = {
-  // Clé/label normalisés par l’API
   group_key: number | string | null;
   group_label: string;
   total: number;
 
-  // Champs bruts possibles (suivant le by)
   "prospection__centre_id"?: number | null;
   "prospection__centre__nom"?: string | null;
   departement?: string | null;
@@ -82,19 +86,16 @@ export type ProspectionCommentGroupedResponse = {
 function normalizeFilters(filters: ProspectionCommentFilters) {
   const out: Record<string, unknown> = { ...filters };
 
-  // Booleans -> "true"/"false" pour les query params
   if (typeof filters.is_internal === "boolean") {
     out.is_internal = filters.is_internal ? "true" : "false";
   }
 
-  // Departement: on ne garde que les 2 premiers caractères (zéro à gauche ok)
   if (filters.departement != null) {
     const d = String(filters.departement).trim().slice(0, 2);
     if (d) out.departement = d;
     else delete out.departement;
   }
 
-  // Nettoyage des vides ("") pour ne pas polluer l’API
   Object.keys(out).forEach((k) => {
     const v = out[k as keyof typeof out];
     if (v === "" || v === undefined || v === null) {
@@ -128,7 +129,7 @@ export function useProspectionCommentLatest(filters: ProspectionCommentFilters) 
 }
 
 // ────────────────────────────────────────────────────────────
-// API — Grouped (centre | departement) pour options de select
+// API — Grouped
 // ────────────────────────────────────────────────────────────
 export async function getProspectionCommentGrouped(
   by: ProspectionCommentGroupBy,

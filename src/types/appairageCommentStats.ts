@@ -30,6 +30,9 @@ export type AppairageCommentItem = {
   formation_nom?: string | null;
   partenaire_nom?: string | null;
 
+  num_offre?: string | null;       // 🔹 ajouté
+  type_offre_nom?: string | null;  // 🔹 ajouté
+
   statut_snapshot?: string | null;
 
   body: string; // aperçu
@@ -43,6 +46,7 @@ export type AppairageCommentItem = {
   is_recent: boolean;
   is_edited: boolean;
 };
+
 
 export type AppairageCommentLatestResponse = {
   count: number;
