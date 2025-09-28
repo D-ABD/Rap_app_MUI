@@ -8,6 +8,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  useTheme,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useAuth } from "../hooks/useAuth";
@@ -39,13 +40,22 @@ import AppairageCommentStatsDashboard from "./widgets/commentsDahboard/Appairage
 import CommentaireStatsDashboard from "./widgets/commentsDahboard/CommentaireStatsDashboard";
 import ProspectionCommentStatsDashboard from "./widgets/commentsDahboard/ProspectionCommentStatsDashboard";
 
+type PaletteColorKey =
+  | "primary"
+  | "secondary"
+  | "success"
+  | "warning"
+  | "info"
+  | "error";
+
 const DashboardPage = () => {
   const { user } = useAuth();
+  const theme = useTheme();
 
-  const coloredAccordion = (
+  const styledAccordion = (
     children: React.ReactNode,
     title: string,
-    color: string,
+    color: PaletteColorKey,
     expanded = false
   ) => (
     <Accordion
@@ -54,31 +64,25 @@ const DashboardPage = () => {
         borderRadius: 2,
         mb: 2,
         overflow: "hidden",
-        boxShadow: "none", // 🔹 supprime l’ombre épaisse
-        border: "1px solid rgba(0,0,0,0.08)", // 🔹 ligne fine autour
-        "&:before": { display: "none" }, // 🔹 supprime la ligne par défaut MUI
+        boxShadow: theme.shadows[1],
+        "&:before": { display: "none" },
       }}
     >
       <AccordionSummary
-        expandIcon={<ExpandMoreIcon htmlColor="#fff" />}
+        expandIcon={<ExpandMoreIcon color="action" />}
         sx={{
-          backgroundColor: color,
-          color: "#fff",
-          minHeight: 10, // 🔹 réduit la hauteur
-          "& .MuiAccordionSummary-content": { my: 0.5 }, // 🔹 resserre le contenu
-          "&:hover": { opacity: 0.95 },
+          backgroundColor: theme.palette[color].light,
+          "&:hover": {
+            backgroundColor: theme.palette[color].main,
+            color: theme.palette.getContrastText(theme.palette[color].main),
+          },
         }}
       >
-        <Typography fontWeight="bold" variant="body1">
-          {`Afficher / Masquer : ${title}`}
+        <Typography variant="subtitle1" fontWeight="bold">
+          {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails
-        sx={{
-          backgroundColor: "#fafafa",
-          borderTop: "1px solid rgba(0,0,0,0.06)", // 🔹 fine séparation
-        }}
-      >
+      <AccordionDetails sx={{ backgroundColor: theme.palette.background.paper }}>
         {children}
       </AccordionDetails>
     </Accordion>
@@ -86,7 +90,7 @@ const DashboardPage = () => {
 
   return (
     <PageWrapper maxWidth="lg">
-      {/* 🔹 Header */}
+      {/* Header */}
       <Box mb={3}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Bienvenue, {user?.email || "utilisateur"} 👋
@@ -105,10 +109,8 @@ const DashboardPage = () => {
         </Button>
       </Box>
 
-      {/* ======================== */}
-      {/* 🔹 Sections */}
-      {/* ======================== */}
-      {coloredAccordion(
+      {/* Sections */}
+      {styledAccordion(
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <FormationSaturationWidget title="Saturation Formations" />
@@ -121,11 +123,11 @@ const DashboardPage = () => {
           </Grid>
         </Grid>,
         "Indicateurs clés",
-        "#1976d2",
+        "primary",
         true
       )}
 
-      {coloredAccordion(
+      {styledAccordion(
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <FormationOverviewWidget title="Répartition formations" />
@@ -138,10 +140,10 @@ const DashboardPage = () => {
           </Grid>
         </Grid>,
         "Stats Formations",
-        "#388e3c"
+        "success"
       )}
 
-      {coloredAccordion(
+      {styledAccordion(
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <CandidatOverviewWidget title="Statuts candidats" />
@@ -151,10 +153,10 @@ const DashboardPage = () => {
           </Grid>
         </Grid>,
         "Stats Candidats",
-        "#f57c00"
+        "warning"
       )}
 
-      {coloredAccordion(
+      {styledAccordion(
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
             <ProspectionOverviewWidget title="Overview Prospections" />
@@ -167,10 +169,10 @@ const DashboardPage = () => {
           </Grid>
         </Grid>,
         "Suivi (Prospection/Appairage/Ateliers)",
-        "#7b1fa2"
+        "info"
       )}
 
-      {coloredAccordion(
+      {styledAccordion(
         <>
           <FormationGroupedWidget />
           <CandidatGroupedTableWidget />
@@ -179,25 +181,25 @@ const DashboardPage = () => {
           <AteliersTREGroupedWidget />
         </>,
         "Analyse groupée",
-        "#0097a7"
+        "secondary"
       )}
 
-      {/* 🔹 Commentaires */}
-      {coloredAccordion(
+      {/* Commentaires */}
+      {styledAccordion(
         <CommentaireStatsDashboard />,
         "Derniers commentaires",
-        "#d32f2f",
+        "error",
         true
       )}
-      {coloredAccordion(
+      {styledAccordion(
         <AppairageCommentStatsDashboard />,
         "Derniers commentaires d’appairage",
-        "#512da8"
+        "secondary"
       )}
-      {coloredAccordion(
+      {styledAccordion(
         <ProspectionCommentStatsDashboard />,
         "Derniers commentaires de prospection",
-        "#455a64"
+        "info"
       )}
     </PageWrapper>
   );
