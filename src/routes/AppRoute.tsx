@@ -64,6 +64,7 @@ import ProspectionCommentEditPage from "../pages/prospection/prospectioncomments
 import RegisterPage from "../pages/auth/RegisterPage";
 import MonProfil from "../pages/users/MonProfil";
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
+import DashboardCandidatPage from "../pages/DashboardCandidatPage";
 
 
 /* ---------- SecureRoute ---------- */
@@ -79,6 +80,7 @@ const secure = (el: ReactNode) => <SecureRoute>{el}</SecureRoute>;
 
 /* ---------- Routes ---------- */
 export default function AppRoute() {
+    const { user } = useAuth(); // ✅ ICI on récupère user
   return (
     <Routes>
       {/* 🔓 Routes publiques */}
@@ -93,7 +95,17 @@ export default function AppRoute() {
         <Route index element={<HomePage />} />
 
         {/* Dashboard */}
-        <Route path="/dashboard" element={secure(<DashboardPage />)} />
+          <Route
+          path="/dashboard"
+          element={secure(
+            user?.is_staff || user?.is_admin || user?.is_superuser ? (
+              <DashboardPage />
+            ) : (
+              <DashboardCandidatPage />
+            )
+          )}
+        />
+
 
         {/* ✅ Profil utilisateur connecté */}
         <Route path="/mon-profil" element={secure(<MonProfil />)} />

@@ -28,6 +28,7 @@ export interface User {
   full_name?: string;
   is_staff?: boolean;
   is_superuser?: boolean;
+  is_admin?: boolean;
   last_login?: string;
   formation?: {
     id: number;
