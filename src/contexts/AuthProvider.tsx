@@ -10,6 +10,18 @@ import { registerLogoutCallback } from "../api/globalLogout";
 import { Box, CircularProgress, Typography } from "@mui/material";
 import logo from "../assets/logo.png"; // ✅ ton logo
 
+// ✅ Fonction helper pour enrichir l'objet user
+function normalizeUser(userData: User): User {
+  return {
+    ...userData,
+    is_admin:
+      userData.is_admin ??
+      ["admin", "superadmin"].includes(userData.role?.toLowerCase() || ""),
+    is_staff: userData.is_staff ?? userData.role?.toLowerCase() === "staff",
+    is_superuser: userData.is_superuser ?? userData.role?.toLowerCase() === "superadmin",
+  };
+}
+
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { access, refresh } = await loginAPI(email, password);
     storeTokens(access, refresh);
     const userData = await getUserProfile();
-    setUser(userData);
+    setUser(normalizeUser(userData));
 
     toast.success("Connexion réussie");
 
@@ -62,7 +74,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { access } = getTokens();
         if (access) {
           const userData = await getUserProfile();
-          setUser(userData);
+          setUser(normalizeUser(userData));
         }
       } catch {
         clearTokens();

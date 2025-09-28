@@ -65,6 +65,7 @@ import RegisterPage from "../pages/auth/RegisterPage";
 import MonProfil from "../pages/users/MonProfil";
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
 import DashboardCandidatPage from "../pages/DashboardCandidatPage";
+import MainLayoutCandidat from "../layout/MainLayoutCandidat";
 
 
 /* ---------- SecureRoute ---------- */
@@ -90,8 +91,11 @@ export default function AppRoute() {
 
 
       {/* 🔐 Routes protégées avec layout */}
-      <Route element={<MainLayout />}>
-        {/* Index */}
+        <Route element={user?.is_staff || user?.is_admin || user?.is_superuser 
+          ? <MainLayout /> 
+          : <MainLayoutCandidat />
+        }>
+          {/* Index */}
         <Route index element={<HomePage />} />
 
         {/* Dashboard */}
