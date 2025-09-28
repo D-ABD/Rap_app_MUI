@@ -125,14 +125,16 @@ export default function ProspectionCommentsModal({
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>
-        💬 Commentaires de prospection
-        {meta && (
-          <Typography variant="subtitle2" color="text.secondary">
-            Prospection #{prospectionId} — {meta.label}
-          </Typography>
-        )}
-      </DialogTitle>
+      <DialogTitle>💬 Commentaires de prospection</DialogTitle>
+      {meta && (
+        <Typography
+          variant="subtitle2"
+          color="text.secondary"
+          sx={{ px: 3, mt: -1, mb: 1 }}
+        >
+          Prospection #{prospectionId} — {meta.label}
+        </Typography>
+      )}
 
       <DialogContent dividers>
         {/* Header badges & actions */}
