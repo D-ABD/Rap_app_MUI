@@ -1,8 +1,8 @@
+// src/pages/prospections/ProspectionFormCandidat.tsx
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import {
   Box,
-  Stack,
   TextField,
   Button,
   CircularProgress,
@@ -11,6 +11,7 @@ import {
   Select,
   MenuItem,
   FormHelperText,
+  Typography,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 
@@ -49,6 +50,7 @@ export default function ProspectionFormCandidat({
   fixedFormationId,
 }: Props) {
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+
   const [form, setForm] = useState<ProspectionFormDraft>({
     partenaire: initialValues?.partenaire ?? null,
     partenaire_nom: initialValues?.partenaire_nom ?? null,
@@ -67,6 +69,7 @@ export default function ProspectionFormCandidat({
     moyen_contact: initialValues?.moyen_contact ?? null,
   });
 
+  // ⚙️ mettre à jour la formation si fixedFormationId change
   useEffect(() => {
     if (fixedFormationId != null) {
       setForm((prev) => ({ ...prev, formation: fixedFormationId }));
@@ -76,7 +79,7 @@ export default function ProspectionFormCandidat({
   const { choices, loading: loadingChoices, error } = useProspectionChoices();
   const [showPartenaireModal, setShowPartenaireModal] = useState(false);
 
-  // ✅ handler pour TextField (input/date)
+  // handler TextField
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setForm((prev) => {
@@ -101,13 +104,14 @@ export default function ProspectionFormCandidat({
     });
   };
 
-  // ✅ handler pour Select MUI
+  // handler Select MUI
   const handleSelectChange = (e: SelectChangeEvent) => {
     const { name, value } = e.target;
     setForm((prev) => {
       const next = { ...prev, [name]: value } as ProspectionFormDraft;
       if (name === "moyen_contact") {
-        next.moyen_contact = value === "" ? null : (value as ProspectionMoyenContact);
+        next.moyen_contact =
+          value === "" ? null : (value as ProspectionMoyenContact);
       }
       return next;
     });
@@ -167,7 +171,81 @@ export default function ProspectionFormCandidat({
       flexDirection="column"
       gap={2}
     >
-      {/* Exemple champ input */}
+      {/* Partenaire */}
+      <Box>
+        <TextField
+          label="Partenaire"
+          value={
+            form.partenaire_nom
+              ? form.partenaire_nom
+              : form.partenaire
+              ? `ID #${form.partenaire}`
+              : "—"
+          }
+          InputProps={{ readOnly: true }}
+          fullWidth
+          margin="dense"
+        />
+        {mode === "create" && (
+          <>
+            <Button
+              type="button"
+              onClick={() => setShowPartenaireModal(true)}
+              variant="outlined"
+            >
+              {form.partenaire
+                ? "Modifier le partenaire"
+                : "Sélectionner un partenaire"}
+            </Button>
+            <PartenaireSelectModal
+              show={showPartenaireModal}
+              onClose={() => setShowPartenaireModal(false)}
+              onSelect={(p) => {
+                setForm((prev) => ({
+                  ...prev,
+                  partenaire: p.id,
+                  partenaire_nom: p.nom,
+                }));
+                setShowPartenaireModal(false);
+              }}
+            />
+          </>
+        )}
+      </Box>
+
+      {/* Formation (lecture seule si présente) */}
+      {(form.formation_nom || fixedFormationId != null) && (
+        <TextField
+          label="Formation"
+          value={
+            form.formation_nom ??
+            (fixedFormationId != null ? `ID #${fixedFormationId}` : "—")
+          }
+          InputProps={{ readOnly: true }}
+          fullWidth
+          margin="dense"
+        />
+      )}
+      {form.centre_nom && (
+        <TextField
+          label="Centre"
+          value={form.centre_nom}
+          InputProps={{ readOnly: true }}
+          fullWidth
+          margin="dense"
+        />
+      )}
+      {form.num_offre && (
+        <TextField
+          label="Offre"
+          value={form.num_offre}
+          InputProps={{ readOnly: true }}
+          fullWidth
+          margin="dense"
+        />
+      )}
+
+      {/* Date de prospection */}
       <TextField
         type="date"
         name="date_prospection"
@@ -178,7 +256,7 @@ export default function ProspectionFormCandidat({
         required
       />
 
-      {/* Exemple champ Select */}
+      {/* Type de prospection */}
       <FormControl required>
         <InputLabel>Type de prospection</InputLabel>
         <Select
@@ -195,6 +273,84 @@ export default function ProspectionFormCandidat({
         <FormHelperText>Champ obligatoire</FormHelperText>
       </FormControl>
 
+      {/* Motif */}
+      <FormControl required>
+        <InputLabel>Motif</InputLabel>
+        <Select
+          name="motif"
+          value={form.motif || ""}
+          onChange={handleSelectChange}
+        >
+          {choices!.motif.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Statut */}
+      <FormControl required>
+        <InputLabel>Statut</InputLabel>
+        <Select
+          name="statut"
+          value={form.statut || ""}
+          onChange={handleSelectChange}
+        >
+          {choices!.statut.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Relance prévue */}
+      <TextField
+        type="date"
+        name="relance_prevue"
+        label="Date de relance prévue"
+        value={form.relance_prevue || ""}
+        onChange={handleInputChange}
+        InputLabelProps={{ shrink: true }}
+        inputProps={{ min: todayStr }}
+        helperText="Saisir une date bascule automatiquement le statut en 'À relancer' (sauf si statut terminal)."
+      />
+
+      {/* Objectif */}
+      <FormControl required>
+        <InputLabel>Objectif</InputLabel>
+        <Select
+          name="objectif"
+          value={form.objectif || ""}
+          onChange={handleSelectChange}
+        >
+          {choices!.objectif.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Moyen de contact */}
+      <FormControl>
+        <InputLabel>Moyen de contact</InputLabel>
+        <Select
+          name="moyen_contact"
+          value={form.moyen_contact ?? ""}
+          onChange={handleSelectChange}
+        >
+          <MenuItem value="">—</MenuItem>
+          {(choices?.moyen_contact ?? []).map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {/* Submit */}
       <Button type="submit" variant="contained" disabled={loading}>
         {loading
           ? mode === "create"
