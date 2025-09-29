@@ -67,6 +67,7 @@ import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
 import DashboardCandidatPage from "../pages/DashboardCandidatPage";
 import MainLayoutCandidat from "../layout/MainLayoutCandidat";
 import About from "../pages/About";
+import ProspectionDetailPage from "../pages/prospection/ProspectionDetailPage";
 
 
 /* ---------- SecureRoute ---------- */
@@ -176,7 +177,8 @@ export default function AppRoute() {
       <Route path="/prospections/create/candidat" element={<ProspectionCreatePageCandidat />} />
       <Route path="/prospections/:id/edit-candidat" element={<ProspectionEditCandidatPage />} /> 
       <Route path="/prospections/:id/edit" element={secure(<ProspectionEditPage />)} />
-     
+      <Route path="/prospections/:id" element={secure(<ProspectionDetailPage />)} />
+
            {/* Prospection — Commentaires dédiés */}
       <Route path="/prospection-commentaires" element={secure(<ProspectionCommentPage />)}/>
       <Route path="/prospection-commentaires/create" element={secure(<ProspectionCommentCreatePage />)}/>

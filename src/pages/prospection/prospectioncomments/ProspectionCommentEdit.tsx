@@ -22,12 +22,16 @@ export default function ProspectionCommentEditPage() {
   const { id } = useParams<{ id?: string }>();
 
   const { data: initial, loading, error } = useProspectionComment(id ?? null);
+  console.log("[DEBUG hook] initial =", initial);
+  console.log("[DEBUG hook] loading =", loading, "error =", error);
+
   const { update, error: updateError } = useUpdateProspectionComment(id ?? "");
 
   const numericId = id ? Number(id) : NaN;
   const hasValidId = !!id && Number.isFinite(numericId);
 
   const { user } = useAuth();
+  console.log("[DEBUG user] role =", user?.role);
   const canSetInternal = ["staff", "admin", "superadmin"].includes(
     user?.role ?? ""
   );
@@ -36,7 +40,8 @@ export default function ProspectionCommentEditPage() {
     try {
       await update({ body: data.body, is_internal: data.is_internal });
       toast.success(`💬 Commentaire #${numericId} mis à jour`);
-      navigate("/prospection-commentaires");
+      console.log("[DEBUG submit] prospectionId =", initial?.prospection);
+      navigate(`/prospections/${initial?.prospection}`);
     } catch {
       toast.error("Erreur lors de la mise à jour du commentaire");
     }
@@ -56,6 +61,7 @@ export default function ProspectionCommentEditPage() {
   }
 
   if (loading) {
+    console.log("[DEBUG rendu] loading commentaire", { numericId });
     return (
       <PageTemplate
         title={`Modifier commentaire #${numericId}`}
@@ -68,7 +74,8 @@ export default function ProspectionCommentEditPage() {
     );
   }
 
-  if (error || !initial) {
+  if (error) {
+    console.error("[DEBUG rendu erreur]", { numericId, error });
     return (
       <PageTemplate
         title={`Modifier commentaire #${numericId}`}
@@ -81,14 +88,33 @@ export default function ProspectionCommentEditPage() {
     );
   }
 
+  if (!initial) {
+    console.log("[DEBUG rendu attente données]", { numericId });
+    return (
+      <PageTemplate
+        title={`Modifier commentaire #${numericId}`}
+        backButton
+        onBack={() => navigate("/prospection-commentaires")}
+        centered
+      >
+        <CircularProgress />
+      </PageTemplate>
+    );
+  }
+
+  console.log("[DEBUG rendu OK] commentaire =", initial);
+
   return (
     <PageTemplate
       title={`Modifier commentaire #${numericId}`}
       backButton
-      onBack={() => navigate(-1)}
+      onBack={() => navigate(`/prospections/${initial.prospection}`)}
       actions={
         <Stack direction="row" spacing={1}>
-          <Button variant="outlined" onClick={() => navigate(-1)}>
+          <Button
+            variant="outlined"
+            onClick={() => navigate(`/prospections/${initial.prospection}`)}
+          >
             ← Retour
           </Button>
           <Button
