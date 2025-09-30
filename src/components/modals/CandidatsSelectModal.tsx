@@ -46,6 +46,10 @@ export type CandidatPick = {
   nom_complet: string;
   email: string | null;
   formation: FormationLite | null;
+  formation_nom?: string | null;
+  formation_num_offre?: string | null;
+  formation_type_offre?: string | null;
+  centre_nom?: string | null;
   compte_utilisateur_id?: number | null;
   compte_utilisateur?: {
     id?: number | null;
@@ -75,6 +79,9 @@ type CandidatApi = {
   formation?: FormationField;
   formation_id?: number | null;
   formation_nom?: string | null;
+  formation_num_offre?: string | null;
+  formation_type_offre?: string | null;
+  centre_nom?: string | null;
   compte_utilisateur?: number | Partial<CompteUtilisateurLite> | null;
   compte_utilisateur_id?: number | null;
 };
@@ -158,14 +165,13 @@ function normalizeCandidat(x: CandidatApi): CandidatPick {
     nom_complet: nomComplet,
     email: x.email ?? null,
     formation,
+    formation_nom: x.formation_nom ?? null,
+    formation_num_offre: x.formation_num_offre ?? null,
+    formation_type_offre: x.formation_type_offre ?? null,
+    centre_nom: x.centre_nom ?? null,
     compte_utilisateur_id: userId ?? undefined,
     compte_utilisateur: { id: userId ?? undefined, role, is_active },
   };
-}
-function formatFormation(f: FormationLite | null): string {
-  if (!f) return "—";
-  const name = _nn(f.nom);
-  return name ? name : `Formation #${f.id}`;
 }
 
 /* ---------- Component ---------- */
@@ -190,39 +196,39 @@ export default function CandidatsSelectModal({
   const [telephone, setTelephone] = useState("");
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    if (!show) return;
-    let cancelled = false;
+useEffect(() => {
+  if (!show) return;
+  let cancelled = false;
 
-    const fetchPage = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const params: Record<string, unknown> = { page_size: 50 };
-        if (_nn(search)) {
-          params.search = search;
-          params.texte = search;
-          params.q = search;
-        }
-        const res = await api.get<DRFEnvelope<CandidatApi>>("/candidats/", { params });
-        const page = asPaginated<CandidatApi>(res.data);
-        const normalized = page.results.map(normalizeCandidat);
-        if (!cancelled) setItems(normalized);
-      } catch (err: unknown) {
-        if (import.meta.env.MODE !== "production") {
-          console.error("Erreur chargement candidats :", err);
-        }
-        if (!cancelled) setError("Erreur lors du chargement des candidats.");
-      } finally {
-        if (!cancelled) setLoading(false);
+  const fetchPage = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params: Record<string, unknown> = { page_size: 50, lite: 1 }; // 👈 ajout du lite
+      if (_nn(search)) {
+        params.search = search;
+        params.texte = search;
+        params.q = search;
       }
-    };
+      const res = await api.get<DRFEnvelope<CandidatApi>>("/candidats/", { params });
+      const page = asPaginated<CandidatApi>(res.data);
+      const normalized = page.results.map(normalizeCandidat);
+      if (!cancelled) setItems(normalized);
+    } catch (err: unknown) {
+      if (import.meta.env.MODE !== "production") {
+        console.error("Erreur chargement candidats :", err);
+      }
+      if (!cancelled) setError("Erreur lors du chargement des candidats.");
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  };
 
-    fetchPage();
-    return () => {
-      cancelled = true;
-    };
-  }, [search, show]);
+  fetchPage();
+  return () => {
+    cancelled = true;
+  };
+}, [search, show]);
 
   const filtered = useMemo<CandidatPick[]>(() => {
     let list = items;
@@ -243,7 +249,7 @@ export default function CandidatsSelectModal({
     const s = _nn(search).toLowerCase();
     if (s) {
       list = list.filter((c) => {
-        const full = `${c.nom_complet} ${c.email ?? ""} ${c.formation?.nom ?? ""}`.toLowerCase();
+        const full = `${c.nom_complet} ${c.email ?? ""} ${c.formation_nom ?? ""} ${c.centre_nom ?? ""}`.toLowerCase();
         return full.includes(s);
       });
     }
@@ -306,7 +312,7 @@ export default function CandidatsSelectModal({
         <TextField
           fullWidth
           type="search"
-          placeholder="🔍 Rechercher un candidat (nom, email, formation)…"
+          placeholder="🔍 Rechercher un candidat (nom, email, formation, centre)…"
           value={search}
           onChange={(ev) => setSearch(ev.currentTarget.value)}
           margin="normal"
@@ -330,7 +336,14 @@ export default function CandidatsSelectModal({
                         {c.email && <span style={{ color: "#6b7280" }}> ({c.email})</span>}
                       </>
                     }
-                    secondary={`🏫 ${formatFormation(c.formation)}`}
+                    secondary={
+                      <>
+                        {c.formation_nom && `🎓 ${c.formation_nom}`}
+                        {c.formation_num_offre && ` • Offre ${c.formation_num_offre}`}
+                        {c.formation_type_offre && ` • ${c.formation_type_offre}`}
+                        {c.centre_nom && ` • Centre: ${c.centre_nom}`}
+                      </>
+                    }
                   />
                 </ListItemButton>
               </ListItem>
