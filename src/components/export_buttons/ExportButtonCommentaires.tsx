@@ -1,3 +1,8 @@
+// ======================================================
+// src/components/export/ExportButtonCommentaires.tsx
+// Bouton d’export PDF / XLSX avec option “Inclure les archivés”
+// ======================================================
+
 import { useState } from "react";
 import {
   Button,
@@ -10,6 +15,7 @@ import {
   RadioGroup,
   FormControlLabel,
   Radio,
+  Switch,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import api from "../../api/axios";
@@ -43,6 +49,7 @@ export default function ExportButtonCommentaires({
   const [showModal, setShowModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
   const [scope, setScope] = useState<"all" | "selected">("all");
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const total = data?.length ?? 0;
@@ -53,8 +60,7 @@ export default function ExportButtonCommentaires({
     setShowModal(true);
   };
   const closeModal = () => {
-    if (busy) return;
-    setShowModal(false);
+    if (!busy) setShowModal(false);
   };
 
   const handleExport = async () => {
@@ -67,19 +73,20 @@ export default function ExportButtonCommentaires({
       setBusy(true);
 
       const baseUrl = `/commentaires/export/`;
+      const params = includeArchived ? { include_archived: true } : undefined;
       let res;
 
       if (scope === "selected" && selectedCount > 0) {
         res = await api.post(
           baseUrl,
           { ids: selectedIds, format: exportFormat },
-          { responseType: "blob" }
+          { params, responseType: "blob" }
         );
       } else {
         res = await api.post(
           baseUrl,
           { all: true, format: exportFormat },
-          { responseType: "blob" }
+          { params, responseType: "blob" }
         );
       }
 
@@ -106,12 +113,14 @@ export default function ExportButtonCommentaires({
       toast.success(
         `${exportFormat.toUpperCase()} prêt · ${
           scope === "selected" && selectedCount > 0 ? selectedCount : total
-        } commentaire(s) exporté(s).`
+        } commentaire(s) exporté(s)${
+          includeArchived ? " (avec archivés)" : ""
+        }.`
       );
       setShowModal(false);
     } catch (e) {
       console.error("❌ Erreur export :", e);
-      toast.error("Erreur lors de l’export.");
+      toast.error("Erreur lors de l’export des commentaires.");
     } finally {
       setBusy(false);
     }
@@ -168,6 +177,17 @@ export default function ExportButtonCommentaires({
                 </RadioGroup>
               </Box>
             )}
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={includeArchived}
+                  onChange={(e) => setIncludeArchived(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Inclure les commentaires archivés"
+            />
           </Box>
 
           {busy && (
@@ -181,6 +201,7 @@ export default function ExportButtonCommentaires({
             </Typography>
           )}
         </DialogContent>
+
         <DialogActions>
           <Button onClick={closeModal} disabled={busy}>
             Annuler

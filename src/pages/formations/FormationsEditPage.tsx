@@ -1,358 +1,244 @@
-// src/pages/formations/FormationsEditPage.tsx
-import { useEffect, type FormEvent } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Checkbox,
-  FormControlLabel,
-  CircularProgress,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import api from "../../api/axios";
 
 import {
   useFormation,
   useFormationChoices,
-  useProspectionsByFormation,
   useUpdateFormation,
+  useDeleteFormation,
 } from "../../hooks/useFormations";
-import { useCommentaires } from "../../hooks/useCommentaires";
-import useForm from "../../hooks/useForm";
-import type {
-  FormationFormData,
-  FormationFormDataRaw,
-  FormationFormErrors,
-} from "../../types/formation";
 
+import type { Formation, FormationFormData } from "../../types/formation";
 import PageTemplate from "../../components/PageTemplate";
-import CommentairesSection from "./componentsFormations/CommentairesSection";
-import DocumentsSection from "./componentsFormations/DocumentsSection";
-import ProspectionsSection from "./componentsFormations/ProspectionsSection";
+import FormationForm from "./FormationForm";
 
 export default function FormationsEditPage() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const { data: formation, loading } = useFormation(Number(id));
-  const { updateFormation, loading: updating } = useUpdateFormation(Number(id));
-  const {
-    centres = [],
-    statuts = [],
-    typeOffres = [],
-    loading: loadingChoices,
-  } = useFormationChoices();
-  const { commentaires, loading: loadingCommentaires } = useCommentaires(
-    Number(id)
-  );
-  const { prospections, loading: loadingProspections } =
-    useProspectionsByFormation(Number(id));
+  const formationId = useMemo(() => {
+    const n = Number(id);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }, [id]);
 
-  const { values, errors, handleChange, handleCheckbox, setValues, setErrors } =
-    useForm<FormationFormDataRaw>({
-      nom: "",
-      centre_id: null,
-      type_offre_id: null,
-      statut_id: null,
-      start_date: "",
-      end_date: "",
-      num_kairos: "",
-      num_offre: "",
-      num_produit: "",
-      assistante: "",
-      prevus_crif: 0,
-      prevus_mp: 0,
-      inscrits_crif: 0,
-      inscrits_mp: 0,
-      cap: 0,
-      convocation_envoie: false,
-      entree_formation: 0,
-      nombre_candidats: 0,
-      nombre_entretiens: 0,
-    });
+  const { data: detail, loading, error } = useFormation(formationId ?? 0);
+  const { updateFormation, loading: saving } = useUpdateFormation(formationId ?? 0);
+  const { deleteFormation, loading: removing } = useDeleteFormation(formationId ?? 0);
+  const { centres = [], statuts = [], typeOffres = [], loading: loadingChoices } =
+    useFormationChoices();
 
-  useEffect(() => {
-    if (formation) {
-      setValues({
-        nom: formation.nom || "",
-        centre_id: formation.centre?.id || null,
-        type_offre_id: formation.type_offre?.id || null,
-        statut_id: formation.statut?.id || null,
-        start_date: formation.start_date || "",
-        end_date: formation.end_date || "",
-        num_kairos: formation.num_kairos || "",
-        num_offre: formation.num_offre || "",
-        num_produit: formation.num_produit || "",
-        assistante: formation.assistante || "",
-        prevus_crif: formation.prevus_crif ?? 0,
-        prevus_mp: formation.prevus_mp ?? 0,
-        inscrits_crif: formation.inscrits_crif ?? 0,
-        inscrits_mp: formation.inscrits_mp ?? 0,
-        cap: formation.cap ?? 0,
-        convocation_envoie: formation.convocation_envoie ?? false,
-        entree_formation: formation.entree_formation ?? 0,
-        nombre_candidats: formation.nombre_candidats ?? 0,
-        nombre_entretiens: formation.nombre_entretiens ?? 0,
-      });
-    }
-  }, [formation, setValues]);
+  const [localDetail, setLocalDetail] = useState<Formation | null>(null);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // ------------------------------------------------------------------
+  // 🔹 Archiver / Désarchiver
+  // ------------------------------------------------------------------
+  const handleArchiveToggle = async () => {
+    if (!formationId || !detail) return;
 
-    const payload: FormationFormData = {
-      ...values,
-      centre_id: values.centre_id !== null ? Number(values.centre_id) : null,
-      type_offre_id:
-        values.type_offre_id !== null ? Number(values.type_offre_id) : null,
-      statut_id: values.statut_id !== null ? Number(values.statut_id) : null,
-    };
+    const formation = localDetail ?? detail;
+    const isArchived = !!formation.est_archivee;
 
     try {
-      await updateFormation(payload);
-      toast.success("✅ Formation mise à jour");
-      navigate("/formations");
-    } catch (err: unknown) {
-      const serverError = err as {
-        response?: { data?: { errors?: FormationFormErrors } };
-      };
-      const backendErrors = serverError.response?.data?.errors;
-      if (backendErrors) {
-        setErrors(backendErrors);
+      if (isArchived) {
+        await api.post(`/formations/${formationId}/desarchiver/`);
+        toast.success("♻️ Formation désarchivée");
+        setLocalDetail({ ...formation, est_archivee: false, activite: "active" });
+      } else {
+        await api.post(`/formations/${formationId}/archiver/`);
+        toast.info("📦 Formation archivée");
+        setLocalDetail({ ...formation, est_archivee: true, activite: "archivee" });
       }
-      toast.error("Erreur lors de la mise à jour");
+    } catch {
+      toast.error("❌ Échec de l’opération d’archivage");
     }
   };
 
-  if (loading || !formation) return <CircularProgress />;
+  // ------------------------------------------------------------------
+  // 🔹 Suppression
+  // ------------------------------------------------------------------
+  const handleDelete = async () => {
+    if (!formationId) return;
+    if (!window.confirm(`Supprimer définitivement la formation #${formationId} ?`)) return;
 
+    try {
+      await deleteFormation();
+      toast.success("🗑️ Formation supprimée");
+      navigate("/formations");
+    } catch {
+      toast.error("❌ Échec de la suppression");
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // 🔹 Mise à jour du formulaire
+  // ------------------------------------------------------------------
+  const handleUpdate = async (values: FormationFormData) => {
+    if (!formationId) return;
+    try {
+      const updated = await updateFormation(values);
+      setLocalDetail(updated);
+      toast.success("✅ Formation mise à jour");
+    } catch {
+      toast.error("❌ Échec de la mise à jour");
+    }
+  };
+
+  // ------------------------------------------------------------------
+  // 🔹 Rendu conditionnel
+  // ------------------------------------------------------------------
+  if (!formationId) {
+    return (
+      <PageTemplate title="Formation — détail">
+        <Typography color="error">❌ Identifiant invalide.</Typography>
+      </PageTemplate>
+    );
+  }
+
+  if (loading || loadingChoices) {
+    return (
+      <PageTemplate title={`Formation #${formationId}`}>
+        <CircularProgress />
+      </PageTemplate>
+    );
+  }
+
+  if (error || !detail) {
+    return (
+      <PageTemplate title={`Formation #${formationId}`}>
+        <Typography color="error">
+          ❌ Impossible de charger la formation.
+        </Typography>
+      </PageTemplate>
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // 🔹 Données prêtes
+  // ------------------------------------------------------------------
+  const formation = localDetail ?? detail;
+  const archived = !!formation.est_archivee;
+
+  const formInitialValues: FormationFormData = {
+    nom: formation.nom,
+    centre_id: formation.centre?.id ?? null,
+    type_offre_id: formation.type_offre?.id ?? null,
+    statut_id: formation.statut?.id ?? null,
+    start_date: formation.start_date ?? "",
+    end_date: formation.end_date ?? "",
+    num_kairos: formation.num_kairos ?? "",
+    num_offre: formation.num_offre ?? "",
+    num_produit: formation.num_produit ?? "",
+    prevus_crif: formation.prevus_crif ?? undefined,
+    prevus_mp: formation.prevus_mp ?? undefined,
+    inscrits_crif: formation.inscrits_crif ?? undefined,
+    inscrits_mp: formation.inscrits_mp ?? undefined,
+    intitule_diplome: formation.intitule_diplome ?? "",
+    code_diplome: formation.code_diplome ?? "",
+    code_rncp: formation.code_rncp ?? "",
+    total_heures: formation.total_heures ?? undefined,
+    heures_distanciel: formation.heures_distanciel ?? undefined,
+    assistante: formation.assistante ?? "",
+    cap: formation.cap ?? undefined,
+    convocation_envoie: formation.convocation_envoie ?? false,
+    entree_formation: formation.entree_formation ?? 0,
+    nombre_candidats: formation.nombre_candidats ?? 0,
+    nombre_entretiens: formation.nombre_entretiens ?? 0,
+    nombre_evenements: formation.nombre_evenements ?? 0,
+    dernier_commentaire: formation.dernier_commentaire ?? "",
+  };
+
+  // ------------------------------------------------------------------
+  // 🔹 Rendu principal
+  // ------------------------------------------------------------------
   return (
     <PageTemplate
-      title={`Modifier : ${formation.nom}`}
-      subtitle={`${formation.type_offre?.libelle ?? "Type inconnu"} – ${
-        formation.statut?.libelle ?? "Statut inconnu"
+      title={`Formation #${formationId} — ${
+        archived ? "Archivée" : "Active"
       }`}
       backButton
       onBack={() => navigate(-1)}
-    >
-      <Paper sx={{ p: 3 }}>
-        <Box component="form" onSubmit={handleSubmit}>
-          {/* Informations principales */}
-          <Typography variant="h6" gutterBottom>
-            📋 Informations principales
-          </Typography>
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Nom"
-            name="nom"
-            value={values.nom}
-            onChange={handleChange}
-            error={!!errors.nom}
-            helperText={errors.nom}
-            required
-          />
+      actions={
+        <Box display="flex" gap={1}>
+          <Button
+            variant="contained"
+            color={archived ? "success" : "warning"}
+            onClick={handleArchiveToggle}
+            disabled={saving || removing}
+          >
+            {archived ? "♻️ Désarchiver" : "📦 Archiver"}
+          </Button>
 
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Centre</InputLabel>
-            <Select
-              name="centre_id"
-              value={values.centre_id?.toString() || ""}
-              onChange={handleChange}
-              label="Centre"
-              required
-            >
-              {centres.map((c) => (
-                <MenuItem key={c.id} value={c.id}>
-                  {c.nom}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.centre_id && (
-              <Typography color="error">{errors.centre_id}</Typography>
-            )}
-          </FormControl>
-
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Type d'offre</InputLabel>
-            <Select
-              name="type_offre_id"
-              value={values.type_offre_id?.toString() || ""}
-              onChange={handleChange}
-              label="Type d'offre"
-              required
-            >
-              {typeOffres.map((t) => (
-                <MenuItem key={t.id} value={t.id}>
-                  {t.nom}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.type_offre_id && (
-              <Typography color="error">{errors.type_offre_id}</Typography>
-            )}
-          </FormControl>
-
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Statut</InputLabel>
-            <Select
-              name="statut_id"
-              value={values.statut_id?.toString() || ""}
-              onChange={handleChange}
-              label="Statut"
-              required
-            >
-              {statuts.map((s) => (
-                <MenuItem key={s.id} value={s.id}>
-                  {s.nom}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.statut_id && (
-              <Typography color="error">{errors.statut_id}</Typography>
-            )}
-          </FormControl>
-
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Date de début"
-            type="date"
-            name="start_date"
-            value={values.start_date}
-            onChange={handleChange}
-            InputLabelProps={{ shrink: true }}
-            error={!!errors.start_date}
-            helperText={errors.start_date}
-          />
-          <TextField
-            fullWidth
-            margin="normal"
-            label="Date de fin"
-            type="date"
-            name="end_date"
-            value={values.end_date}
-            onChange={handleChange}
-            InputLabelProps={{ shrink: true }}
-            error={!!errors.end_date}
-            helperText={errors.end_date}
-          />
-
-          {/* Numéros & assistante */}
-          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-            🧾 Numéros & Assistante
-          </Typography>
-          <TextField
-            margin="normal"
-            label="N° Kairos"
-            name="num_kairos"
-            value={values.num_kairos}
-            onChange={handleChange}
-            error={!!errors.num_kairos}
-            helperText={errors.num_kairos}
-          />
-          <TextField
-            margin="normal"
-            label="N° Offre"
-            name="num_offre"
-            value={values.num_offre}
-            onChange={handleChange}
-            error={!!errors.num_offre}
-            helperText={errors.num_offre}
-          />
-          <TextField
-            margin="normal"
-            label="N° Produit"
-            name="num_produit"
-            value={values.num_produit}
-            onChange={handleChange}
-            error={!!errors.num_produit}
-            helperText={errors.num_produit}
-          />
-          <TextField
-            margin="normal"
-            label="Assistante"
-            name="assistante"
-            value={values.assistante}
-            onChange={handleChange}
-            error={!!errors.assistante}
-            helperText={errors.assistante}
-          />
-
-          {/* Places */}
-          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-            📊 Places
-          </Typography>
-          {/* mêmes champs numériques que ton code */}
-
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={!!values.convocation_envoie}
-                onChange={handleCheckbox}
-                name="convocation_envoie"
-              />
-            }
-            label="Convocation envoyée"
-          />
-
-          {/* Commentaires */}
-          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-            📈 Commentaires
-          </Typography>
-          {!loadingCommentaires && (
-            <CommentairesSection
-              commentaires={commentaires ?? []}
-              formationId={formation.id}
-              limit={3}
-              paginate={false}
-            />
-          )}
-
-          {/* Prospections */}
-          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-            📞 Prospections
-          </Typography>
-          {!loadingProspections && (
-            <ProspectionsSection
-              prospections={prospections ?? []}
-              formationId={formation.id}
-            />
-          )}
-
-          {/* Documents */}
-          <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-            📎 Documents
-          </Typography>
-          <DocumentsSection documents={formation.documents} />
-
-          {/* Actions */}
-          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="success"
-              disabled={updating || loadingChoices}
-            >
-              💾 Mettre à jour
-            </Button>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => navigate("/formations")}
-            >
-              Annuler
-            </Button>
-          </Stack>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleDelete}
+            disabled={removing}
+          >
+            {removing ? "Suppression…" : "Supprimer"}
+          </Button>
         </Box>
-      </Paper>
+      }
+    >
+      <Box
+        sx={{
+          backgroundColor: archived ? "rgba(245,245,245,0.9)" : "inherit",
+          p: 2,
+          borderRadius: 2,
+        }}
+      >
+        {/* Formulaire */}
+        <FormationForm
+          initialValues={formInitialValues}
+          centres={centres}
+          statuts={statuts}
+          typeOffres={typeOffres}
+          loading={saving}
+          loadingChoices={loadingChoices}
+          onSubmit={handleUpdate}
+          onCancel={() => navigate("/formations")}
+          submitLabel="💾 Mettre à jour"
+        />
+
+        {/* Footer : dates */}
+        <Box
+          mt={4}
+          sx={{
+            color: "text.secondary",
+            fontSize: "0.85rem",
+            lineHeight: 1.6,
+          }}
+        >
+          <div>
+            <strong>📌 Créée le :</strong>{" "}
+            {formation.created_at
+              ? new Date(formation.created_at).toLocaleDateString("fr-FR", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "—"}
+          </div>
+          {formation.updated_at && (
+            <div>
+              <strong>✏️ Dernière mise à jour :</strong>{" "}
+              {new Date(formation.updated_at).toLocaleDateString("fr-FR", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </div>
+          )}
+        </Box>
+      </Box>
     </PageTemplate>
   );
 }

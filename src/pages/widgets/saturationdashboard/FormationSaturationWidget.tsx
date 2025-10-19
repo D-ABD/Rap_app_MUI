@@ -1,3 +1,4 @@
+// src/pages/widgets/overviewDashboard/FormationSaturationWidget.tsx
 import * as React from "react";
 import {
   Filters,
@@ -12,8 +13,10 @@ import {
   MenuItem,
   Select,
   FormControl,
+  Button,
 } from "@mui/material";
 import SpeedIcon from "@mui/icons-material/Speed";
+import ArchiveIcon from "@mui/icons-material/Archive"; // 🆕 import
 import DashboardTemplateSaturation from "../../../components/dashboard/DashboardTemplateSaturation";
 
 function toFixed0(n?: number) {
@@ -55,33 +58,47 @@ export default function FormationSaturationWidget({
     filters ?? {}
   );
 
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
+    !!filters?.avec_archivees
+  );
+
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
+  // ⚙️ Fusion filtres + flag archivées
+  const effectiveFilters = React.useMemo(
+    () => ({ ...localFilters, avec_archivees: includeArchived }),
+    [localFilters, includeArchived]
+  );
+
   const centreQuery = useFormationGrouped(
     "centre",
-    omit(localFilters, ["centre"] as const)
+    omit(effectiveFilters, ["centre"] as const)
   );
   const deptQuery = useFormationGrouped(
     "departement",
-    omit(localFilters, ["departement"] as const)
+    omit(effectiveFilters, ["departement"] as const)
   );
 
   const { data, isLoading, error, isFetching } =
-    useFormationOverview(localFilters);
+    useFormationOverview(effectiveFilters);
 
   const k = data?.kpis;
 
   // 🎨 couleur du titre selon le taux
-  let toneColor: "success.main" | "warning.main" | "error.main" | "text.secondary" =
-    "text.secondary";
+  let toneColor:
+    | "success.main"
+    | "warning.main"
+    | "error.main"
+    | "text.secondary" = "text.secondary";
   if (k?.taux_saturation != null) {
     if (k.taux_saturation < 50) toneColor = "success.main";
     else if (k.taux_saturation < 80) toneColor = "warning.main";
     else toneColor = "error.main";
   }
 
+  // 🔘 Filtres + bouton archivées
   const filtersBar = (
     <>
       {/* Sélecteur de centre */}
@@ -143,6 +160,17 @@ export default function FormationSaturationWidget({
           })}
         </Select>
       </FormControl>
+
+      {/* Bouton Archivées */}
+      <Button
+        size="small"
+        variant={includeArchived ? "contained" : "outlined"}
+        color={includeArchived ? "secondary" : "inherit"}
+        onClick={() => setIncludeArchived((v) => !v)}
+        startIcon={<ArchiveIcon fontSize="small" />}
+      >
+        {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+      </Button>
     </>
   );
 

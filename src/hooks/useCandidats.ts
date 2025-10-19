@@ -9,8 +9,6 @@ import type {
   CandidatListResponse,
   CandidatMeta,
   CVStatutValue,
-  HistoriquePlacement,
-  HistoriquePlacementMeta,
 } from '../types/candidat';
 
 // --------- Helpers (typés) ----------
@@ -301,8 +299,12 @@ export function useCreateCandidat() {
     try {
       const res = await api.post(`${API_BASE}/candidats/`, payload);
       return unwrap<Candidat>(res.data as unknown);
-    } catch (e) {
-      setError(e as Error);
+    } catch (e: any) {
+      setError(e);
+      // ✅ Laisse passer l’erreur 400 (validation DRF) pour gestion dans <CandidatForm />
+      if (e?.response?.status === 400) throw e;
+      // ⚠️ Autres erreurs : on journalise quand même
+      console.error("[useCreateCandidat] Erreur API :", e);
       throw e;
     } finally {
       setLoading(false);
@@ -316,17 +318,19 @@ export function useUpdateCandidat(id: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const update = async (payload: CandidatFormData, method: 'PATCH' | 'PUT' = 'PATCH') => {
+  const update = async (payload: CandidatFormData, method: "PATCH" | "PUT" = "PATCH") => {
     setLoading(true);
     setError(null);
     try {
       const res =
-        method === 'PUT'
+        method === "PUT"
           ? await api.put(`${API_BASE}/candidats/${id}/`, payload)
           : await api.patch(`${API_BASE}/candidats/${id}/`, payload);
       return unwrap<Candidat>(res.data as unknown);
-    } catch (e) {
-      setError(e as Error);
+    } catch (e: any) {
+      setError(e);
+      if (e?.response?.status === 400) throw e; // ✅ Laisse les 400 être gérées par <CandidatForm />
+      console.error("[useUpdateCandidat] Erreur API :", e);
       throw e;
     } finally {
       setLoading(false);
@@ -335,7 +339,6 @@ export function useUpdateCandidat(id: number) {
 
   return { update, loading, error };
 }
-
 export function useDeleteCandidat() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -390,80 +393,6 @@ export function useCandidatMeta() {
   return { data, loading, error };
 }
 
-// ===================================================
-// 📘 Historiques de placement (liste par candidat)
-// ===================================================
-const HISTO_BASE = `${API_BASE}/historiques-placements`;
-
-export function useHistoriquePlacement(candidatId?: number) {
-  const [data, setData] = useState<HistoriquePlacement[]>([]);
-  const [loading, setLoading] = useState<boolean>(!!candidatId);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    if (!candidatId) {
-      setData([]);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await api.get(`${HISTO_BASE}/`, { params: { candidat: candidatId } });
-        const body = unwrap<unknown>(res.data);
-        const results = toArray<HistoriquePlacement>(body);
-        if (!alive) return;
-        setData(results);
-      } catch (e) {
-        if (!alive) return;
-        setError(e as Error);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [candidatId]);
-
-  return { data, loading, error };
-}
-
-// ===================================================
-// ⚙️ Métadonnées des historiques
-// ===================================================
-export function useHistoriquePlacementMeta() {
-  const [data, setData] = useState<HistoriquePlacementMeta | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await api.get(`${HISTO_BASE}/meta/`);
-        const payload = unwrap<HistoriquePlacementMeta>(res.data as unknown);
-        if (!alive) return;
-        setData(payload);
-      } catch (e) {
-        if (!alive) return;
-        setError(e as Error);
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  return { data, loading, error };
-}
 
 // ===================================================
 // 📄 Export CSV/PDF des candidats (déclenche download)
@@ -530,7 +459,7 @@ export function useCandidatFiltres() {
       try {
         const DEV = process.env.NODE_ENV !== 'production';
 
-        if (DEV) console.log('[useCandidatFiltres] fetching meta, formations, users…');
+        if (DEV) ('[useCandidatFiltres] fetching meta, formations, users…');
         const [metaRes, formationsRes, usersRes] = await Promise.all([
           api.get(`${API_BASE}/candidats/meta/`),
           api.get(`${API_BASE}/formations/liste-simple/`),
@@ -550,7 +479,7 @@ export function useCandidatFiltres() {
 
         const centresFromMeta: Choice[] = isChoiceArray(meta.centre_choices) ? meta.centre_choices : [];
         if (centresFromMeta.length) {
-          if (DEV) console.log('[useCandidatFiltres] centres depuis meta.centre_choices →', centresFromMeta.length);
+          if (DEV) ('[useCandidatFiltres] centres depuis meta.centre_choices →', centresFromMeta.length);
           centre = centresFromMeta
             .map((c) => ({ value: typeof c.value === 'number' ? c.value : Number(c.value), label: c.label }))
             .filter((c) => Number.isFinite(c.value) && c.label.trim().length > 0)
@@ -570,7 +499,7 @@ export function useCandidatFiltres() {
             if (DEV) console.warn('[useCandidatFiltres] aucun centre déduit — fallback GET /centres/');
             try {
               if (fallbackTriggeredRef.current) {
-                if (DEV) console.log('[useCandidatFiltres] fallback déjà déclenché (StrictMode)');
+                if (DEV) ('[useCandidatFiltres] fallback déjà déclenché (StrictMode)');
               } else {
                 fallbackTriggeredRef.current = true;
                 const centresRes = await api.get(`${API_BASE}/centres/`, { params: { page_size: 1000 } });
@@ -578,7 +507,7 @@ export function useCandidatFiltres() {
                 centre = centresList
                   .map((c) => ({ value: c.id, label: c.nom }))
                   .sort((a, b) => a.label.localeCompare(b.label));
-                if (DEV) console.log('[useCandidatFiltres] centres via fallback →', centre.length);
+                if (DEV) ('[useCandidatFiltres] centres via fallback →', centre.length);
               }
             } catch (err) {
               if (DEV) console.error('[useCandidatFiltres] erreur fallback /centres/', err);

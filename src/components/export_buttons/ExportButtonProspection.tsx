@@ -1,5 +1,4 @@
-// src/components/prospections/ExportButtonProspection.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -8,10 +7,55 @@ import {
   DialogActions,
   Typography,
   Box,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { toast } from "react-toastify";
+import axiosLib from "axios"; // pour isAxiosError
 import api from "../../api/axios";
 import type { Prospection } from "../../types/prospection";
+
+/* ------------------------------------------------------------------ */
+/* 🔧 Helpers utilitaires (cohérents avec ExportButtonAppairage) */
+/* ------------------------------------------------------------------ */
+
+function getFilenameFromDisposition(disposition?: string | null, fallback = "export.xlsx") {
+  if (!disposition) return fallback;
+  const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
+  const raw = match?.[1] ?? match?.[2] ?? "";
+  try {
+    const name = decodeURIComponent(raw).trim();
+    return name || fallback;
+  } catch {
+    return raw || fallback;
+  }
+}
+
+function getErrorMessage(err: unknown): string | null {
+  if (axiosLib.isAxiosError(err)) {
+    const data = err.response?.data as unknown;
+    if (typeof data === "string") return data;
+    if (data && typeof data === "object") {
+      const maybe =
+        (data as { message?: unknown }).message ??
+        (data as { detail?: unknown }).detail ??
+        (data as { error?: unknown }).error;
+      if (typeof maybe === "string") return maybe;
+    }
+    return err.message ?? null;
+  }
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return null;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* 🧩 Composant principal */
+/* ------------------------------------------------------------------ */
 
 type Props = {
   data: Prospection[];
@@ -21,14 +65,30 @@ type Props = {
 export default function ExportButtonProspection({ data, selectedIds }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [inclureArchives, setInclureArchives] = useState(false);
 
   const total = data?.length ?? 0;
   const selectedCount = selectedIds.length;
+
+  // 🔹 Chargement état "inclure les archivées" depuis localStorage/sessionStorage
+  useEffect(() => {
+    const saved =
+      sessionStorage.getItem("inclure_archives") ||
+      localStorage.getItem("inclure_archives");
+    setInclureArchives(saved === "true");
+  }, []);
 
   const openModal = () => setShowModal(true);
   const closeModal = () => {
     if (busy) return;
     setShowModal(false);
+  };
+
+  const handleToggleInclude = (_: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+    setInclureArchives(checked);
+    // 🔸 on sauvegarde pour les prochains exports
+    sessionStorage.setItem("inclure_archives", String(checked));
+    localStorage.setItem("inclure_archives", String(checked));
   };
 
   const handleExport = async () => {
@@ -40,22 +100,35 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
     try {
       setBusy(true);
 
-      const url = "prospections/export-xlsx/";
+      // ✅ on récupère les filtres actifs dans l’URL
+      let qs = typeof window !== "undefined" ? window.location.search || "" : "";
+
+      // ✅ assure la présence du flag inclure_archives si coché
+      if (inclureArchives && !/[?&](inclure_archives|avec_archivees)=/i.test(qs)) {
+        qs += (qs.includes("?") ? "&" : "?") + "inclure_archives=true";
+      }
+
+      // ✅ base d’URL (corrigée si baseURL="/api")
+      const base = "/prospections/export-xlsx/";
+      const url = `${base}${qs.startsWith("?") ? qs : ""}`;
 
       let res;
       if (selectedIds.length > 0) {
+        ("POST avec sélection :", selectedIds);
         res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
       } else {
+        ("GET sur le jeu filtré :", url);
         res = await api.get(url, { responseType: "blob" });
       }
 
-      const blob = new Blob([res.data], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
+      const contentType = res.headers["content-type"] || "";
+      const fallbackMime =
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
-      const filename =
-        res.headers["content-disposition"]?.split("filename=")[1]?.replace(/"/g, "") ||
-        "prospections.xlsx";
+      const blob = new Blob([res.data], { type: contentType || fallbackMime });
+
+      const disposition = res.headers["content-disposition"] || null;
+      const filename = getFilenameFromDisposition(disposition, "prospections.xlsx");
 
       const link = document.createElement("a");
       const urlBlob = URL.createObjectURL(blob);
@@ -67,12 +140,15 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
       URL.revokeObjectURL(urlBlob);
 
       toast.success(
-        `XLSX prêt · ${selectedIds.length > 0 ? selectedIds.length : total} prospection(s) exportée(s).`
+        selectedCount > 0
+          ? `Export XLSX des ${selectedCount} sélection(s) prêt.`
+          : `Export XLSX du jeu filtré prêt.`
       );
       setShowModal(false);
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("❌ Erreur export :", e);
-      toast.error("Erreur lors de l’export.");
+      const msg = getErrorMessage(e) || "Erreur lors de l’export.";
+      toast.error(msg);
     } finally {
       setBusy(false);
     }
@@ -85,6 +161,7 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
         color="secondary"
         onClick={openModal}
         disabled={busy || total === 0}
+        aria-label={`Exporter ${selectedCount || total} prospection(s)`}
         title={
           total === 0
             ? "Aucune prospection à exporter"
@@ -100,8 +177,22 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
         <DialogContent dividers>
           <Box sx={{ display: "grid", gap: 1.5 }}>
             <Typography>
-              Le fichier sera exporté uniquement au format <strong>Excel (.xlsx)</strong>.
+              Le fichier sera exporté uniquement au format{" "}
+              <strong>Excel (.xlsx)</strong>.
             </Typography>
+
+            {/* ✅ Nouveau bouton d’inclusion des archivées */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={inclureArchives}
+                  onChange={handleToggleInclude}
+                  color="primary"
+                  disabled={busy}
+                />
+              }
+              label="Inclure les prospections archivées"
+            />
           </Box>
 
           {busy && (

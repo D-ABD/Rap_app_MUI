@@ -87,10 +87,10 @@ export default function ExportButtonCandidat({
 
       let res;
       if (selectedIds.length > 0) {
-        console.log("👉 POST avec ids =", selectedIds);
+        ("👉 POST avec ids =", selectedIds);
         res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
       } else {
-        console.log("👉 GET sans sélection");
+        ("👉 GET sans sélection");
         res = await api.get(url, { responseType: "blob" });
       }
 

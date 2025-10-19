@@ -207,7 +207,7 @@ export default function StatutsPage() {
                 p: 2,
                 cursor: "pointer",
               }}
-              onClick={() => navigate(`/statuts/edit/${s.id}`)}
+                onClick={() => navigate(`/statuts/${s.id}/edit`)}
             >
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Checkbox

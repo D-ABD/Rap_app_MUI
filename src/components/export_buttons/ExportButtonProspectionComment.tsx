@@ -1,3 +1,4 @@
+// src/components/export/ExportButtonProspectionComment.tsx
 import { useState } from "react";
 import {
   Button,
@@ -7,11 +8,13 @@ import {
   DialogActions,
   Typography,
   Box,
+  FormControlLabel,
+  Switch,
+  ToggleButton,
+  ToggleButtonGroup,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import api from "../../api/axios";
-import ExportSelect from "./ExportSelect";
-import { ExportFormat } from "../../types/export"; // ✅ import du type
 
 export type ProspectionCommentRow = {
   id: number;
@@ -36,7 +39,8 @@ export default function ExportButtonProspectionComment({
   label = "⬇️ Exporter",
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf"); // ✅ par défaut PDF
+  const [includeArchived, setIncludeArchived] = useState(false);
+  const [format, setFormat] = useState<"pdf" | "xlsx">("pdf");
   const [busy, setBusy] = useState(false);
 
   const total = data?.length ?? 0;
@@ -44,8 +48,7 @@ export default function ExportButtonProspectionComment({
 
   const openModal = () => setShowModal(true);
   const closeModal = () => {
-    if (busy) return;
-    setShowModal(false);
+    if (!busy) setShowModal(false);
   };
 
   const handleExport = async () => {
@@ -57,28 +60,31 @@ export default function ExportButtonProspectionComment({
     try {
       setBusy(true);
 
-      const url = `prospection-comments/export-${exportFormat}/`;
+      const endpoint =
+        format === "xlsx"
+          ? "/prospection-commentaires/export-xlsx/"
+          : "/prospection-commentaires/export-pdf/";
 
-      let res;
-      if (selectedIds.length > 0) {
-        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
-      } else {
-        res = await api.get(url, { responseType: "blob" });
-      }
+      const params = includeArchived ? { est_archive: "both" } : undefined;
+      const res = await api.get(endpoint, { params, responseType: "blob" });
+
+      const filenameHeader = res.headers["content-disposition"];
+      const fallbackName =
+        format === "xlsx"
+          ? "prospection_commentaires.xlsx"
+          : "prospection_commentaires.pdf";
+      const filename =
+        filenameHeader?.split("filename=")[1]?.replace(/"/g, "") || fallbackName;
 
       const blob = new Blob([res.data], {
         type:
-          exportFormat === "pdf"
-            ? "application/pdf"
-            : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          format === "xlsx"
+            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            : "application/pdf",
       });
 
-      const filename =
-        res.headers["content-disposition"]?.split("filename=")[1]?.replace(/"/g, "") ||
-        `prospection_commentaires.${exportFormat}`;
-
-      const link = document.createElement("a");
       const urlBlob = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       link.href = urlBlob;
       link.download = filename;
       document.body.appendChild(link);
@@ -87,9 +93,11 @@ export default function ExportButtonProspectionComment({
       URL.revokeObjectURL(urlBlob);
 
       toast.success(
-        `${exportFormat.toUpperCase()} prêt · ${
+        `${format.toUpperCase()} prêt · ${
           selectedIds.length > 0 ? selectedIds.length : total
-        } commentaire(s) exporté(s).`
+        } commentaire(s) exporté(s)${
+          includeArchived ? " (avec archivés)" : ""
+        }.`
       );
       setShowModal(false);
     } catch (e) {
@@ -120,12 +128,33 @@ export default function ExportButtonProspectionComment({
       <Dialog open={showModal} onClose={closeModal} maxWidth="sm" fullWidth>
         <DialogTitle>Exporter les commentaires</DialogTitle>
         <DialogContent dividers>
-          <Box sx={{ display: "grid", gap: 1.5 }}>
+          <Box sx={{ display: "grid", gap: 2 }}>
             <Typography fontWeight={600}>Format d’export</Typography>
-            <ExportSelect
-              value={exportFormat}
-              onChange={(v) => setExportFormat(v)}
-              options={["pdf", "xlsx"]} // ✅ prop correcte
+
+            <ToggleButtonGroup
+              value={format}
+              exclusive
+              onChange={(_, val) => val && setFormat(val)}
+              aria-label="format d’export"
+              sx={{ mb: 1 }}
+            >
+              <ToggleButton value="pdf" aria-label="PDF">
+                PDF
+              </ToggleButton>
+              <ToggleButton value="xlsx" aria-label="Excel">
+                Excel
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={includeArchived}
+                  onChange={(e) => setIncludeArchived(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Inclure les commentaires archivés"
             />
           </Box>
 
@@ -140,6 +169,7 @@ export default function ExportButtonProspectionComment({
             </Typography>
           )}
         </DialogContent>
+
         <DialogActions>
           <Button onClick={closeModal} disabled={busy}>
             Annuler
@@ -150,7 +180,7 @@ export default function ExportButtonProspectionComment({
             variant="contained"
             color="primary"
           >
-            Exporter
+            Exporter en {format.toUpperCase()}
           </Button>
         </DialogActions>
       </Dialog>

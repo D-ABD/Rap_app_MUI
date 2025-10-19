@@ -1,4 +1,3 @@
-// src/pages/prospections/ProspectionPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -29,6 +28,7 @@ import ProspectionTable from "./ProspectionTable";
 import SearchInput from "../../components/SearchInput";
 import PageTemplate from "../../components/PageTemplate";
 import ExportButtonProspection from "../../components/export_buttons/ExportButtonProspection";
+import ProspectionDetailModal from "./ProspectionDetailModal";
 
 export default function ProspectionPage() {
   const navigate = useNavigate();
@@ -36,25 +36,14 @@ export default function ProspectionPage() {
   const { user } = useAuth();
   const isCandidat = ["candidat", "stagiaire"].includes(user?.role ?? "");
 
-  // ── filtres métier (hors page/page_size)
+  // ── filtres
   const [filters, setFilters] = useState<ProspectionFiltresValues>({
     search: "",
     owner: undefined,
   });
+  const [showFilters, setShowFilters] = useState(false);
 
-  // ── toggle filtres (masqué par défaut + persistance)
-  const [showFilters, setShowFilters] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    const saved = localStorage.getItem("prospections.showFilters");
-    return saved != null ? saved === "1" : false;
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("prospections.showFilters", showFilters ? "1" : "0");
-    }
-  }, [showFilters]);
-
-  // ── pagination homogène
+  // ── pagination
   const {
     page,
     setPage,
@@ -65,37 +54,20 @@ export default function ProspectionPage() {
     totalPages,
   } = usePagination();
 
-  // ── filtres réellement envoyés à l'API
-  type EffectiveFilters = ProspectionFiltresValues & {
-    page: number;
-    page_size: number;
-  };
-
+  // ── filtres envoyés à l'API
+  type EffectiveFilters = ProspectionFiltresValues & { page: number; page_size: number };
   const effectiveFilters: EffectiveFilters = useMemo(() => {
     const base: EffectiveFilters = { ...filters, page, page_size: pageSize };
-
-    const entries = Object.entries(base) as [
-      keyof EffectiveFilters,
-      EffectiveFilters[keyof EffectiveFilters]
-    ][];
-
-    const pairs: [keyof EffectiveFilters, EffectiveFilters[keyof EffectiveFilters]][] =
-      [];
-
-    for (const [k, v] of entries) {
-      if (isCandidat && k === "owner") continue;
-
-      const isEmptyString = typeof v === "string" && v.trim() === "";
-      const isEmptyArray = Array.isArray(v) && (v as unknown[]).length === 0;
-      if (v == null || isEmptyString || isEmptyArray) continue;
-
-      pairs.push([k, v]);
-    }
-
-    return Object.fromEntries(pairs) as unknown as EffectiveFilters;
+    const pairs = Object.entries(base).filter(([k, v]) => {
+      if (isCandidat && k === "owner") return false;
+      if (v == null) return false;
+      if (typeof v === "string") return v.trim() !== "";
+      if (Array.isArray(v)) return v.length > 0;
+      return true;
+    });
+    return Object.fromEntries(pairs) as EffectiveFilters;
   }, [filters, page, pageSize, isCandidat]);
 
-  // ── nombre de filtres actifs
   const activeFiltersCount = useMemo(() => {
     const ignored = new Set(["page", "page_size", "search"]);
     return Object.entries(effectiveFilters).filter(([k, v]) => {
@@ -107,14 +79,11 @@ export default function ProspectionPage() {
     }).length;
   }, [effectiveFilters]);
 
-  // ── options filtres + data
   const { filtres, loading: filtresLoading } = useFiltresProspections();
 
-  // 🔁 clé de reload
   const [reloadKey, setReloadKey] = useState(0);
 
   const { pageData, loading, error } = useProspections(effectiveFilters, reloadKey);
-
   const prospections: Prospection[] = useMemo(
     () => (pageData?.results ?? []) as Prospection[],
     [pageData]
@@ -131,11 +100,10 @@ export default function ProspectionPage() {
     setSelectedIds((prev) => prev.filter((id) => visible.has(id)));
   }, [prospections]);
 
-  const toggleSelect = (id: number) => {
+  const toggleSelect = (id: number) =>
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
-  };
   const clearSelection = () => setSelectedIds([]);
   const selectAll = () => setSelectedIds(prospections.map((p) => p.id));
 
@@ -147,10 +115,8 @@ export default function ProspectionPage() {
     const idsToDelete = selectedId ? [selectedId] : selectedIds;
     if (!idsToDelete.length) return;
     try {
-      const api = await import("../../api/axios");
-      await Promise.all(
-        idsToDelete.map((id) => api.default.delete(`/prospections/${id}/`))
-      );
+      const api = (await import("../../api/axios")).default;
+      await Promise.all(idsToDelete.map((id) => api.delete(`/prospections/${id}/`)));
       toast.success(`🗑️ ${idsToDelete.length} prospection(s) supprimée(s)`);
       setShowConfirm(false);
       setSelectedId(null);
@@ -161,12 +127,15 @@ export default function ProspectionPage() {
     }
   };
 
-  // ── navigation ligne
+  // ── modal de détail
+  const [showDetail, setShowDetail] = useState(false);
+  const [detailId, setDetailId] = useState<number | null>(null);
+
   const handleRowClick = (id: number) => {
-    if (!user) return;
-    const isAdmin = ["staff", "admin", "superadmin"].includes(user.role);
-    navigate(isAdmin ? `/prospections/${id}/edit` : `/prospections/${id}/edit-candidat`);
+    setDetailId(id);
+    setShowDetail(true);
   };
+
   const handleDeleteClick = (id: number) => {
     setSelectedId(id);
     setShowConfirm(true);
@@ -301,7 +270,7 @@ export default function ProspectionPage() {
         </Box>
       )}
 
-      {/* Confirmation dialog */}
+      {/* ───────────── Confirmation suppression ───────────── */}
       <Dialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}
@@ -326,6 +295,14 @@ export default function ProspectionPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ───────────── Détail prospection ───────────── */}
+      <ProspectionDetailModal
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        prospectionId={detailId}
+        onEdit={(id) => navigate(`/prospections/${id}/edit`)}
+      />
     </PageTemplate>
   );
 }

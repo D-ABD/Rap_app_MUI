@@ -1,4 +1,3 @@
-// src/components/formations/FiltresFormationsPanel.tsx
 import React, { useMemo, useCallback } from "react";
 import {
   Box,
@@ -22,23 +21,24 @@ type Props = {
   onRefresh?: () => void;
 };
 
-// util: unique + format {value,label}
+// 🔹 utilitaire : unique + format {value,label}
 function toOptionsUnique<T extends { id: number; nom: string }>(arr: T[] = []) {
   const seen = new Set<number>();
   return arr.reduce<Array<{ value: number; label: string }>>((acc, item) => {
-    if (seen.has(item.id)) return acc;
-    seen.add(item.id);
-    acc.push({ value: item.id, label: item.nom });
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      acc.push({ value: item.id, label: item.nom });
+    }
     return acc;
   }, []);
 }
 
-// placeholder si liste vide
+// 🔹 placeholder si liste vide
 const withPlaceholder = (
   opts: Array<{ value: string | number; label: string }>
 ) => (opts.length ? opts : [{ value: "", label: "—" }]);
 
-// reset par défaut
+// 🔹 reset par défaut
 function buildReset(values: FiltresFormationsValues): FiltresFormationsValues {
   return {
     ...values,
@@ -46,6 +46,8 @@ function buildReset(values: FiltresFormationsValues): FiltresFormationsValues {
     centre: undefined,
     statut: undefined,
     type_offre: undefined,
+    activite: undefined,
+    avec_archivees: false,
     page: 1,
   };
 }
@@ -57,6 +59,7 @@ export default function FiltresFormationsPanel({
   onReset,
   onRefresh,
 }: Props) {
+  // 🔍 Gestion locale de la recherche texte
   const onLocalSearchChange = useCallback<
     React.ChangeEventHandler<HTMLInputElement>
   >(
@@ -80,45 +83,54 @@ export default function FiltresFormationsPanel({
     [onChange, values]
   );
 
+  // 🧩 Construction dynamique des filtres
   const fields = useMemo<Array<FieldConfig<FiltresFormationsValues>>>(() => {
     if (!filtres) return [];
+
     return [
       {
         key: "centre",
         label: "🏫 Centre",
         type: "select",
-        options: withPlaceholder(
-          toOptionsUnique(filtres.centres).map((o) => ({
-            value: Number(o.value),
-            label: o.label,
-          }))
-        ),
+        options: withPlaceholder(toOptionsUnique(filtres.centres)),
       },
       {
         key: "statut",
         label: "📍 Statut",
         type: "select",
-        options: withPlaceholder(
-          toOptionsUnique(filtres.statuts).map((o) => ({
-            value: Number(o.value),
-            label: o.label,
-          }))
-        ),
+        options: withPlaceholder(toOptionsUnique(filtres.statuts)),
       },
       {
         key: "type_offre",
         label: "📦 Type d'offre",
         type: "select",
-        options: withPlaceholder(
-          toOptionsUnique(filtres.type_offres).map((o) => ({
-            value: Number(o.value),
-            label: o.label,
-          }))
-        ),
+        options: withPlaceholder(toOptionsUnique(filtres.type_offres)),
+      },
+      // ⚙️ Filtre dynamique selon l’activité renvoyée par le backend
+      {
+        key: "activite" as const,
+        label: "⚙️ Activité",
+        type: "select",
+        tooltip: "Filtrer selon l’état de la formation",
+        options: withPlaceholder([
+          { value: "", label: "Toutes" },
+          ...(filtres.activites?.map((a) => ({
+            value: a.code,
+            label: a.libelle,
+          })) ?? []),
+        ]),
+      },
+      // 🗃️ Inclure les archivées (option de compatibilité)
+      {
+        key: "avec_archivees" as const,
+        label: "🗃️ Inclure les archivées",
+        type: "checkbox",
+        tooltip: "Afficher aussi les formations archivées dans la liste",
       },
     ];
   }, [filtres]);
 
+  // 🔁 Boutons d’action
   const actions = useMemo(
     () => ({
       onReset:
@@ -135,24 +147,28 @@ export default function FiltresFormationsPanel({
 
   const ready = Boolean(filtres);
 
-  return !ready ? (
-    <Box
-      role="status"
-      aria-live="polite"
-      sx={{
-        p: "0.75rem 1rem",
-        border: "1px dashed",
-        borderColor: "divider",
-        borderRadius: 2,
-        color: "text.secondary",
-        bgcolor: "grey.50",
-        mb: 2,
-        textAlign: "center",
-      }}
-    >
-      Chargement des filtres…
-    </Box>
-  ) : (
+  if (!ready) {
+    return (
+      <Box
+        role="status"
+        aria-live="polite"
+        sx={{
+          p: "0.75rem 1rem",
+          border: "1px dashed",
+          borderColor: "divider",
+          borderRadius: 2,
+          color: "text.secondary",
+          bgcolor: "grey.50",
+          mb: 2,
+          textAlign: "center",
+        }}
+      >
+        Chargement des filtres…
+      </Box>
+    );
+  }
+
+  return (
     <>
       {/* 🔎 Recherche */}
       <Stack

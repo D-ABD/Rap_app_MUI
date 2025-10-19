@@ -1,4 +1,4 @@
-// src/components/export/ExportButtonFormations.tsx
+// src/components/export_buttons/ExportButtonFormations.tsx
 import { useState } from "react";
 import {
   Button,
@@ -8,9 +8,11 @@ import {
   DialogActions,
   Typography,
   Box,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import axiosLib from "axios"; // pour isAxiosError
+import axiosLib from "axios";
 import api from "../../api/axios";
 import ExportSelect from "./ExportSelect";
 
@@ -21,6 +23,7 @@ type Props = {
   endpointBase?: string;
 };
 
+// 🔹 Extrait le nom de fichier depuis Content-Disposition
 function getFilenameFromDisposition(
   disposition?: string | null,
   fallback = "formations.xlsx"
@@ -37,6 +40,7 @@ function getFilenameFromDisposition(
   }
 }
 
+// 🔹 Erreur lisible pour Axios
 function getErrorMessage(err: unknown): string | null {
   if (axiosLib.isAxiosError(err)) {
     const data = err.response?.data as unknown;
@@ -63,10 +67,11 @@ export default function ExportButtonFormations({
   selectedIds,
   label = "⬇️ Exporter",
   filenameBase = "formations",
-  endpointBase = "/formations", // ✅ pas de /api ici (déjà dans axios.ts)
+  endpointBase = "/formations",
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const [exportFormat] = useState<"xlsx">("xlsx"); // ✅ forcé à XLSX
+  const [exportFormat, setExportFormat] = useState<"xlsx">("xlsx");
+  const [avecArchivees, setAvecArchivees] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const openModal = () => setShowModal(true);
@@ -75,33 +80,47 @@ export default function ExportButtonFormations({
     setShowModal(false);
   };
 
+  // 🔹 Export principal
   const handleExport = async () => {
     try {
       setBusy(true);
-      const qs =
+
+      // Reprise des filtres de l’URL actuelle
+      const qsBase =
         typeof window !== "undefined" ? window.location.search || "" : "";
+      const params = new URLSearchParams(qsBase);
+
+      if (avecArchivees) params.set("avec_archivees", "true");
+
+      const qs = params.toString() ? `?${params.toString()}` : "";
       const base = (endpointBase || "/formations").replace(/\/$/, "");
-      const url = `${base}/export-${exportFormat}/${qs.startsWith("?") ? qs : ""}`;
+      const url = `${base}/export-xlsx/${qs}`; // ✅ conforme à ton ViewSet
 
       let res;
       if (selectedIds.length > 0) {
-        console.log("👉 POST avec ids =", selectedIds);
-        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
+        ("👉 POST avec ids =", selectedIds);
+        res = await api.post(
+          url,
+          { ids: selectedIds, ...(avecArchivees ? { avec_archivees: true } : {}) },
+          { responseType: "blob" }
+        );
       } else {
-        console.log("👉 GET (aucune sélection)");
+        ("👉 GET (aucune sélection)");
         res = await api.get(url, { responseType: "blob" });
       }
 
       const contentType = res.headers["content-type"] || "";
-      const fallbackMime =
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-
-      const blob = new Blob([res.data], { type: contentType || fallbackMime });
+      const blob = new Blob([res.data], {
+        type:
+          contentType ||
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
 
       const disposition = res.headers["content-disposition"] || null;
       const defaultName = `${filenameBase}.${exportFormat}`;
       const filename = getFilenameFromDisposition(disposition, defaultName);
 
+      // 🔽 Téléchargement local
       const link = document.createElement("a");
       const urlBlob = URL.createObjectURL(blob);
       link.href = urlBlob;
@@ -117,8 +136,8 @@ export default function ExportButtonFormations({
 
       toast.success(
         selectedIds.length
-          ? `Export XLSX des ${selectedIds.length} formation(s) prêt.`
-          : "Export XLSX du jeu filtré prêt."
+          ? `Export ${exportFormat.toUpperCase()} des ${selectedIds.length} formation(s) prêt.`
+          : `Export ${exportFormat.toUpperCase()} du jeu filtré prêt.`
       );
       setShowModal(false);
     } catch (e: unknown) {
@@ -130,6 +149,7 @@ export default function ExportButtonFormations({
     }
   };
 
+  // 🔹 Bouton principal
   const countBadge = selectedIds.length > 0 ? ` (${selectedIds.length})` : "";
   const buttonTitle =
     selectedIds.length > 0
@@ -156,13 +176,28 @@ export default function ExportButtonFormations({
         <DialogContent dividers>
           <Box sx={{ display: "grid", gap: 1.5 }}>
             <Typography fontWeight={600}>Format d’export</Typography>
+            {/* ✅ ExportSelect corrigé avec vrai callback */}
             <ExportSelect
               value={exportFormat}
-              onChange={() => {}}
-              options={["xlsx"]} // ✅ uniquement XLSX
+              onChange={(val) => setExportFormat(val as "xlsx")}
+              options={["xlsx"]}
+            />
+
+            {/* 🗃️ Inclure les formations archivées */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={avecArchivees}
+                  onChange={(e) => setAvecArchivees(e.target.checked)}
+                  disabled={busy}
+                />
+              }
+              label="Inclure les formations archivées"
+              sx={{ mt: 1 }}
             />
           </Box>
 
+          {/* ℹ️ Informations sur les filtres actuels */}
           {typeof window !== "undefined" && window.location.search ? (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Les filtres/tri actuels (
@@ -171,8 +206,8 @@ export default function ExportButtonFormations({
             </Typography>
           ) : (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble
-              du jeu courant.
+              Aucun filtre explicite dans l’URL : l’export portera sur
+              l’ensemble du jeu courant.
             </Typography>
           )}
 
@@ -187,6 +222,7 @@ export default function ExportButtonFormations({
             </Typography>
           )}
         </DialogContent>
+
         <DialogActions>
           <Button onClick={closeModal} disabled={busy}>
             Annuler

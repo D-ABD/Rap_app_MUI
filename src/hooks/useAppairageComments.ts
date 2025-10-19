@@ -53,7 +53,7 @@ function extractObject<T>(payload: ApiEnvelope<T>): T {
 /* -------------------------------------------------------------------------- */
 /* HELPERS - Query params                                                      */
 /* -------------------------------------------------------------------------- */
-type QueryDict = Record<string, string | number>;
+type QueryDict = Record<string, string | number | boolean>;
 
 function cleanString(x: unknown): string | undefined {
   if (typeof x !== "string") return undefined;
@@ -63,17 +63,29 @@ function cleanString(x: unknown): string | undefined {
 
 function buildListQuery(p: AppairageCommentListParams): QueryDict {
   const q: QueryDict = {};
+
+  // IDs & ordering
   if (typeof p.appairage === "number") q.appairage = p.appairage;
   if (typeof p.created_by === "number") q.created_by = p.created_by;
   if (p.ordering) q.ordering = p.ordering;
 
+  // Text filters
   const formationNom = cleanString(p.formation_nom);
   const partenaireNom = cleanString(p.partenaire_nom);
   const authorUsername = cleanString(p.created_by_username);
-
   if (formationNom) q.formation_nom = formationNom;
   if (partenaireNom) q.partenaire_nom = partenaireNom;
   if (authorUsername) q.created_by_username = authorUsername;
+
+  // ✅ Nouveaux filtres d’état / archivage (alignés Prospection)
+  if (typeof p.est_archive === "boolean") q.est_archive = p.est_archive;
+  if (p.activite) q.activite = p.activite;
+  if (p.statut_commentaire) q.statut_commentaire = p.statut_commentaire;
+
+  // ✅ Filtres additionnels possibles
+  if (typeof p.appairage_owner === "number") q.appairage_owner = p.appairage_owner;
+  if (typeof p.appairage_partenaire === "number") q.appairage_partenaire = p.appairage_partenaire;
+  if (cleanString(p.appairage_statut)) q.appairage_statut = p.appairage_statut!.trim();
 
   return q;
 }
@@ -101,14 +113,12 @@ export function useListAppairageComments(
 
     api
       .get<ApiEnvelope<AppairageCommentDTO>>(BASE, { params: query, cancelToken: source.token })
-      .then((res) => {
-        const list = extractArray<AppairageCommentDTO>(res.data);
-        setData(list);
-      })
+      .then((res) => setData(extractArray<AppairageCommentDTO>(res.data)))
       .catch((err) => {
-        if (axios.isCancel(err)) return;
-        setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
-        setData(null);
+        if (!axios.isCancel(err)) {
+          setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
+          setData(null);
+        }
       })
       .finally(() => setLoading(false));
 
@@ -146,14 +156,12 @@ export function useAppairageComment(id: number | string | null) {
 
     api
       .get<ApiEnvelope<AppairageCommentDTO>>(`${BASE}${id}/`, { cancelToken: source.token })
-      .then((res) => {
-        const obj = extractObject<AppairageCommentDTO>(res.data);
-        setData(obj);
-      })
+      .then((res) => setData(extractObject<AppairageCommentDTO>(res.data)))
       .catch((err) => {
-        if (axios.isCancel(err)) return;
-        setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
-        setData(null);
+        if (!axios.isCancel(err)) {
+          setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
+          setData(null);
+        }
       })
       .finally(() => setLoading(false));
 
@@ -214,22 +222,56 @@ export function useUpdateAppairageComment(id: number | string) {
 /* -------------------------------------------------------------------------- */
 /* HOOKS - DELETE                                                             */
 /* -------------------------------------------------------------------------- */
-export function useDeleteAppairageComment() {
+export function useDeleteAppairageComment(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const remove = useCallback(async (id: number | string) => {
+  const remove = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      await api.delete<void>(`/appairage-commentaires/${id}/`);
+      await api.delete<void>(`${BASE}${id}/`);
     } catch (err) {
       setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [id]);
 
   return { remove, loading, error };
+}
+
+/* -------------------------------------------------------------------------- */
+/* HOOKS - ARCHIVER / DÉSARCHIVER                                             */
+/* -------------------------------------------------------------------------- */
+export function useArchiveAppairageComment(id: number | string) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const toggleArchive = useCallback(
+    async (isArchived: boolean) => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const endpoint = isArchived
+          ? `${BASE}${id}/desarchiver/`
+          : `${BASE}${id}/archiver/`;
+        await api.post(endpoint);
+        return isArchived ? "actif" : "archive";
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+        } else {
+          setError(err as Error);
+        }
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
+
+  return { toggleArchive, loading, error };
 }

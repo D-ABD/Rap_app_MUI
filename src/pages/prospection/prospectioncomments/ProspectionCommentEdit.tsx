@@ -1,4 +1,3 @@
-// src/pages/prospection/ProspectionComment/ProspectionCommentEdit.tsx
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -14,6 +13,7 @@ import ProspectionCommentForm from "./ProspectionCommentForm";
 import {
   useProspectionComment,
   useUpdateProspectionComment,
+  useArchiveProspectionComment, // 🆕 import
 } from "../../../hooks/useProspectionComments";
 import { useAuth } from "../../../hooks/useAuth";
 
@@ -22,16 +22,14 @@ export default function ProspectionCommentEditPage() {
   const { id } = useParams<{ id?: string }>();
 
   const { data: initial, loading, error } = useProspectionComment(id ?? null);
-  console.log("[DEBUG hook] initial =", initial);
-  console.log("[DEBUG hook] loading =", loading, "error =", error);
-
   const { update, error: updateError } = useUpdateProspectionComment(id ?? "");
+  const { toggleArchive, loading: archiving } =
+    useArchiveProspectionComment(id ?? ""); // 🆕
 
   const numericId = id ? Number(id) : NaN;
   const hasValidId = !!id && Number.isFinite(numericId);
 
   const { user } = useAuth();
-  console.log("[DEBUG user] role =", user?.role);
   const canSetInternal = ["staff", "admin", "superadmin"].includes(
     user?.role ?? ""
   );
@@ -40,83 +38,95 @@ export default function ProspectionCommentEditPage() {
     try {
       await update({ body: data.body, is_internal: data.is_internal });
       toast.success(`💬 Commentaire #${numericId} mis à jour`);
-      console.log("[DEBUG submit] prospectionId =", initial?.prospection);
-      navigate(`/prospections/${initial?.prospection}`);
+      navigate("/prospection-commentaires");
     } catch {
       toast.error("Erreur lors de la mise à jour du commentaire");
     }
   };
 
+  // 🧩 Nouvelle logique pour archiver / désarchiver
+  const handleArchiveToggle = async () => {
+    if (!initial) return;
+    try {
+      // ✅ on compare à "archive" (backend)
+      const isArchived = initial.activite === "archive";
+      const newState = await toggleArchive(isArchived);
+      toast.success(
+        newState === "archive"
+          ? "📦 Commentaire archivé"
+          : "♻️ Commentaire désarchivé"
+      );
+      // ✅ maj locale cohérente
+      initial.activite = newState;
+    } catch {
+      toast.error("❌ Échec de l’opération d’archivage");
+    }
+  };
+
   if (!hasValidId) {
     return (
-      <PageTemplate
-        title="Modifier commentaire"
-        backButton
-        onBack={() => navigate("/prospection-commentaires")}
-        centered
-      >
+      <PageTemplate title="Modifier commentaire" centered>
         <Typography color="error">❌ Paramètre invalide.</Typography>
       </PageTemplate>
     );
   }
 
   if (loading) {
-    console.log("[DEBUG rendu] loading commentaire", { numericId });
     return (
-      <PageTemplate
-        title={`Modifier commentaire #${numericId}`}
-        backButton
-        onBack={() => navigate("/prospection-commentaires")}
-        centered
-      >
+      <PageTemplate title={`Modifier commentaire #${numericId}`} centered>
         <CircularProgress />
       </PageTemplate>
     );
   }
 
   if (error) {
-    console.error("[DEBUG rendu erreur]", { numericId, error });
     return (
-      <PageTemplate
-        title={`Modifier commentaire #${numericId}`}
-        backButton
-        onBack={() => navigate("/prospection-commentaires")}
-        centered
-      >
+      <PageTemplate title={`Modifier commentaire #${numericId}`} centered>
         <Typography color="error">❌ Erreur de chargement.</Typography>
       </PageTemplate>
     );
   }
 
   if (!initial) {
-    console.log("[DEBUG rendu attente données]", { numericId });
     return (
-      <PageTemplate
-        title={`Modifier commentaire #${numericId}`}
-        backButton
-        onBack={() => navigate("/prospection-commentaires")}
-        centered
-      >
+      <PageTemplate title={`Modifier commentaire #${numericId}`} centered>
         <CircularProgress />
       </PageTemplate>
     );
   }
 
-  console.log("[DEBUG rendu OK] commentaire =", initial);
+  // ✅ cohérence : "archive" et non "archivee"
+  const isArchived = initial.activite === "archive";
 
   return (
     <PageTemplate
-      title={`Modifier commentaire #${numericId}`}
-      backButton
-      onBack={() => navigate(`/prospections/${initial.prospection}`)}
+      title={`Commentaire #${numericId} — ${
+        isArchived ? "Archivé" : "Actif"
+      }`}
       actions={
         <Stack direction="row" spacing={1}>
+          {/* 🆕 Bouton Archiver / Désarchiver */}
+          <Button
+            variant="contained"
+            color={isArchived ? "success" : "warning"}
+            onClick={handleArchiveToggle}
+            disabled={archiving}
+          >
+            {archiving
+              ? "⏳ En cours…"
+              : isArchived
+              ? "♻️ Désarchiver"
+              : "📦 Archiver"}
+          </Button>
+
+          {/* ✅ Boutons de navigation */}
           <Button
             variant="outlined"
-            onClick={() => navigate(`/prospections/${initial.prospection}`)}
+            onClick={() => navigate("/prospection-commentaires")}
           >
             ← Retour
           </Button>
+
           <Button
             variant="outlined"
             onClick={() => navigate("/prospection-commentaires")}

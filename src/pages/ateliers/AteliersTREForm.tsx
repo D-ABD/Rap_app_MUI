@@ -1,5 +1,5 @@
 // =============================================
-// components/ateliers/AtelierTREForm.tsx (full MUI)
+// components/ateliers/AtelierTREForm.tsx (full MUI, tous champs inclus)
 // =============================================
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -14,12 +14,14 @@ import {
   Chip,
   Stack,
   FormHelperText,
+  Divider,
 } from "@mui/material";
 import type {
   AtelierTREFormData,
   AtelierTREMeta,
   Choice,
   TypeAtelier,
+  PresenceStatut,
 } from "../../types/ateliersTre";
 import CentresSelectModal from "../../components/modals/CentresSelectModal";
 import CandidatsSelectModal, {
@@ -36,6 +38,13 @@ const TYPE_CHOICES_FALLBACK: Choice[] = [
   { value: "atelier_6", label: "Atelier 6 - Posture professionnelle" },
   { value: "atelier_7", label: "Atelier 7 - Bilan et plan d’action" },
   { value: "autre", label: "Autre" },
+];
+
+const PRESENCE_CHOICES_FALLBACK: Choice[] = [
+  { value: "present", label: "Présent" },
+  { value: "absent", label: "Absent" },
+  { value: "excuse", label: "Excusé" },
+  { value: "inconnu", label: "Non renseigné" },
 ];
 
 /* ====================== Helpers ====================== */
@@ -55,7 +64,7 @@ function fromDatetimeLocalInput(v: string): string | undefined {
 
 /* ====================== Types props ====================== */
 type Props = {
-  initialValues?: Partial<AtelierTREFormData>;
+  initialValues?: Partial<AtelierTREFormData & { notes?: string }>;
   meta?: AtelierTREMeta | null;
   submitting?: boolean;
   onSubmit: (values: AtelierTREFormData) => void | Promise<void>;
@@ -70,35 +79,36 @@ export default function AtelierTREForm({
   onSubmit,
   onCancel,
 }: Props) {
-  const [form, setForm] = useState<AtelierTREFormData>({
+  const [form, setForm] = useState<AtelierTREFormData & { notes?: string }>({
     type_atelier: (initialValues?.type_atelier as TypeAtelier) ?? "atelier_1",
     date_atelier: initialValues?.date_atelier ?? null,
     centre: initialValues?.centre ?? null,
     candidats: initialValues?.candidats ?? [],
+    notes: initialValues?.notes ?? "",
   });
 
   const [centreLabel, setCentreLabel] = useState<string>("");
-  const [candPills, setCandPills] = useState<Array<{ id: number; label: string }>>(
-    []
-  );
+  const [candPills, setCandPills] = useState<Array<{ id: number; label: string }>>([]);
+  const [presences, setPresences] = useState<Record<number, PresenceStatut>>({});
 
   const [showCentreModal, setShowCentreModal] = useState(false);
   const [showCandidatsModal, setShowCandidatsModal] = useState(false);
 
-  const typeChoices: Choice[] = useMemo(() => {
-    const server = meta?.type_atelier_choices ?? [];
-    return server.length ? server : TYPE_CHOICES_FALLBACK;
-  }, [meta?.type_atelier_choices]);
-
-  const centreChoices: Choice[] = useMemo(
-    () => meta?.centre_choices ?? [],
-    [meta?.centre_choices]
+  const typeChoices = useMemo(
+    () =>
+      meta?.type_atelier_choices?.length
+        ? meta.type_atelier_choices
+        : TYPE_CHOICES_FALLBACK,
+    [meta?.type_atelier_choices]
   );
-  const candidatChoices: Choice[] = useMemo(
-    () => meta?.candidat_choices ?? [],
-    [meta?.candidat_choices]
+  const centreChoices = useMemo(() => meta?.centre_choices ?? [], [meta?.centre_choices]);
+  const candidatChoices = useMemo(() => meta?.candidat_choices ?? [], [meta?.candidat_choices]);
+  const presenceChoices = useMemo(
+    () => meta?.presence_statut_choices ?? PRESENCE_CHOICES_FALLBACK,
+    [meta?.presence_statut_choices]
   );
 
+  // --- Effets dérivés ---
   useEffect(() => {
     if (form.centre != null) {
       const opt = centreChoices.find((c) => Number(c.value) === form.centre);
@@ -117,6 +127,7 @@ export default function AtelierTREForm({
     setCandPills(list);
   }, [form.candidats, candidatChoices]);
 
+  // --- Soumission ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload: AtelierTREFormData = {
@@ -124,6 +135,10 @@ export default function AtelierTREForm({
       date_atelier: form.date_atelier ?? null,
       centre: form.centre ?? null,
       candidats: Array.isArray(form.candidats) ? form.candidats : [],
+      presences: Object.entries(presences).map(([cid, statut]) => ({
+        candidat_id: Number(cid),
+        statut,
+      })),
     };
     await onSubmit(payload);
   };
@@ -131,7 +146,7 @@ export default function AtelierTREForm({
   return (
     <>
       <Box component="form" onSubmit={handleSubmit}>
-        {/* Infos principales */}
+        {/* Informations principales */}
         <Paper sx={{ p: 2, mb: 2 }}>
           <Typography variant="h6">Informations de l’atelier</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -185,10 +200,7 @@ export default function AtelierTREForm({
                 InputProps={{ readOnly: true }}
               />
               <Stack direction="row" spacing={1} mt={1}>
-                <Button
-                  variant="outlined"
-                  onClick={() => setShowCentreModal(true)}
-                >
+                <Button variant="outlined" onClick={() => setShowCentreModal(true)}>
                   🏫 Sélectionner un centre
                 </Button>
                 {form.centre != null && (
@@ -208,18 +220,15 @@ export default function AtelierTREForm({
           </Grid>
         </Paper>
 
-        {/* Candidats */}
+        {/* Candidats et présences */}
         <Paper sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6">Candidats inscrits</Typography>
+          <Typography variant="h6">Candidats & présences</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Ajoutez un ou plusieurs candidats.
+            Ajoutez des candidats et définissez leur présence.
           </Typography>
 
           <Stack direction="row" spacing={1} mb={2}>
-            <Button
-              variant="outlined"
-              onClick={() => setShowCandidatsModal(true)}
-            >
+            <Button variant="outlined" onClick={() => setShowCandidatsModal(true)}>
               👤 Ajouter un candidat
             </Button>
             {!!(form.candidats?.length ?? 0) && (
@@ -229,6 +238,7 @@ export default function AtelierTREForm({
                 onClick={() => {
                   setForm((f) => ({ ...f, candidats: [] }));
                   setCandPills([]);
+                  setPresences({});
                 }}
               >
                 ✖ Tout effacer
@@ -238,45 +248,48 @@ export default function AtelierTREForm({
 
           {!!candPills.length && (
             <>
-              <FormHelperText>
-                {candPills.length} candidat(s) sélectionné(s)
-              </FormHelperText>
-              <Stack direction="row" spacing={1} flexWrap="wrap" mt={1}>
+              <FormHelperText>{candPills.length} candidat(s) sélectionné(s)</FormHelperText>
+              <Divider sx={{ my: 1 }} />
+              <Grid container spacing={1}>
                 {candPills.map((c) => (
-                  <Chip
-                    key={c.id}
-                    label={c.label}
-                    onDelete={() => {
-                      setForm((f) => ({
-                        ...f,
-                        candidats: (f.candidats ?? []).filter(
-                          (id) => id !== c.id
-                        ),
-                      }));
-                      setCandPills((prev) => prev.filter((x) => x.id !== c.id));
-                    }}
-                  />
+                  <Grid item xs={12} md={6} key={c.id}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Chip label={c.label} />
+                      <Select
+                        size="small"
+                        value={presences[c.id] ?? "inconnu"}
+                        onChange={(e) =>
+                          setPresences((prev) => ({
+                            ...prev,
+                            [c.id]: e.target.value as PresenceStatut,
+                          }))
+                        }
+                      >
+                        {presenceChoices.map((p: Choice) => (
+                          <MenuItem key={p.value} value={p.value}>
+                            {p.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </Stack>
+                  </Grid>
                 ))}
-              </Stack>
+              </Grid>
             </>
           )}
         </Paper>
 
         {/* Notes */}
         <Paper sx={{ p: 2, mb: 2 }}>
-          <Typography variant="h6">Notes</Typography>
+          <Typography variant="h6">Notes internes</Typography>
           <TextField
             multiline
             minRows={4}
             fullWidth
             placeholder="Saisir une note (optionnel)…"
-            onChange={(e) =>
-              setForm((f) => ({ ...f, notes: e.target.value as any }))
-            }
+            value={form.notes ?? ""}
+            onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
           />
-          <FormHelperText>
-            Les notes ne sont stockées que si le champ existe côté API.
-          </FormHelperText>
         </Paper>
 
         {/* Actions */}
@@ -286,11 +299,7 @@ export default function AtelierTREForm({
               Annuler
             </Button>
           )}
-          <Button
-            variant="contained"
-            type="submit"
-            disabled={submitting}
-          >
+          <Button variant="contained" type="submit" disabled={submitting}>
             {submitting ? "Enregistrement…" : "Enregistrer"}
           </Button>
         </Stack>
@@ -316,9 +325,7 @@ export default function AtelierTREForm({
           setShowCandidatsModal(false);
           setForm((f) => {
             const exists = (f.candidats ?? []).includes(pick.id);
-            const nextIds = exists
-              ? f.candidats ?? []
-              : [...(f.candidats ?? []), pick.id];
+            const nextIds = exists ? f.candidats ?? [] : [...(f.candidats ?? []), pick.id];
             return { ...f, candidats: nextIds };
           });
           setCandPills((prev) => {

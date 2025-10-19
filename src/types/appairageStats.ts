@@ -13,6 +13,7 @@ export type AppairageFilters = {
   formation?: string | number;
   partenaire?: string | number;
   statut?: string; // transmis, en_attente, ...
+  avec_archivees?: boolean; // ← NEW
 };
 
 export type AppairageStatusMap = Record<string, number>;
@@ -25,6 +26,8 @@ export type AppairageOverviewKpis = {
   statuts: AppairageStatusMap; // clés safe: "contrat_a_signer", "appairage_ok", ...
   /** Ajouté par le viewset : appairage_ok / total (en %) */
   taux_transformation?: number;
+    /** Inclure aussi les appairages archivés (false par défaut) */
+  avec_archivees?: boolean;
 };
 
 export type AppairageOverviewResponse = {
@@ -63,9 +66,11 @@ export type AppairageGroupRow = {
 
   /** Ajout: taux_transformation par ligne (ok/total en %) */
   taux_transformation?: number;
+  
 
   // statuts dynamiques (ex: a_faire, transmis, appairage_ok, etc.)
   [statusKey: string]: number | string | null | undefined;
+  
 };
 
 export type AppairageGroupedResponse = {

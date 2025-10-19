@@ -1,4 +1,8 @@
+// ======================================================
 // src/pages/commentaires/CommentairesPage.tsx
+// Liste des commentaires + filtres dynamiques + export
+// ======================================================
+
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -24,9 +28,8 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 import usePagination from "../../hooks/usePagination";
 import useFetch from "../../hooks/useFetch";
-import useFiltres from "../../hooks/useFiltresCommentaires";
-import type { Commentaire } from "../../types/commentaire";
-import type { FiltresValues } from "../../types/Filtres";
+import { useCommentairesFiltres } from "../../hooks/useCommentaires";
+import type { Commentaire, CommentaireFiltresValues } from "../../types/commentaire";
 
 import PageTemplate from "../../components/PageTemplate";
 import FiltresCommentairesPanel from "../../components/filters/FiltresCommentairesPanel";
@@ -42,12 +45,19 @@ export default function CommentairesPage() {
   const [search, setSearch] = useState("");
 
   // 🎚️ filtres
-  const [filters, setFilters] = useState<FiltresValues>({
+  const [filters, setFilters] = useState<CommentaireFiltresValues>({
     centre_id: undefined,
     statut_id: undefined,
     type_offre_id: undefined,
   });
   const [showFilters, setShowFilters] = useState(false);
+
+  // 🧩 données des filtres dynamiques
+  const {
+    filtres,
+    loading: filtresLoading,
+    error: filtresError,
+  } = useCommentairesFiltres();
 
   // 🧾 sélection
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -58,17 +68,18 @@ export default function CommentairesPage() {
   const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
     usePagination();
 
-  // ⚙️ fetch
+  // ⚙️ fetch des commentaires
   const effectiveParams = useMemo(
     () => ({ search, page, page_size: pageSize, ordering: "-created_at", ...filters }),
     [search, page, pageSize, filters]
   );
+
   const { data, loading, error, fetchData } = useFetch<{
     results: Commentaire[];
     count: number;
   }>("/commentaires/", effectiveParams);
 
-  // 🔁 refetch
+  // 🔁 refetch automatique quand paramètres changent
   useEffect(() => {
     fetchData();
   }, [fetchData, effectiveParams]);
@@ -137,11 +148,10 @@ export default function CommentairesPage() {
           />
 
           <ExportButtonCommentaires
-            data={
-              selectedIds.length > 0
-                ? commentaires.filter((c) => selectedIds.includes(c.id))
-                : commentaires
-            }
+            data={commentaires.map((c) => ({
+              ...c,
+              created_at: c.created_at ?? "", // 🔧 fallback string
+            }))}
           />
 
           <Select
@@ -188,14 +198,23 @@ export default function CommentairesPage() {
       }
       filters={
         showFilters && (
-          <FiltresCommentairesPanel
-            filtres={{ centres: [], statuts: [], type_offres: [], formation_etats: [] }}
-            values={filters}
-            onChange={(updated) => {
-              setFilters(updated);
-              setPage(1);
-            }}
-          />
+          filtresLoading ? (
+            <Typography sx={{ p: 2 }}>Chargement des filtres…</Typography>
+          ) : filtresError ? (
+            <Typography sx={{ p: 2 }} color="error">
+              Erreur lors du chargement des filtres.
+            </Typography>
+          ) : (
+            <FiltresCommentairesPanel
+              filtres={filtres ?? undefined}
+              values={filters}
+              onChange={(updated) => {
+                setFilters(updated);
+                setPage(1);
+              }}
+              onRefresh={fetchData}
+            />
+          )
         )
       }
       footer={
@@ -242,7 +261,7 @@ export default function CommentairesPage() {
         />
       )}
 
-      {/* Confirmation */}
+      {/* Confirmation suppression */}
       <Dialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}

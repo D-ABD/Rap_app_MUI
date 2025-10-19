@@ -29,7 +29,6 @@ import {
 import { useMe } from "../../hooks/useUsers";
 import usePagination from "../../hooks/usePagination";
 
-import PartenairesTable from "./PartenaireTable";
 import FiltresPartenairesPanel, {
   type PartenaireFilters,
 } from "../../components/filters/FiltresPartenairesPanel";
@@ -37,6 +36,8 @@ import type { Partenaire } from "../../types/partenaire";
 import PageTemplate from "../../components/PageTemplate";
 import SearchInput from "../../components/SearchInput";
 import ExportButtonPartenaires from "../../components/export_buttons/ExportButtonPartenaires";
+import PartenairesTable from "./PartenaireTable";
+import PartenaireDetailModal from "./PartenaireDetailModal";
 
 /* ─────────────────────────────────────────────
    Helpers
@@ -46,7 +47,7 @@ const defaultFilters: PartenaireFilters = {
   city: "",
   secteur_activite: "",
   type: "",
-  created_by: undefined,  
+  created_by: undefined,
   has_appairages: "",
   has_prospections: "",
 };
@@ -59,7 +60,9 @@ function isPaginatedPartenaires(
   return Array.isArray(obj.results) && typeof obj.count === "number";
 }
 
-function dedupeByValueLabel<T extends { value?: string | number | null; label?: string | number | null }>(arr: T[] = []): T[] {
+function dedupeByValueLabel<T extends { value?: string | number | null; label?: string | number | null }>(
+  arr: T[] = []
+): T[] {
   const seen = new Set<string>();
   return arr.filter((o) => {
     const k = `${String(o.value ?? "")}::${String(o.label ?? "")}`;
@@ -68,6 +71,7 @@ function dedupeByValueLabel<T extends { value?: string | number | null; label?: 
     return true;
   });
 }
+
 function dedupeById<T extends { id: number }>(arr: T[] = []): T[] {
   const seen = new Set<number>();
   return arr.filter((o) => {
@@ -77,6 +81,9 @@ function dedupeById<T extends { id: number }>(arr: T[] = []): T[] {
   });
 }
 
+/* ─────────────────────────────────────────────
+   Composant principal
+   ───────────────────────────────────────────── */
 export default function PartenairesPage() {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -91,10 +98,9 @@ export default function PartenairesPage() {
     Boolean(user?.is_staff) || Boolean(user?.is_superuser) || user?.role === "admin";
 
   const [filters, setFilters] = useState<PartenaireFilters>(defaultFilters);
-  const [showFilters, setShowFilters] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem("partenaires.showFilters") === "1";
-  });
+
+  // ✅ Filtres fermés par défaut
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("partenaires.showFilters", showFilters ? "1" : "0");
@@ -174,8 +180,31 @@ export default function PartenairesPage() {
   };
 
   const userOptions = useMemo(() => dedupeById(filterOptions?.users ?? []), [filterOptions]);
-  const cityOptions = useMemo(() => dedupeByValueLabel(filterOptions?.cities ?? []), [filterOptions]);
-  const secteurOptions = useMemo(() => dedupeByValueLabel(filterOptions?.secteurs ?? []), [filterOptions]);
+  const cityOptions = useMemo(
+    () => dedupeByValueLabel(filterOptions?.cities ?? []),
+    [filterOptions]
+  );
+  const secteurOptions = useMemo(
+    () => dedupeByValueLabel(filterOptions?.secteurs ?? []),
+    [filterOptions]
+  );
+
+  // 🔹 Gestion de la modale de détail
+  const [showDetail, setShowDetail] = useState(false);
+  const [selectedPartenaire, setSelectedPartenaire] = useState<Partenaire | null>(null);
+
+  const handleRowClick = (id: number) => {
+    const partenaire = partenaires.find((p) => p.id === id);
+    if (partenaire) {
+      setSelectedPartenaire(partenaire);
+      setShowDetail(true);
+    }
+  };
+
+  const handleEdit = (id: number) => {
+    setShowDetail(false);
+    navigate(`/partenaires/${id}/edit`);
+  };
 
   return (
     <PageTemplate
@@ -243,7 +272,10 @@ export default function PartenairesPage() {
               <Button color="error" onClick={() => setShowConfirm(true)}>
                 Supprimer ({selectedIds.length})
               </Button>
-              <Button variant="outlined" onClick={() => setSelectedIds(partenaires.map((p) => p.id))}>
+              <Button
+                variant="outlined"
+                onClick={() => setSelectedIds(partenaires.map((p) => p.id))}
+              >
                 Tout sélectionner
               </Button>
               <Button variant="outlined" onClick={() => setSelectedIds([])}>
@@ -300,7 +332,9 @@ export default function PartenairesPage() {
         <Typography color="error">Erreur lors du chargement des partenaires.</Typography>
       ) : partenaires.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
-          <Box fontSize={48} mb={1}>📭</Box>
+          <Box fontSize={48} mb={1}>
+            📭
+          </Box>
           <Typography>Aucun partenaire trouvé.</Typography>
         </Box>
       ) : (
@@ -310,10 +344,12 @@ export default function PartenairesPage() {
             selectedIds={selectedIds}
             onToggleSelect={(id) =>
               setSelectedIds((prev) =>
-                prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+                prev.includes(id)
+                  ? prev.filter((i) => i !== id)
+                  : [...prev, id]
               )
             }
-            onRowClick={(id) => navigate(`/partenaires/${id}/edit`)}
+            onRowClick={handleRowClick}
             onDeleteClick={(id) => {
               setSelectedId(id);
               setShowConfirm(true);
@@ -321,6 +357,13 @@ export default function PartenairesPage() {
           />
         </Box>
       )}
+
+      <PartenaireDetailModal
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        partenaire={selectedPartenaire}
+        onEdit={handleEdit}
+      />
 
       <Dialog
         open={showConfirm}

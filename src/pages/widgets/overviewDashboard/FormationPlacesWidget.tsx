@@ -12,8 +12,7 @@ import {
 } from "@mui/material";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import InventoryIcon from "@mui/icons-material/Inventory";
-
-// Recharts
+import ArchiveIcon from "@mui/icons-material/Archive"; // ← nouveau
 import {
   BarChart,
   Bar,
@@ -56,21 +55,31 @@ export default function FormationPlacesWidget({
   const [localFilters, setLocalFilters] = React.useState<Filters>(
     filters ?? {}
   );
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
+    !!filters?.avec_archivees
+  );
+
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
+  // ⚙️ Fusion des filtres + flag archivées
+  const effectiveFilters = React.useMemo(
+    () => ({ ...localFilters, avec_archivees: includeArchived }),
+    [localFilters, includeArchived]
+  );
+
   const centreQuery = useFormationGrouped(
     "centre",
-    omit(localFilters, ["centre"] as const)
+    omit(effectiveFilters, ["centre"] as const)
   );
   const deptQuery = useFormationGrouped(
     "departement",
-    omit(localFilters, ["departement"] as const)
+    omit(effectiveFilters, ["departement"] as const)
   );
 
   const { data, isLoading, error, refetch, isFetching } =
-    useFormationOverview(localFilters);
+    useFormationOverview(effectiveFilters);
   const k = data?.kpis;
 
   // Options filtres
@@ -128,49 +137,19 @@ export default function FormationPlacesWidget({
           {title}
         </Typography>
 
-        <Box display="flex" flexWrap="wrap" gap={1}>
-          <Select
+        <Box display="flex" flexWrap="wrap" gap={1} alignItems="center">
+          {/* Bouton Archivées */}
+          <Button
             size="small"
-            value={localFilters.centre ?? ""}
-            onChange={(e) =>
-              setLocalFilters((f) => ({
-                ...f,
-                centre: e.target.value ? String(e.target.value) : undefined,
-              }))
-            }
-            sx={{ minWidth: 120 }}
-            displayEmpty
+            variant={includeArchived ? "contained" : "outlined"}
+            color={includeArchived ? "secondary" : "inherit"}
+            onClick={() => setIncludeArchived((v) => !v)}
+            startIcon={<ArchiveIcon fontSize="small" />}
           >
-            <MenuItem value="">Tous centres</MenuItem>
-            {centreOptions.map((o) => (
-              <MenuItem key={String(o.value)} value={String(o.value)}>
-                {o.label}
-              </MenuItem>
-            ))}
-          </Select>
+            {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+          </Button>
 
-          <Select
-            size="small"
-            value={localFilters.departement ?? ""}
-            onChange={(e) =>
-              setLocalFilters((f) => ({
-                ...f,
-                departement: e.target.value
-                  ? String(e.target.value)
-                  : undefined,
-              }))
-            }
-            sx={{ minWidth: 100 }}
-            displayEmpty
-          >
-            <MenuItem value="">Tous dépts</MenuItem>
-            {deptOptions.map((o) => (
-              <MenuItem key={String(o.value)} value={String(o.value)}>
-                {o.label}
-              </MenuItem>
-            ))}
-          </Select>
-
+          {/* Bouton Rafraîchir */}
           <Button
             size="small"
             variant="outlined"
@@ -187,6 +166,49 @@ export default function FormationPlacesWidget({
             Rafraîchir
           </Button>
         </Box>
+      </Box>
+
+      {/* Filtres */}
+      <Box display="flex" flexWrap="wrap" gap={1} justifyContent="flex-end">
+        <Select
+          size="small"
+          value={localFilters.centre ?? ""}
+          onChange={(e) =>
+            setLocalFilters((f) => ({
+              ...f,
+              centre: e.target.value ? String(e.target.value) : undefined,
+            }))
+          }
+          sx={{ minWidth: 120 }}
+          displayEmpty
+        >
+          <MenuItem value="">Tous centres</MenuItem>
+          {centreOptions.map((o) => (
+            <MenuItem key={String(o.value)} value={String(o.value)}>
+              {o.label}
+            </MenuItem>
+          ))}
+        </Select>
+
+        <Select
+          size="small"
+          value={localFilters.departement ?? ""}
+          onChange={(e) =>
+            setLocalFilters((f) => ({
+              ...f,
+              departement: e.target.value ? String(e.target.value) : undefined,
+            }))
+          }
+          sx={{ minWidth: 100 }}
+          displayEmpty
+        >
+          <MenuItem value="">Tous dépts</MenuItem>
+          {deptOptions.map((o) => (
+            <MenuItem key={String(o.value)} value={String(o.value)}>
+              {o.label}
+            </MenuItem>
+          ))}
+        </Select>
       </Box>
 
       {/* KPI global */}

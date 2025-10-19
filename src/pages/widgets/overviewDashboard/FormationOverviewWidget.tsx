@@ -62,7 +62,7 @@ const renderLabel = ({
     <text
       x={x}
       y={y}
-      fill="#0d47a1" // 🔵 bleu foncé pour bonne lisibilité
+      fill="#0d47a1"
       textAnchor="middle"
       dominantBaseline="middle"
       style={{ fontSize: "13px", fontWeight: "bold" }}
@@ -82,9 +82,17 @@ export default function FormationOverviewWidget({
   const [localFilters, setLocalFilters] = React.useState<Filters>(
     filters ?? {}
   );
+  const [includeArchived, setIncludeArchived] = React.useState(false);
+
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
+
+  // On fusionne les filtres avec le flag d’archives
+  const effectiveFilters = {
+    ...localFilters,
+    ...(includeArchived ? { avec_archivees: true } : {}),
+  };
 
   const centreQuery = useFormationGrouped(
     "centre",
@@ -94,9 +102,10 @@ export default function FormationOverviewWidget({
     "departement",
     omit(localFilters, ["departement"])
   );
+("Filters envoyés :", effectiveFilters);
 
   const { data, isLoading, error, refetch, isFetching } =
-    useFormationOverview(localFilters ?? {});
+    useFormationOverview(effectiveFilters);
   const k = data?.kpis;
 
   // Options select
@@ -131,6 +140,11 @@ export default function FormationOverviewWidget({
       { name: "À venir", value: k.nb_a_venir ?? 0 },
       { name: "Finies", value: k.nb_terminees ?? 0 },
     ];
+
+  // 🔁 Rafraîchit automatiquement si on change l’état des archivées
+  React.useEffect(() => {
+    refetch();
+  }, [includeArchived]);
 
   return (
     <Card
@@ -200,6 +214,16 @@ export default function FormationOverviewWidget({
             ))}
           </Select>
 
+          {/* 🔘 Bouton inclure archivées */}
+          <Button
+            size="small"
+            variant={includeArchived ? "contained" : "outlined"}
+            color={includeArchived ? "secondary" : "inherit"}
+            onClick={() => setIncludeArchived((prev) => !prev)}
+          >
+            {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+          </Button>
+
           <Button
             size="small"
             variant="outlined"
@@ -249,7 +273,7 @@ export default function FormationOverviewWidget({
                 paddingAngle={3}
                 dataKey="value"
                 labelLine={false}
-                label={renderLabel} // ✅ juste le %
+                label={renderLabel}
               >
                 {pieData.map((_, index) => (
                   <Cell

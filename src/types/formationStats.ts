@@ -11,6 +11,7 @@ export type Filters = {
   departement?: string;
   type_offre?: string | number;
   statut?: string | number;
+    avec_archivees?: boolean;
 };
 
 export type CandidatKpis = {
@@ -26,6 +27,8 @@ export type CandidatKpis = {
   nb_contrats_autres: number;
   // ↑ NEW
   nb_admissibles: number;
+    /** Inclure les formations archivées (true/false) */
+  avec_archivees?: boolean; // ← ✅ nouveau champ
 };
 
 // ← NEW
@@ -65,6 +68,7 @@ export type OverviewKpis = {
   entrees_formation: number;
   candidats: CandidatKpis;
   appairages: AppairageKpis; // ← NEW
+    avec_archivees?: boolean;
 };
 
 export type OverviewResponse = {

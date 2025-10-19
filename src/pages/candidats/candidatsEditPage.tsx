@@ -1,7 +1,6 @@
 // src/pages/candidats/CandidatEditPage.tsx
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AxiosError } from "axios";
 import { CircularProgress, Typography, Box } from "@mui/material";
 
 import {
@@ -15,7 +14,6 @@ import { useFormationsOptions } from "../../hooks/useFormations";
 import type { Candidat, CandidatFormData } from "../../types/candidat";
 import PageTemplate from "../../components/PageTemplate";
 import CandidatForm from "./CandidatForm";
-import CandidatDetail, { CandidatDetailDTO } from "./CandidatDetailPage";
 
 export default function CandidatEditPage() {
   const { id } = useParams();
@@ -31,33 +29,36 @@ export default function CandidatEditPage() {
   const canEditFormation =
     !!me && ["admin", "superadmin", "staff"].includes(me.role);
 
+  /**
+   * 🧩 handleSubmit
+   * Laisse la gestion fine des erreurs (400 → champ par champ) au composant <CandidatForm />
+   * On ne gère ici que les erreurs inattendues (réseau, 500…)
+   */
   const handleSubmit = async (values: CandidatFormData) => {
     try {
       await update(values);
       toast.success("✅ Candidat mis à jour");
       navigate("/candidats");
-    } catch (error) {
-      const axiosErr = error as AxiosError<{
-        message?: string;
-        errors?: Record<string, string | string[]>;
-      }>;
-      const fromErrors = axiosErr.response?.data?.errors
-        ? Object.values(axiosErr.response.data.errors).flat().join(" · ")
-        : undefined;
-      const msg =
-        axiosErr.response?.data?.message ??
-        fromErrors ??
-        axiosErr.message ??
-        "Erreur lors de la mise à jour";
-      toast.error(msg);
-      console.error("Update candidat failed:", error);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      // ❌ Erreurs inattendues (pas du 400 de validation)
+      if (status && status !== 400) {
+        toast.error("Erreur serveur ou réseau lors de la mise à jour.");
+        console.error("Update candidat failed:", error);
+      }
+      throw error;
     }
   };
 
   // ── Loading / Erreurs ────────────────────────────────
   if (loadingMeta || loadingItem) {
     return (
-      <PageTemplate title="Modifier le candidat" backButton onBack={() => navigate(-1)} centered>
+      <PageTemplate
+        title="Modifier le candidat"
+        backButton
+        onBack={() => navigate(-1)}
+        centered
+      >
         <CircularProgress />
         <Typography sx={{ mt: 2 }}>⏳ Chargement…</Typography>
       </PageTemplate>
@@ -66,7 +67,11 @@ export default function CandidatEditPage() {
 
   if (!data) {
     return (
-      <PageTemplate title="Modifier le candidat" backButton onBack={() => navigate(-1)}>
+      <PageTemplate
+        title="Modifier le candidat"
+        backButton
+        onBack={() => navigate(-1)}
+      >
         <Typography color="error">❌ Candidat introuvable.</Typography>
       </PageTemplate>
     );
@@ -79,22 +84,24 @@ export default function CandidatEditPage() {
       backButton
       onBack={() => navigate(-1)}
     >
-      {/* Résumé en lecture seule */}
-      <Box mb={3}>
-        <CandidatDetail candidat={data as CandidatDetailDTO} />
-      </Box>
 
-      {/* Formulaire d’édition */}
-      <CandidatForm
-        initialValues={data as Candidat}
-        meta={meta}
-        formationOptions={formationOptions}
-        currentUser={me}
-        canEditFormation={canEditFormation}
-        onSubmit={handleSubmit}
-        onCancel={() => navigate("/candidats")}
-        submitting={saving}
-      />
+
+      {/* Formulaire d’édition — section cible du scroll */}
+      <Box id="edit-section" sx={{ scrollMarginTop: "80px" }}>
+        <Typography variant="h6" gutterBottom>
+          ✏️ Modifier les informations
+        </Typography>
+
+        <CandidatForm
+          initialValues={data as Candidat}
+          meta={meta}
+          currentUser={me}
+          canEditFormation={canEditFormation}
+          onSubmit={handleSubmit}
+          onCancel={() => navigate("/candidats")}
+          submitting={saving}
+        />
+      </Box>
     </PageTemplate>
   );
 }

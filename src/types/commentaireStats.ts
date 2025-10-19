@@ -108,10 +108,16 @@ export function useCommentaireLatest(filters: CommentaireFilters = {}) {
   return useQuery<CommentaireLatestResponse, Error>({
     queryKey: ["commentaire-stats:latest", filters],
     queryFn: () => getCommentaireLatest(filters),
-    staleTime: 30_000,
-    placeholderData: (prev) => prev,
+
+    // ✅ Toujours à jour
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 }
+
+
 
 // ────────────────────────────────────────────────────────────
 /** Hook pour récupérer les formations groupées */

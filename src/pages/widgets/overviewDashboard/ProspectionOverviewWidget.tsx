@@ -1,4 +1,3 @@
-// src/pages/widgets/overviewDashboard/ProspectionOverviewWidget.tsx
 import * as React from "react";
 import {
   Box,
@@ -9,6 +8,7 @@ import {
   CircularProgress,
   Alert,
   Divider,
+  Button,
 } from "@mui/material";
 
 import {
@@ -22,6 +22,7 @@ import {
 
 // ✅ Icônes
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import ArchiveIcon from "@mui/icons-material/Archive";
 
 // ✅ Recharts
 import {
@@ -55,6 +56,8 @@ export default function ProspectionOverviewWidget({
   const [filters, setFilters] = React.useState<ProspectionFilters>(
     initialFilters ?? {}
   );
+
+  const includeArchived = Boolean(filters.avec_archivees);
 
   const { data: overview, isLoading, error } = useProspectionOverview(filters);
 
@@ -140,7 +143,7 @@ export default function ProspectionOverviewWidget({
       )}
 
       {/* Filtres */}
-      <Box display="flex" gap={1} flexWrap="wrap">
+      <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
         <Select
           size="small"
           value={filters.centre ?? ""}
@@ -178,6 +181,22 @@ export default function ProspectionOverviewWidget({
             </MenuItem>
           ))}
         </Select>
+
+        {/* 🔘 Bouton Archivées */}
+        <Button
+          size="small"
+          variant={includeArchived ? "contained" : "outlined"}
+          color={includeArchived ? "secondary" : "inherit"}
+          onClick={() =>
+            setFilters((f) => ({
+              ...f,
+              avec_archivees: f.avec_archivees ? undefined : true,
+            }))
+          }
+          startIcon={<ArchiveIcon fontSize="small" />}
+        >
+          {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+        </Button>
       </Box>
 
       {/* Graphique */}

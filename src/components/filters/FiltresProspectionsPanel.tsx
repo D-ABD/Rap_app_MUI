@@ -1,4 +1,3 @@
-// src/components/prospections/FiltresProspectionsPanel.tsx
 import React, { useMemo, useCallback } from 'react';
 import FilterTemplate, { type FieldConfig } from '../filters/FilterTemplate';
 import type {
@@ -37,6 +36,16 @@ type Props = {
 // 🔹 Placeholder pour garder un sélecteur visible/clair si liste vide
 const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
   opts.length ? opts : [{ value: '', label: '—' }];
+
+// 🔹 Supprime les doublons par value
+function uniqueBy<T extends { value: string | number }>(arr: T[]): T[] {
+  const seen = new Set();
+  return arr.filter((item) => {
+    if (seen.has(item.value)) return false;
+    seen.add(item.value);
+    return true;
+  });
+}
 
 export default React.memo(function FiltresProspectionsPanel({
   filtres,
@@ -90,6 +99,8 @@ export default React.memo(function FiltresProspectionsPanel({
       formation_statut: undefined,
       formation_type_offre: undefined,
       centre: undefined,
+      activite: undefined,      // ✅ reset du nouveau filtre
+      avec_archivees: false,    // ✅ reset explicite
 
       page: 1,
     });
@@ -107,14 +118,14 @@ export default React.memo(function FiltresProspectionsPanel({
       label: '🎓 Formation',
       type: 'select' as const,
       hidden: safe.formations.length === 0,
-      options: safe.formations.map((o) => ({ value: Number(o.value), label: o.label })),
+      options: uniqueBy(safe.formations.map((o) => ({ value: Number(o.value), label: o.label }))),
     },
     {
       key: 'partenaire' as const,
       label: '🏢 Partenaire',
       type: 'select' as const,
       hidden: safe.partenaires.length === 0,
-      options: safe.partenaires.map((o) => ({ value: Number(o.value), label: o.label })),
+      options: uniqueBy(safe.partenaires.map((o) => ({ value: Number(o.value), label: o.label }))),
     },
     {
       key: 'formation_type_offre' as const,
@@ -122,7 +133,7 @@ export default React.memo(function FiltresProspectionsPanel({
       type: 'select' as const,
       hidden: safe.formation_type_offre.length === 0,
       options: withPlaceholder(
-        safe.formation_type_offre.map((o) => ({ value: Number(o.value), label: o.label }))
+        uniqueBy(safe.formation_type_offre.map((o) => ({ value: Number(o.value), label: o.label })))
       ),
     },
     {
@@ -131,7 +142,7 @@ export default React.memo(function FiltresProspectionsPanel({
       type: 'select' as const,
       hidden: safe.formation_statut.length === 0,
       options: withPlaceholder(
-        safe.formation_statut.map((o) => ({ value: Number(o.value), label: o.label }))
+        uniqueBy(safe.formation_statut.map((o) => ({ value: Number(o.value), label: o.label })))
       ),
     },
     {
@@ -140,7 +151,7 @@ export default React.memo(function FiltresProspectionsPanel({
       type: 'select' as const,
       hidden: safe.centres.length === 0,
       options: withPlaceholder(
-        safe.centres.map((o) => ({ value: Number(o.value), label: o.label }))
+        uniqueBy(safe.centres.map((o) => ({ value: Number(o.value), label: o.label })))
       ),
     },
     {
@@ -148,7 +159,7 @@ export default React.memo(function FiltresProspectionsPanel({
       label: '📍 Statut',
       type: 'select' as const,
       options: withPlaceholder(
-        safe.statut.map((o) => ({ value: String(o.value), label: o.label }))
+        uniqueBy(safe.statut.map((o) => ({ value: String(o.value), label: o.label })))
       ),
     },
     {
@@ -156,7 +167,7 @@ export default React.memo(function FiltresProspectionsPanel({
       label: '🎯 Objectif',
       type: 'select' as const,
       options: withPlaceholder(
-        safe.objectif.map((o) => ({ value: String(o.value), label: o.label }))
+        uniqueBy(safe.objectif.map((o) => ({ value: String(o.value), label: o.label })))
       ),
     },
     {
@@ -164,7 +175,7 @@ export default React.memo(function FiltresProspectionsPanel({
       label: '📝 Motif',
       type: 'select' as const,
       options: withPlaceholder(
-        safe.motif.map((o) => ({ value: String(o.value), label: o.label }))
+        uniqueBy(safe.motif.map((o) => ({ value: String(o.value), label: o.label })))
       ),
     },
     {
@@ -172,7 +183,7 @@ export default React.memo(function FiltresProspectionsPanel({
       label: '🔄 Type de prospection',
       type: 'select' as const,
       options: withPlaceholder(
-        safe.type_prospection.map((o) => ({ value: String(o.value), label: o.label }))
+        uniqueBy(safe.type_prospection.map((o) => ({ value: String(o.value), label: o.label })))
       ),
     },
     {
@@ -180,18 +191,39 @@ export default React.memo(function FiltresProspectionsPanel({
       label: '📞 Moyen de contact',
       type: 'select' as const,
       options: withPlaceholder(
-        safe.moyen_contact.map((o) => ({ value: String(o.value), label: o.label }))
+        uniqueBy(safe.moyen_contact.map((o) => ({ value: String(o.value), label: o.label })))
       ),
     },
     {
       key: 'owner' as const,
-      label: '👤 Responsable',
+      label: '👤 Candidat',
       type: 'select' as const,
       hidden: !canSeeOwners || safe.owners.length === 0,
-      options: safe.owners.map((o) => ({ value: Number(o.value), label: o.label })),
+      options: uniqueBy(safe.owners.map((o) => ({ value: Number(o.value), label: o.label }))),
     },
     { key: 'date_min' as const, label: '📅 Date min', type: 'date' as const },
     { key: 'date_max' as const, label: '📅 Date max', type: 'date' as const },
+
+    // 🆕 Nouveau champ “Activité”
+    {
+      key: 'activite' as const,
+      label: '🗂 Activité',
+      type: 'select' as const,
+      options: [
+        { value: '', label: 'Toutes' },
+        { value: 'active', label: 'Actives uniquement' },
+        { value: 'archivee', label: 'Archivées uniquement' },
+      ],
+      tooltip: 'Filtrer par activité (active / archivée)',
+    },
+
+    // 🗃 Champ existant : Inclure les archivées
+    {
+      key: 'avec_archivees' as const,
+      label: '🗃 Inclure les archivées',
+      type: 'checkbox' as const,
+      tooltip: 'Afficher aussi les prospections archivées',
+    },
   ], [safe, canSeeOwners]);
 
   const actions = useMemo(

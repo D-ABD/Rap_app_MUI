@@ -1,4 +1,3 @@
-// src/pages/appairages/AppairagesPage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -28,10 +27,12 @@ import type {
   AppairageListItem,
   AppairageMeta,
 } from "../../types/appairage";
+
 import AppairageTable from "./AppairageTable";
 import { AppairageFilters } from "../../components/filters/FiltresAppairagePanel";
 import ExportButtonAppairage from "../../components/export_buttons/ExportButtonAppairage";
 import PageTemplate from "../../components/PageTemplate";
+import AppairageDetailModal from "./AppairageDetailModal";
 
 export const AppairagesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +44,10 @@ export const AppairagesPage: React.FC = () => {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+
+  // 🔹 Modale de détail
+  const [showDetail, setShowDetail] = useState(false);
+  const [selectedAppairage, setSelectedAppairage] = useState<AppairageListItem | null>(null);
 
   // 🔹 Masqué par défaut
   const [showFilters, setShowFilters] = useState<boolean>(false);
@@ -74,8 +79,7 @@ export const AppairagesPage: React.FC = () => {
   );
 
   const appairages: AppairageListItem[] = useMemo(
-    () =>
-      ((pageData as { results?: AppairageListItem[] } | null)?.results ?? []),
+    () => ((pageData as { results?: AppairageListItem[] } | null)?.results ?? []),
     [pageData]
   );
 
@@ -109,13 +113,27 @@ export const AppairagesPage: React.FC = () => {
     }
   };
 
-  const handleRowClick = (id: number) => navigate(`/appairages/${id}/edit`);
+  // 🔹 Ouverture de la modale au clic sur une ligne
+  const handleRowClick = (id: number) => {
+    const a = appairages.find((x) => x.id === id);
+    if (a) {
+      setSelectedAppairage(a);
+      setShowDetail(true);
+    }
+  };
+
   const handleDeleteClick = (id: number) => {
     setSelectedId(id);
     setShowConfirm(true);
   };
+
   const handleHistoryClick = (id: number) =>
     navigate(`/appairages/${id}/historiques`);
+
+  const handleEdit = (id: number) => {
+    setShowDetail(false);
+    navigate(`/appairages/${id}/edit`);
+  };
 
   return (
     <PageTemplate
@@ -125,11 +143,7 @@ export const AppairagesPage: React.FC = () => {
       refreshButton
       onRefresh={() => setReloadKey((k) => k + 1)}
       actions={
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          flexWrap="wrap"
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
           <Button
             variant="outlined"
             onClick={() => setShowFilters((v) => !v)}
@@ -234,13 +248,21 @@ export const AppairagesPage: React.FC = () => {
           items={appairages}
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
-          onRowClick={handleRowClick}
+          onRowClick={handleRowClick} // ✅ clic ligne → ouvre la modale
           onDeleteClick={handleDeleteClick}
           onHistoryClick={handleHistoryClick}
         />
       )}
 
-      {/* Confirmation dialog */}
+      {/* ───────────── Modale de détail ───────────── */}
+      <AppairageDetailModal
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        appairage={selectedAppairage}
+        onEdit={handleEdit}
+      />
+
+      {/* ───────────── Confirmation suppression ───────────── */}
       <Dialog
         open={showConfirm}
         onClose={() => setShowConfirm(false)}

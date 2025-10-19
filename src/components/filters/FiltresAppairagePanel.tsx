@@ -9,7 +9,12 @@ import {
 } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 
-import { AppairageFiltresValues, AppairageMeta } from "../../types/appairage";
+import {
+  AppairageFiltresValues,
+  AppairageMeta,
+  AppairageActivite,
+  AppairageActiviteLabels,
+} from "../../types/appairage";
 import FilterTemplate, { FieldConfig } from "./FilterTemplate";
 
 type WithSearchAndCentre = AppairageFiltresValues & {
@@ -32,6 +37,7 @@ interface Props {
 const map = <T extends { value: string | number; label: string }>(
   arr?: T[]
 ) => arr ?? [];
+
 const withPlaceholder = (
   opts: Array<{ value: string | number; label: string }>
 ) => (opts.length ? opts : [{ value: "", label: "—" }]);
@@ -48,6 +54,8 @@ function buildReset(
   if (meta.user_choices) next.created_by = undefined;
   if (meta.centre_choices) next.centre = undefined;
   next.search = undefined;
+  next.avec_archivees = false;
+  next.activite = undefined;
   return next;
 }
 
@@ -158,6 +166,34 @@ export const AppairageFilters: React.FC<Props> = ({
             },
           ]
         : []),
+
+      // ✅ Nouveau sélecteur activité : Actif / Archivé / Tous
+      {
+        key: "activite" as const,
+        label: "🗃️ Activité",
+        type: "select" as const,
+        options: [
+          { value: "", label: "— Tous —" },
+          {
+            value: "actif" satisfies AppairageActivite,
+            label: AppairageActiviteLabels.actif,
+          },
+          {
+            value: "archive" satisfies AppairageActivite,
+            label: AppairageActiviteLabels.archive,
+          },
+        ],
+        tooltip: "Filtrer selon le statut d’activité (actif ou archivé)",
+      },
+
+      // ✅ Case à cocher “Inclure les archivés”
+      {
+        key: "avec_archivees",
+        label: "📦 Inclure les archivés",
+        type: "checkbox" as const,
+        tooltip:
+          "Afficher aussi les appairages archivés (sans filtrer exclusivement)",
+      },
     ];
   }, [meta]);
 

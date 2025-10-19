@@ -1,12 +1,19 @@
 // src/pages/appairages/appairage_comments/AppairageCommentEditPage.tsx
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+} from "@mui/material";
 
 import AppairageCommentForm from "./AppairageCommentForm";
 import {
   useAppairageComment,
   useUpdateAppairageComment,
+  useArchiveAppairageComment, // 🆕
 } from "../../../hooks/useAppairageComments";
 import type {
   AppairageCommentDTO,
@@ -20,6 +27,8 @@ export default function AppairageCommentEditPage() {
 
   const { data: initial, loading, error } = useAppairageComment(id ?? null);
   const { update, error: updateError } = useUpdateAppairageComment(id ?? "");
+  const { toggleArchive, loading: archiving } =
+    useArchiveAppairageComment(id ?? ""); // 🆕
 
   const numericId = id ? Number(id) : NaN;
   const hasValidId = !!id && Number.isFinite(numericId);
@@ -34,21 +43,34 @@ export default function AppairageCommentEditPage() {
     }
   };
 
-  // Cas ID invalide
+  // 🆕 Gestion archive / désarchive
+  const handleArchiveToggle = async () => {
+    if (!initial) return;
+    try {
+      const isArchived = initial.activite === "archive";
+      const newState = await toggleArchive(isArchived);
+      toast.success(
+        newState === "archive"
+          ? "📦 Commentaire archivé"
+          : "♻️ Commentaire désarchivé"
+      );
+      initial.activite = newState;
+    } catch {
+      toast.error("❌ Échec de l’opération d’archivage");
+    }
+  };
+
   if (!hasValidId) {
     return (
-      <PageTemplate title="Modifier commentaire d’appairage" backButton onBack={() => navigate(-1)}>
-        <Typography color="error" sx={{ mb: 2 }}>
-          ❌ Paramètre invalide.
-        </Typography>
-        <Button variant="outlined" onClick={() => navigate("/appairage-commentaires")}>
-          ← Retour à la liste
-        </Button>
+      <PageTemplate
+        title="Modifier commentaire d’appairage"
+        centered
+      >
+        <Typography color="error">❌ Paramètre invalide.</Typography>
       </PageTemplate>
     );
   }
 
-  // Cas chargement
   if (loading) {
     return (
       <PageTemplate title={`Modifier commentaire #${numericId}`} centered>
@@ -58,44 +80,69 @@ export default function AppairageCommentEditPage() {
     );
   }
 
-  // Cas erreur
   if (error || !initial) {
     return (
-      <PageTemplate title={`Modifier commentaire #${numericId}`} backButton onBack={() => navigate(-1)}>
-        <Typography color="error" sx={{ mb: 2 }}>
-          ❌ Erreur de chargement.
-        </Typography>
-        <Button variant="outlined" onClick={() => navigate("/appairage-commentaires")}>
-          ← Retour à la liste
-        </Button>
+      <PageTemplate
+        title={`Modifier commentaire #${numericId}`}
+        centered
+      >
+        <Typography color="error">❌ Erreur de chargement.</Typography>
       </PageTemplate>
     );
   }
 
+  const isArchived = initial.activite === "archive";
+
   return (
     <PageTemplate
-      title={`Modifier commentaire #${numericId}`}
-      backButton
-      onBack={() => navigate(-1)}
+      title={`Commentaire #${numericId} — ${
+        isArchived ? "Archivé" : "Actif"
+      }`}
       actions={
-        <Button variant="outlined" onClick={() => navigate("/appairage-commentaires")}>
-          Liste
-        </Button>
+        <Stack direction="row" spacing={1}>
+          {/* 🆕 Bouton Archiver / Désarchiver */}
+          <Button
+            variant="contained"
+            color={isArchived ? "success" : "warning"}
+            onClick={handleArchiveToggle}
+            disabled={archiving}
+          >
+            {archiving
+              ? "⏳ En cours…"
+              : isArchived
+              ? "♻️ Désarchiver"
+              : "📦 Archiver"}
+          </Button>
+
+          {/* Navigation */}
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/appairage-commentaires")}
+          >
+            ← Retour
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => navigate("/appairage-commentaires")}
+          >
+            Liste
+          </Button>
+        </Stack>
       }
     >
       {updateError && (
-        <Typography color="error" sx={{ mb: 2 }}>
-          ❌ Impossible de mettre à jour le commentaire.
-        </Typography>
+        <Box mb={2}>
+          <Typography color="error">
+            ❌ Impossible de mettre à jour le commentaire.
+          </Typography>
+        </Box>
       )}
 
-      <Box mt={2}>
-        <AppairageCommentForm
-          initial={initial as AppairageCommentDTO}
-          appairageId={initial.appairage}
-          onSubmit={handleSubmit}
-        />
-      </Box>
+      <AppairageCommentForm
+        initial={initial as AppairageCommentDTO}
+        appairageId={initial.appairage}
+        onSubmit={handleSubmit}
+      />
     </PageTemplate>
   );
 }

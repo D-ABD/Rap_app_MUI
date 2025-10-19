@@ -1,4 +1,3 @@
-// src/hooks/useProspectionComments.ts
 import { useEffect, useMemo, useState, useCallback } from "react";
 import api from "../api/axios";
 import axios from "axios";
@@ -9,13 +8,25 @@ import type {
   ProspectionCommentListParams,
 } from "../types/prospectionComment";
 
-/* ──────────────────────────────────────────────────────────────────────────
-   Endpoint unique (FR)
-   ────────────────────────────────────────────────────────────────────────── */
+export type PaginatedResponse<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
+export type ApiResponse<T> =
+  | PaginatedResponse<T>
+  | {
+      success: boolean;
+      message: string;
+      data: PaginatedResponse<T>;
+    };
+
 const BASE = "/prospection-commentaires/";
 
 /* ──────────────────────────────────────────────────────────────────────────
-   Helpers de dé-sérialisation — tolérants (array, {data:[]}, {results:[]})
+   Helpers de dé-sérialisation
    ────────────────────────────────────────────────────────────────────────── */
 type ApiArrayShape<T> = T[] | { data: T[] } | { results: T[] };
 type ApiObjectShape<T> = T | { data: T };
@@ -24,15 +35,15 @@ function isArray<T>(d: unknown): d is T[] {
   return Array.isArray(d);
 }
 function hasDataArray<T>(d: unknown): d is { data: T[] } {
-  return typeof d === "object" && d !== null && Array.isArray((d as { data?: unknown }).data);
+  return typeof d === "object" && d !== null && Array.isArray((d as any).data);
 }
 function hasResultsArray<T>(d: unknown): d is { results: T[] } {
-  return typeof d === "object" && d !== null && Array.isArray((d as { results?: unknown }).results);
+  return typeof d === "object" && d !== null && Array.isArray((d as any).results);
 }
 function extractArray<T>(payload: ApiArrayShape<T>): T[] {
-  if (isArray<T>(payload)) return payload;
-  if (hasDataArray<T>(payload)) return payload.data;
-  if (hasResultsArray<T>(payload)) return payload.results;
+  if (isArray(payload)) return payload;
+  if (hasDataArray(payload)) return payload.data;
+  if (hasResultsArray(payload)) return payload.results;
   return [];
 }
 function extractObject<T>(payload: ApiObjectShape<T>): T {
@@ -53,6 +64,10 @@ function cleanString(x: unknown): string | undefined {
   return v === "" ? undefined : v;
 }
 
+/**
+ * 🔧 Construit la query params DRF depuis le state React
+ * (on inclut les nouveaux filtres anticipés : activite, est_archivee, statut_commentaire)
+ */
 function buildListQuery(p: ProspectionCommentListParams): QueryDict {
   const q: QueryDict = {};
 
@@ -60,19 +75,36 @@ function buildListQuery(p: ProspectionCommentListParams): QueryDict {
   if (typeof p.prospection === "number") q.prospection = p.prospection;
   if (typeof p.created_by === "number") q.created_by = p.created_by;
   if (typeof p.is_internal === "boolean") q.is_internal = p.is_internal;
+  if (typeof p.prospection_owner === "number") q.prospection_owner = p.prospection_owner;
+  if (typeof p.prospection_partenaire === "number") q.prospection_partenaire = p.prospection_partenaire;
   if (p.ordering) q.ordering = p.ordering;
 
-  // Filtres par NOM (chaînes non vides uniquement)
+  // Filtres textuels
   const formationNom = cleanString(p.formation_nom);
   const partenaireNom = cleanString(p.partenaire_nom);
   const authorUsername = cleanString(p.created_by_username);
-
   if (formationNom) q.formation_nom = formationNom;
   if (partenaireNom) q.partenaire_nom = partenaireNom;
   if (authorUsername) q.created_by_username = authorUsername;
 
+  // 🆕 Filtres liés à l’activité / statut
+  if (typeof p.est_archive === "boolean") {
+    q.est_archive = p.est_archive ? "true" : "false";
+  } else if (
+    typeof p.est_archive === "string" &&
+    ["true", "false", "both", "all", "tous"].includes(p.est_archive.toLowerCase())
+  ) {
+    q.est_archive = p.est_archive.toLowerCase(); // ✅ garde "both"
+  }
+
+  if (p.inclure_archives === true) q.inclure_archives = "true";
+
+  if (p.activite) q.activite = p.activite;
+  if (p.statut_commentaire) q.statut_commentaire = p.statut_commentaire;
+
   return q;
 }
+
 
 /* ──────────────────────────────────────────────────────────────────────────
    LISTE
@@ -81,15 +113,14 @@ export function useListProspectionComments(
   params: ProspectionCommentListParams = {},
   reloadKey = 0
 ) {
-  const [data, setData] = useState<ProspectionCommentDTO[] | null>(null);
+  const [data, setData] = useState<PaginatedResponse<ProspectionCommentDTO> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Mémorise une clé stable des params
   const paramsKey = useMemo(() => JSON.stringify(params), [params]);
 
   const fetchData = useCallback(() => {
-    const parsedParams = JSON.parse(paramsKey) as unknown as ProspectionCommentListParams;
+    const parsedParams = JSON.parse(paramsKey) as ProspectionCommentListParams;
     const query = buildListQuery(parsedParams);
 
     const source = axios.CancelToken.source();
@@ -97,26 +128,25 @@ export function useListProspectionComments(
     setError(null);
 
     api
-      .get<ApiArrayShape<ProspectionCommentDTO>>(BASE, {
+      .get<ApiResponse<ProspectionCommentDTO>>(BASE, {
         params: query,
         cancelToken: source.token,
       })
       .then((res) => {
-        const list = extractArray<ProspectionCommentDTO>(res.data);
-        setData(list);
+        const payload = res.data;
+        const paginated: PaginatedResponse<ProspectionCommentDTO> =
+          "data" in payload ? payload.data : (payload as PaginatedResponse<ProspectionCommentDTO>);
+        setData(paginated);
       })
       .catch((err) => {
-        if (axios.isCancel(err)) return;
-        if (axios.isAxiosError(err)) {
-          setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
-        } else {
-          setError(err as Error);
+        if (!axios.isCancel(err)) {
+          if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+          else setError(err as Error);
+          setData(null);
         }
-        setData(null);
       })
       .finally(() => setLoading(false));
 
-    // fonction d’annulation au besoin
     return () => source.cancel("list canceled");
   }, [paramsKey]);
 
@@ -153,18 +183,13 @@ export function useProspectionComment(id: number | string | null) {
       .get<ApiObjectShape<ProspectionCommentDTO>>(`${BASE}${id}/`, {
         cancelToken: source.token,
       })
-      .then((res) => {
-        const obj = extractObject<ProspectionCommentDTO>(res.data);
-        setData(obj);
-      })
+      .then((res) => setData(extractObject<ProspectionCommentDTO>(res.data)))
       .catch((err) => {
-        if (axios.isCancel(err)) return;
-        if (axios.isAxiosError(err)) {
-          setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
-        } else {
-          setError(err as Error);
+        if (!axios.isCancel(err)) {
+          if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+          else setError(err as Error);
+          setData(null);
         }
-        setData(null);
       })
       .finally(() => setLoading(false));
 
@@ -186,14 +211,10 @@ export function useCreateProspectionComment() {
     setError(null);
     try {
       const res = await api.post<ApiObjectShape<ProspectionCommentDTO>>(BASE, payload);
-      const obj = extractObject<ProspectionCommentDTO>(res.data);
-      return obj;
+      return extractObject<ProspectionCommentDTO>(res.data);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
-      } else {
-        setError(err as Error);
-      }
+      if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+      else setError(err as Error);
       throw err;
     } finally {
       setLoading(false);
@@ -215,14 +236,10 @@ export function useUpdateProspectionComment(id: number | string) {
     setError(null);
     try {
       const res = await api.patch<ApiObjectShape<ProspectionCommentDTO>>(`${BASE}${id}/`, payload);
-      const obj = extractObject<ProspectionCommentDTO>(res.data);
-      return obj;
+      return extractObject<ProspectionCommentDTO>(res.data);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
-      } else {
-        setError(err as Error);
-      }
+      if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+      else setError(err as Error);
       throw err;
     } finally {
       setLoading(false);
@@ -245,11 +262,8 @@ export function useDeleteProspectionComment(id: number | string) {
     try {
       await api.delete<void>(`${BASE}${id}/`);
     } catch (err) {
-      if (axios.isAxiosError(err)) {
-        setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
-      } else {
-        setError(err as Error);
-      }
+      if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+      else setError(err as Error);
       throw err;
     } finally {
       setLoading(false);
@@ -257,4 +271,84 @@ export function useDeleteProspectionComment(id: number | string) {
   }, [id]);
 
   return { remove, loading, error };
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   OPTIONS DE FILTRES
+   ────────────────────────────────────────────────────────────────────────── */
+export type ProspectionCommentFilterOptions = {
+  formations: { value: string; label: string }[];
+  partenaires: { value: string; label: string }[];
+  authors: { value: string; label: string }[];
+  centres: { value: string; label: string }[];
+  owners: { value: number; label: string }[];
+};
+
+export function useProspectionCommentFilterOptions(reloadKey = 0) {
+  const [data, setData] = useState<ProspectionCommentFilterOptions | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchData = useCallback(() => {
+    const source = axios.CancelToken.source();
+    setLoading(true);
+    setError(null);
+
+    api
+      .get<ProspectionCommentFilterOptions>(`${BASE}filter-options/`, { cancelToken: source.token })
+      .then((res) => setData(res.data))
+      .catch((err) => {
+        if (!axios.isCancel(err)) {
+          if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+          else setError(err as Error);
+          setData(null);
+        }
+      })
+      .finally(() => setLoading(false));
+
+    return () => source.cancel("filter-options canceled");
+  }, []);
+
+  useEffect(() => {
+    const cancel = fetchData();
+    return () => {
+      if (typeof cancel === "function") cancel();
+    };
+  }, [fetchData, reloadKey]);
+
+  return { data, loading, error, refetch: fetchData };
+}
+/* ──────────────────────────────────────────────────────────────────────────
+   ARCHIVER / DÉSARCHIVER
+   ────────────────────────────────────────────────────────────────────────── */
+export function useArchiveProspectionComment(id: number | string) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const toggleArchive = useCallback(
+    async (isArchived: boolean) => {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const endpoint = isArchived
+          ? `${BASE}${id}/desarchiver/`
+          : `${BASE}${id}/archiver/`;
+        await api.post(endpoint);
+        // ✅ Renvoie les bons codes alignés avec le backend & DTO
+        return isArchived ? "actif" : "archive";
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+        } else {
+          setError(err as Error);
+        }
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
+
+  return { toggleArchive, loading, error };
 }

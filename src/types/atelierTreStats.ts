@@ -42,6 +42,7 @@ export type AtelierTREOverviewKpis = {
   ateliers: TypeCountsMap;
   presences_total: number;
   presences: PresenceCounts;
+  taux_presence?: number | null; // ✅ nouveau champ optionnel
 };
 
 export type AtelierTREOverviewResponse = {
@@ -73,6 +74,8 @@ export type AtelierTREGroupRow = {
   present: number;
   absent: number;
   excuse: number;
+
+  taux_presence?: number | null; // ✅ nouveau champ optionnel
 };
 
 export type AtelierTREGroupedResponse = {
@@ -136,6 +139,8 @@ export function sanitizeAtelierTREFilters(f: AtelierTREFilters): AtelierTREFilte
   return out;
 }
 
+// ────────────────────────────────────────────────────────────
+// API calls
 // ────────────────────────────────────────────────────────────
 export async function getAtelierTREOverview(filters: AtelierTREFilters) {
   const { data } = await api.get<AtelierTREOverviewResponse>("/ateliertre-stats/", {

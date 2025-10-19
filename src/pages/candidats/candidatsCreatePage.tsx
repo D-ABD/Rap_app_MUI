@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { AxiosError } from "axios";
 import { CircularProgress, Typography, Box } from "@mui/material";
 
 import { useCandidatMeta, useCreateCandidat } from "../../hooks/useCandidats";
@@ -38,36 +37,7 @@ export default function CandidatCreatePage() {
     null
   );
 
-  // Helpers d'erreurs
-  const isRecord = (v: unknown): v is Record<string, unknown> =>
-    typeof v === "object" && v !== null;
-  const isStringArray = (v: unknown): v is string[] =>
-    Array.isArray(v) && v.every((x) => typeof x === "string");
-
-  function extractApiMessage(data: unknown): string | null {
-    if (!isRecord(data)) return null;
-
-    const maybeMessage = (data as { message?: unknown }).message;
-    if (typeof maybeMessage === "string" && maybeMessage.trim()) {
-      return maybeMessage;
-    }
-
-    const maybeErrors = (data as { errors?: unknown }).errors;
-    const errorsObj = isRecord(maybeErrors)
-      ? (maybeErrors as Record<string, unknown>)
-      : data;
-
-    const parts: string[] = [];
-    for (const [field, val] of Object.entries(errorsObj)) {
-      if (typeof val === "string") {
-        parts.push(`${field}: ${val}`);
-      } else if (isStringArray(val)) {
-        parts.push(`${field}: ${val.join(" · ")}`);
-      }
-    }
-    return parts.length ? parts.join(" | ") : null;
-  }
-
+  // 🧩 handleSubmit : on laisse CandidatForm gérer les erreurs 400
   const handleSubmit = async (values: CandidatFormData) => {
     try {
       // 🔧 Nettoyer les valeurs vides
@@ -88,21 +58,26 @@ export default function CandidatCreatePage() {
         compte_utilisateur_id: created.compte_utilisateur_id ?? null,
       });
       setChoiceOpen(true);
-    } catch (error) {
-      const axiosErr = error as AxiosError<unknown>;
-      const data = axiosErr.response?.data;
-      const parsed = data ? extractApiMessage(data) : null;
-
-      const msg = parsed ?? axiosErr.message ?? "Erreur lors de la création";
-      toast.error(msg);
-      console.error("Create candidat failed:", error);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (status && status !== 400) {
+        toast.error("Erreur serveur ou réseau lors de la création.");
+        console.error("Create candidat failed:", error);
+      }
+      // Laisse remonter l’erreur 400 pour gestion dans <CandidatForm />
+      throw error;
     }
   };
 
   // ── Loading meta ────────────────────────────────
   if (loadingMeta) {
     return (
-      <PageTemplate title="Créer un candidat" backButton onBack={() => navigate(-1)} centered>
+      <PageTemplate
+        title="Créer un candidat"
+        backButton
+        onBack={() => navigate(-1)}
+        centered
+      >
         <CircularProgress />
         <Typography sx={{ mt: 2 }}>⏳ Chargement…</Typography>
       </PageTemplate>
@@ -129,7 +104,6 @@ export default function CandidatCreatePage() {
       <Box mt={2}>
         <CandidatForm
           meta={meta}
-          formationOptions={formationOptions}
           currentUser={me}
           canEditFormation={canEditFormation}
           onSubmit={handleSubmit}

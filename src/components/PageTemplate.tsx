@@ -3,7 +3,7 @@ import {
   Box,
   Stack,
   Typography,
-  Button, 
+  Button,
   IconButton,
   Collapse,
   Tooltip,
@@ -17,6 +17,8 @@ export type PageTemplateProps = {
   title: string;
   subtitle?: string;
   actions?: ReactNode;
+  /** ✅ Nouveau : contenu affiché à droite du header (ex: bouton Archiver) */
+  actionsRight?: ReactNode;
   backButton?: boolean;
   onBack?: () => void;
   refreshButton?: boolean;
@@ -44,6 +46,7 @@ export default function PageTemplate({
   title,
   subtitle,
   actions,
+  actionsRight, // ✅ nouveau
   backButton = false,
   onBack,
   refreshButton = false,
@@ -55,6 +58,17 @@ export default function PageTemplate({
   centered = false,
   headerExtra,
 }: PageTemplateProps) {
+  // ✅ Sécurisation du comportement par défaut du bouton retour
+  const handleBack = () => {
+    if (typeof onBack === "function") {
+      onBack();
+    } else if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      console.warn("[PageTemplate] Aucun onBack fourni, history.back() indisponible");
+    }
+  };
+
   return (
     <PageWrapper>
       {/* Header */}
@@ -65,6 +79,7 @@ export default function PageTemplate({
         alignItems={{ xs: "flex-start", sm: "center" }}
         justifyContent="space-between"
       >
+        {/* Bloc gauche : titre, bouton retour, etc. */}
         <Stack
           direction="row"
           spacing={1}
@@ -75,7 +90,7 @@ export default function PageTemplate({
           {backButton && (
             <Button
               startIcon={<ArrowBackIcon aria-hidden />}
-              onClick={onBack}
+              onClick={handleBack}
               variant="outlined"
               size="small"
               aria-label="Revenir à la page précédente"
@@ -113,17 +128,17 @@ export default function PageTemplate({
           </Box>
 
           {refreshButton && (
-            <IconButton
-              onClick={onRefresh}
-              aria-label="Rafraîchir"
-              size="small"
-            >
+            <IconButton onClick={onRefresh} aria-label="Rafraîchir" size="small">
               <RefreshIcon aria-hidden />
             </IconButton>
           )}
         </Stack>
 
-        {actions}
+        {/* Bloc droit : actions classiques + nouveau slot actionsRight */}
+        <Stack direction="row" spacing={1} alignItems="center">
+          {actions}
+          {actionsRight}
+        </Stack>
       </Stack>
 
       {/* Filtres */}
@@ -147,4 +162,3 @@ export default function PageTemplate({
     </PageWrapper>
   );
 }
- 

@@ -1,7 +1,7 @@
 // src/components/candidats/CandidatsTable.tsx
 import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Checkbox, Paper, Tooltip, IconButton, Typography, Box
+  Checkbox, Paper, Tooltip, IconButton, Typography, Box, Chip, Link
 } from '@mui/material';
 import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,7 @@ import type { Candidat } from '../../types/candidat';
 
 /* ================= Helpers ================= */
 const dtfFR = typeof Intl !== 'undefined' ? new Intl.DateTimeFormat('fr-FR') : undefined;
+const STICKY_COL_1_PX = 36;
 
 function fullName(c: Candidat): string {
   if (c.nom_complet && c.nom_complet.trim()) return c.nom_complet;
@@ -23,8 +24,16 @@ function formatDateFR(iso?: string | null): string {
   if (Number.isNaN(d.getTime())) return '—';
   return dtfFR ? dtfFR.format(d) : d.toLocaleDateString('fr-FR');
 }
-function yesNo(v?: boolean): string {
-  return typeof v === 'boolean' ? (v ? 'Oui' : 'Non') : '—';
+function yesNoChip(v?: boolean) {
+  if (typeof v !== 'boolean') return <Typography color="text.disabled">—</Typography>;
+  return (
+    <Chip
+      size="small"
+      color={v ? "success" : "error"}
+      label={v ? "Oui" : "Non"}
+      variant="outlined"
+    />
+  );
 }
 function stars(v?: number | null): string {
   return typeof v === 'number' ? `${v} ★` : '—';
@@ -53,15 +62,17 @@ function getLastAppairage(c: Candidat): AppairageLite | null {
   const obj = c as unknown as { last_appairage?: AppairageLite | null };
   return obj.last_appairage ?? null;
 }
-function ellipsize(s?: string | null, max = 90): string {
-  if (!s) return '—';
-  const t = s.trim();
-  return t.length > max ? `${t.slice(0, max - 1)}…` : t;
-}
 const CV_MAP: Record<string, string> = { oui: 'Oui', en_cours: 'En cours', a_modifier: 'À modifier' };
-function cvStatutLabel(c: Candidat): string {
-  return c.cv_statut_display ?? (c.cv_statut ? (CV_MAP[c.cv_statut] ?? c.cv_statut) : '—');
+function cvChip(c: Candidat) {
+  const label = c.cv_statut_display ?? (c.cv_statut ? (CV_MAP[c.cv_statut] ?? c.cv_statut) : null);
+  if (!label) return <Typography color="text.disabled">—</Typography>;
+  let color: "default" | "success" | "warning" | "error" = "default";
+  if (label === "Oui") color = "success";
+  if (label === "En cours") color = "warning";
+  if (label === "À modifier") color = "error";
+  return <Chip size="small" color={color} label={label} variant="outlined" />;
 }
+
 /* ---------- Ateliers compact ---------- */
 type AtelierKey =
   | 'atelier_1' | 'atelier_2' | 'atelier_3' | 'atelier_4'
@@ -128,12 +139,19 @@ type Props = {
   selectedIds: number[];
   onSelectionChange: (ids: number[]) => void;
   onDelete?: (id: number) => void;
+  onRowClick?: (id: number) => void | Promise<void>; // ✅ nouvelle prop optionnelle
   maxHeight?: string;
 };
 
 export default function CandidatsTable({
-  items, selectedIds, onSelectionChange, onDelete, maxHeight = '65vh'
+  items,
+  selectedIds,
+  onSelectionChange,
+  onDelete,
+  onRowClick, // ✅ ajoute ceci
+  maxHeight = '65vh',
 }: Props) {
+
   const navigate = useNavigate();
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
@@ -177,60 +195,53 @@ export default function CandidatsTable({
 
   return (
     <TableContainer component={Paper} sx={{ maxHeight, borderRadius: 2 }}>
-      <Table stickyHeader size="small" aria-label="Table des candidats">
+      <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
-            <TableCell padding="checkbox" sx={{ position: 'sticky', left: 0, zIndex: 3, backgroundColor: 'background.paper' }}>
-              <Checkbox
-                inputRef={headerCbRef}
-                checked={allChecked}
-                onChange={toggleAllThisPage}
-                indeterminate={someChecked}
-              />
+            <TableCell
+              padding="checkbox"
+              sx={{ width: STICKY_COL_1_PX, textAlign: "center", left: 0, zIndex: 5, bgcolor: "grey.100", position: "sticky" }}
+            >
+              <Checkbox inputRef={headerCbRef} checked={allChecked} onChange={toggleAllThisPage} />
             </TableCell>
-            <TableCell sx={{ position: 'sticky', left: 50, zIndex: 2, backgroundColor: 'background.paper' }}>Candidat</TableCell>
-            <TableCell>Âge</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Tél.</TableCell>
-            <TableCell>Ville</TableCell>
-            <TableCell>CP</TableCell>
-            <TableCell>Origine sourcing</TableCell>
-            <TableCell>Formation</TableCell>
-            <TableCell>N° d’offre</TableCell>
-            <TableCell>Centre</TableCell>
-            <TableCell>Type d’offre</TableCell>
-            <TableCell>Début</TableCell>
-            <TableCell>Fin</TableCell>
-            <TableCell>Statut</TableCell>
-            <TableCell>CV</TableCell>
-            <TableCell>Contrat</TableCell>
-            <TableCell>Disp.</TableCell>
-            <TableCell>RQTH</TableCell>
-            <TableCell>Permis B</TableCell>
-            <TableCell>Inscrit GESPERS</TableCell>
-            <TableCell>Communication</TableCell>
-            <TableCell>Expérience</TableCell>
-            <TableCell>CSP</TableCell>
-            <TableCell>Entretien</TableCell>
-            <TableCell>Test</TableCell>
-            <TableCell>Admissible</TableCell>
-            <TableCell>Inscription</TableCell>
-            <TableCell>Naissance</TableCell>
-            <TableCell>Appairages</TableCell>
-            <TableCell>Prospections</TableCell>
-            <TableCell>Appairage · Partenaire</TableCell>
-            <TableCell>Appairage · Statut</TableCell>
-            <TableCell>Appairage · Date</TableCell>
-            <TableCell>Appairage · Créé par</TableCell>
-            <TableCell>Appairage · Dernier commentaire</TableCell>
-            <TableCell>Courrier rentrée</TableCell>
-            <TableCell>Date rentrée</TableCell>
-            <TableCell>Vu par</TableCell>
-            <TableCell>Ateliers (compact)</TableCell>
-            <TableCell>OSIA</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell sx={{ position: "sticky", left: STICKY_COL_1_PX, zIndex: 4, bgcolor: "grey.100" }}>👤 Candidat</TableCell>
+            <TableCell>🎂 Âge</TableCell>
+            <TableCell>📧 Contact</TableCell>
+            <TableCell>📍 Localisation</TableCell>
+            <TableCell>🎓 Formation complète</TableCell>
+            <TableCell>📅 Période</TableCell>
+            <TableCell>📃 Contrat</TableCell>
+            <TableCell>📌 Statut</TableCell>
+            <TableCell>📄 CV</TableCell>
+            <TableCell>⏳ Disp.</TableCell>
+            <TableCell>♿ RQTH</TableCell>
+            <TableCell>🚗 Permis B</TableCell>
+            <TableCell>🗂️ GESPERS</TableCell>
+            <TableCell>💬 Com.</TableCell>
+            <TableCell>🛠 Exp.</TableCell>
+            <TableCell>⚖️ CSP</TableCell>
+            <TableCell>👥 Entretien</TableCell>
+            <TableCell>🧪 Test</TableCell>
+            <TableCell>✅ Admissible</TableCell>
+            <TableCell>📝 Inscription</TableCell>
+            <TableCell>🎂 Naissance</TableCell>
+            <TableCell>🔗 Appairages</TableCell>
+            <TableCell>📊 Prospections</TableCell>
+            <TableCell>🏢 Partenaire</TableCell>
+            <TableCell>📌 Statut app.</TableCell>
+            <TableCell>📅 Date app.</TableCell>
+            <TableCell>🌐 Origine</TableCell>
+            <TableCell>✍️ Créé par</TableCell>
+            <TableCell>💬 Dernier comm.</TableCell>
+            <TableCell>📨 Courrier rentrée</TableCell>
+            <TableCell>📅 Date rentrée</TableCell>
+            <TableCell>👀 Vu par</TableCell>
+            <TableCell>📚 Ateliers</TableCell>
+            <TableCell>🆔 OSIA</TableCell>
+            <TableCell>⚙️ Actions</TableCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
           {items.map((c) => {
             const name = fullName(c);
@@ -239,50 +250,112 @@ export default function CandidatsTable({
             const { display: ateliersDisplay, title: ateliersTitle } = atelierCountsCompact(c);
 
             return (
-              <TableRow hover key={c.id} onClick={() => goEdit(c.id)} sx={{ cursor: 'pointer' }}>
-                <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}
-                  sx={{ position: 'sticky', left: 0, backgroundColor: 'background.paper', zIndex: 2 }}
+<TableRow
+  key={c.id}
+  hover
+  tabIndex={0}
+  onClick={() => {
+    if (onRowClick) onRowClick(c.id);
+    else goEdit(c.id); // fallback si onRowClick non fourni
+  }}
+  sx={{
+    cursor: "pointer",
+    "&:nth-of-type(even)": { bgcolor: "grey.50" },
+  }}
+>
+
+
+                {/* Sélection */}
+                <TableCell
+                  sx={{ width: STICKY_COL_1_PX, textAlign: "center", left: 0, position: "sticky", bgcolor: "background.paper", zIndex: 2 }}
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <Checkbox
-                    checked={isChecked}
-                    onChange={(e) => toggleOne(c.id, e.target.checked)}
-                  />
+                  <Checkbox checked={isChecked} onChange={(e) => toggleOne(c.id, e.target.checked)} />
                 </TableCell>
 
-                <TableCell sx={{ position: 'sticky', left: 50, backgroundColor: 'background.paper', zIndex: 1 }}>
+                {/* Candidat */}
+                <TableCell sx={{ position: "sticky", left: STICKY_COL_1_PX, bgcolor: "background.paper", zIndex: 1 }}>
+                  <Typography variant="body2" fontWeight={600}>{name}</Typography>
+                  <Typography variant="caption" color="text.secondary">{c.nom} {c.prenom}</Typography>
+                </TableCell>
+
+                <TableCell>{typeof c.age === 'number' ? c.age : '—'}</TableCell>
+
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  {c.email ? (
+                    <Link href={`mailto:${c.email}`} display="block">
+                      {c.email}
+                    </Link>
+                  ) : (
+                    <Typography color="text.disabled">—</Typography>
+                  )}
+                  {c.telephone && (
+                    <Link
+                      href={`tel:${c.telephone}`}
+                      display="block"
+                      variant="body2"
+                      color="text.secondary"
+                    >
+                      {c.telephone}
+                    </Link>
+                  )}
+                </TableCell>
+
+                {/* Localisation (ville + CP) */}
+                <TableCell>
+                  {c.ville || c.code_postal
+                    ? `${c.ville ?? ''}${c.ville && c.code_postal ? ' (' + c.code_postal + ')' : c.code_postal ?? ''}`
+                    : '—'}
+                </TableCell>
+
+
+                {/* Formation complète */}
+                <TableCell>
                   <Box>
-                    <Typography noWrap fontWeight="bold">{name}</Typography>
-                    <Typography variant="body2" color="text.secondary" noWrap>
-                      {c.nom} {c.prenom}
+                    <Typography variant="body2" fontWeight={500}>{formatFormation(c)}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {[
+                        c.formation_info?.num_offre,
+                        c.formation_info?.centre?.nom,
+                        typeOffreLabel(c)
+                      ].filter(Boolean).join(' · ') || '—'}
                     </Typography>
                   </Box>
                 </TableCell>
 
-                <TableCell>{typeof c.age === 'number' ? c.age : '—'}</TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>{c.email ? <a href={`mailto:${c.email}`}>{c.email}</a> : '—'}</TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>{c.telephone ? <a href={`tel:${c.telephone}`}>{c.telephone}</a> : '—'}</TableCell>
-                <TableCell>{c.ville || '—'}</TableCell>
-                <TableCell>{c.code_postal || '—'}</TableCell>
-                <TableCell>{c.origine_sourcing || '—'}</TableCell>
-                <TableCell>{formatFormation(c)}</TableCell>
-                <TableCell>{c.formation_info?.num_offre ?? '—'}</TableCell>
-                <TableCell>{c.formation_info?.centre?.nom ?? '—'}</TableCell>
-                <TableCell>{typeOffreLabel(c)}</TableCell>
-                <TableCell>{formatDateFR(c.formation_info?.date_debut)}</TableCell>
-                <TableCell>{formatDateFR(c.formation_info?.date_fin)}</TableCell>
-                <TableCell>{c.statut || '—'}</TableCell>
-                <TableCell>{cvStatutLabel(c)}</TableCell>
+                {/* Période */}
+                <TableCell>
+                  {c.formation_info?.date_debut || c.formation_info?.date_fin ? (
+                    <Typography variant="body2">
+                      {[
+                        formatDateFR(c.formation_info?.date_debut),
+                        formatDateFR(c.formation_info?.date_fin)
+                      ].filter(Boolean).join(' → ')}
+                    </Typography>
+                  ) : (
+                    <Typography color="text.disabled">—</Typography>
+                  )}
+                </TableCell>
                 <TableCell>{c.type_contrat || '—'}</TableCell>
+
+                {/* Statut */}
+                <TableCell>
+                  {c.statut ? (
+                    <Chip size="small" color="info" label={c.statut} />
+                  ) : <Typography color="text.disabled">—</Typography>}
+                </TableCell>
+
+                <TableCell>{cvChip(c)}</TableCell>
                 <TableCell>{c.disponibilite || '—'}</TableCell>
-                <TableCell>{yesNo(c.rqth)}</TableCell>
-                <TableCell>{yesNo(c.permis_b)}</TableCell>
-                <TableCell>{yesNo(c.inscrit_gespers)}</TableCell>
+                <TableCell>{yesNoChip(c.rqth)}</TableCell>
+                <TableCell>{yesNoChip(c.permis_b)}</TableCell>
+                <TableCell>{yesNoChip(c.inscrit_gespers)}</TableCell>
                 <TableCell>{stars(c.communication)}</TableCell>
                 <TableCell>{stars(c.experience)}</TableCell>
                 <TableCell>{stars(c.csp)}</TableCell>
-                <TableCell>{yesNo(c.entretien_done)}</TableCell>
-                <TableCell>{yesNo(c.test_is_ok)}</TableCell>
-                <TableCell>{yesNo(c.admissible)}</TableCell>
+                <TableCell>{yesNoChip(c.entretien_done)}</TableCell>
+                <TableCell>{yesNoChip(c.test_is_ok)}</TableCell>
+                <TableCell>{yesNoChip(c.admissible)}</TableCell>
                 <TableCell>{formatDateFR(c.date_inscription)}</TableCell>
                 <TableCell>{formatDateFR(c.date_naissance)}</TableCell>
                 <TableCell>{c.nb_appairages ?? '—'}</TableCell>
@@ -290,13 +363,45 @@ export default function CandidatsTable({
                 <TableCell>{la?.partenaire_nom ?? '—'}</TableCell>
                 <TableCell>{la?.statut_display ?? la?.statut ?? '—'}</TableCell>
                 <TableCell>{formatDateFR(la?.date_appairage)}</TableCell>
+                <TableCell>{c.origine_sourcing || '—'}</TableCell>
                 <TableCell>{la?.created_by_nom ?? '—'}</TableCell>
-                <TableCell>{ellipsize(la?.last_commentaire)}</TableCell>
-                <TableCell>{yesNo(c.courrier_rentree)}</TableCell>
+
+                {/* Commentaire */}
+                <TableCell>
+                  {la?.last_commentaire ? (
+                    <Box
+                      sx={{
+                        backgroundColor: (theme) => theme.palette.action.hover,
+                        p: 0.6,
+                        borderRadius: 1,
+                        maxWidth: 260,
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {la.last_commentaire}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.disabled">—</Typography>
+                  )}
+                </TableCell>
+
+                <TableCell>{yesNoChip(c.courrier_rentree)}</TableCell>
                 <TableCell>{formatDateFR(c.date_rentree)}</TableCell>
                 <TableCell>{labelOrId(c.vu_par_nom, c.vu_par)}</TableCell>
                 <TableCell title={ateliersTitle}>{ateliersDisplay}</TableCell>
                 <TableCell>{c.numero_osia || '—'}</TableCell>
+
+                {/* Actions */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Tooltip title="Voir">
                     <IconButton size="small" onClick={() => goShow(c.id)}>

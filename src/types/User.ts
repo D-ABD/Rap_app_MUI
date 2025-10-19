@@ -4,14 +4,17 @@
 export type CustomUserRole =
   | 'superadmin'
   | 'admin'
-  | 'stagiaire'
   | 'staff'
-  | 'test'
+  | 'staff_read'
+  | 'stagiaire'
   | 'candidat'
-  | 'candidatuser';
+  | 'candidatuser' // ← seulement si backend le renvoie
+  | 'test';        // ← seulement si backend le renvoie
 
 // ✅ Interface principale utilisée dans tout le frontend
 export interface User {
+    consent_rgpd?: boolean;
+  consent_date?: string | null;
   id: number;
   email: string;
   username: string;
@@ -27,6 +30,7 @@ export interface User {
   date_joined?: string;
   full_name?: string;
   is_staff?: boolean;
+  is_staff_read?: boolean;   // ✅ corrige la casse pour coller à l’API
   is_superuser?: boolean;
   is_admin?: boolean;
   last_login?: string;
@@ -45,22 +49,27 @@ export interface User {
       couleur: string;
     };
   } | null;
-formation_info?: {
-  id: number;
-  nom: string;
-  num_offre: string;
-  centre?: {
+  formation_info?: {
     id: number;
     nom: string;
+    num_offre: string;
+    centre?: { id: number; nom: string };
+    type_offre?: { id: number; nom: string; libelle: string; couleur: string };
   };
-  type_offre?: {
-    id: number;
-    nom: string;
-    libelle: string;
-    couleur: string;
-  };
-};
+
+  // ✅ Ajoutés ici, pas dedans
+  centre?: { id: number; nom: string } | null;
+  centres?: { id: number; nom: string }[];
+      type_offre?: {
+      id: number;
+      nom: string;
+      libelle: string;
+      couleur: string;
+    };
+
+
 }
+    
 
 
 // ✏️ Données de formulaire pour création/édition
@@ -99,7 +108,7 @@ export interface UserUpdatePayload extends Partial<Record<string, unknown>> {
   avatar?: File | null;
   role?: CustomUserRole;
   password?: string;
-  formation?: number; // ✅ ← Ajoute ceci
+  formation?: number; // ✅
 }
 
 // 📄 Liste simplifiée
@@ -130,7 +139,6 @@ export interface RegistrationResponse {
   };
 }
 
-
 export interface UserFiltresValues {
   [key: string]: string | number | undefined;
   role?: string;
@@ -142,22 +150,16 @@ export interface UserFiltresValues {
   date_joined_max?: string;
 }
 
-
-
 export type UserFiltresOptions = Record<
   keyof UserFiltresValues,
   { value: string | number; label: string }[]
 >;
 
-
-
-// types/user.ts
-
 // ✅ Profil utilisateur connecté (GET /api/me/)
 export interface MeResponse {
   success: boolean;
   message: string;
-  data: User; // ← tu as déjà défini User plus haut
+  data: User;
 }
 
 // ✅ Mise à jour du profil (PATCH /api/me/)
@@ -168,7 +170,6 @@ export interface MeUpdatePayload {
   phone?: string;
   bio?: string;
   avatar?: File | null;
-  // tu peux restreindre uniquement aux champs éditables
 }
 
 export interface MeUpdateResponse {
@@ -179,4 +180,3 @@ export interface MeUpdateResponse {
 
 // ✅ Liste des rôles (GET /api/roles/)
 export type RolesResponse = RoleChoice[];
-

@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Button, Stack } from "@mui/material";
+import { Box, Typography, Paper, Button, Stack, Divider } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function PolitiqueConfidentialite() {
@@ -20,86 +20,95 @@ export default function PolitiqueConfidentialite() {
         sx={{
           maxWidth: 800,
           width: "100%",
-          p: 4,
+          p: { xs: 3, sm: 5 },
+          borderRadius: 3,
         }}
       >
-
-
-
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4" fontWeight="bold" gutterBottom textAlign="center">
           Politique de confidentialité
-                          {/* 🔹 Boutons navigation */}
-        <Stack spacing={2} direction="row" justifyContent="center" mt={4}>
-          <Button variant="outlined" onClick={() => navigate(-1)}>
-            ⬅️ Retour
-          </Button>
-          <Button variant="contained" component={Link} to="/">
-            🏠 Accueil
-          </Button>
-          <Button variant="contained" color="primary" component={Link} to="/dashboard">
-            📊 Dashboard
-          </Button>
-        </Stack>
         </Typography>
 
-
-        <Typography variant="body1" paragraph>
-          Conformément au Règlement Général sur la Protection des Données (RGPD),
-          nous vous informons de la manière dont vos données personnelles sont
-          collectées, utilisées et protégées dans le cadre de l’utilisation de
-          notre application.
-
+        <Typography variant="body1" color="text.secondary" paragraph textAlign="center">
+          Cette politique explique comment nous collectons, utilisons et protégeons vos
+          données personnelles dans le cadre de l’utilisation de notre application.
         </Typography>
+
+        <Divider sx={{ my: 3 }} />
 
         <Typography variant="h6" gutterBottom>
           1. Données collectées
         </Typography>
         <Typography variant="body2" paragraph>
-          Nous collectons uniquement les informations nécessaires à la création
-          et à la gestion de votre compte utilisateur : prénom, nom, adresse
-          e-mail, mot de passe et éventuellement numéro de téléphone.
+          Nous collectons uniquement les informations nécessaires à la création et à la
+          gestion de votre compte utilisateur : prénom, nom, adresse e-mail, mot de passe
+          et, le cas échéant, numéro de téléphone. Des données supplémentaires peuvent être
+          enregistrées dans le cadre de votre activité sur la plateforme (par exemple :
+          formations suivies, prospections ou partenaires associés).
         </Typography>
 
         <Typography variant="h6" gutterBottom>
-          2. Finalité
+          2. Finalités du traitement
         </Typography>
         <Typography variant="body2" paragraph>
-          Vos données sont utilisées exclusivement pour vous permettre
-          d’accéder aux services de la plateforme et pour la gestion de votre
-          compte utilisateur.
+          Vos données sont utilisées exclusivement pour :
+          <ul>
+            <li>vous permettre d’accéder à votre espace personnel ;</li>
+            <li>assurer le suivi de votre parcours et de vos prospections ;</li>
+            <li>améliorer la qualité des services proposés ;</li>
+            <li>garantir la sécurité et la traçabilité des actions sur la plateforme.</li>
+          </ul>
         </Typography>
 
         <Typography variant="h6" gutterBottom>
-          3. Conservation
+          3. Durée de conservation
         </Typography>
         <Typography variant="body2" paragraph>
-          Les données sont conservées tant que votre compte est actif. Vous
-          pouvez demander leur suppression à tout moment.
+          Vos données sont conservées tant que votre compte est actif. En cas d’inactivité
+          prolongée, elles pourront être archivées ou supprimées après un délai maximum de
+          24 mois. Vous pouvez demander la suppression de votre compte à tout moment via
+          l’espace personnel ou le formulaire de contact.
         </Typography>
 
         <Typography variant="h6" gutterBottom>
-          4. Partage
+          4. Partage et confidentialité
         </Typography>
         <Typography variant="body2" paragraph>
-          Nous ne partageons pas vos données personnelles avec des tiers sans
-          votre consentement, sauf obligation légale.
+          Nous ne partageons pas vos données personnelles avec des tiers sans votre
+          consentement explicite, sauf en cas d’obligation légale. Les accès sont limités
+          aux personnels habilités et aux prestataires techniques nécessaires au
+          fonctionnement du service (hébergement, messagerie, statistiques internes).
         </Typography>
 
         <Typography variant="h6" gutterBottom>
-          5. Vos droits
+          5. Sécurité des données
         </Typography>
         <Typography variant="body2" paragraph>
-          Vous disposez d’un droit d’accès, de rectification et de suppression
-          de vos données personnelles. Pour exercer ces droits, veuillez nous
-          contacter via la page de contact ou votre espace personnel.
+          Nous mettons en œuvre des mesures techniques et organisationnelles appropriées
+          (chiffrement, journalisation des accès, connexions sécurisées HTTPS) afin de
+          protéger vos données contre toute perte, utilisation abusive ou accès non autorisé.
         </Typography>
 
-        <Typography variant="body2" paragraph sx={{ mt: 3, fontStyle: "italic" }}>
+        <Typography variant="h6" gutterBottom>
+          6. Vos droits
+        </Typography>
+        <Typography variant="body2" paragraph>
+          Conformément au RGPD, vous disposez d’un droit d’accès, de rectification,
+          d’opposition, de portabilité et de suppression de vos données. Pour exercer ces
+          droits, vous pouvez nous contacter via la page de contact ou depuis votre espace
+          personnel.
+        </Typography>
+
+        <Typography
+          variant="body2"
+          paragraph
+          sx={{ mt: 4, fontStyle: "italic", textAlign: "right", color: "text.secondary" }}
+        >
           Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}
         </Typography>
 
         {/* 🔹 Boutons navigation */}
-        <Stack spacing={2} direction="row" justifyContent="center" mt={4}>
+        <Divider sx={{ my: 3 }} />
+        <Stack spacing={2} direction="row" justifyContent="center">
           <Button variant="outlined" onClick={() => navigate(-1)}>
             ⬅️ Retour
           </Button>
@@ -107,7 +116,7 @@ export default function PolitiqueConfidentialite() {
             🏠 Accueil
           </Button>
           <Button variant="contained" color="primary" component={Link} to="/dashboard">
-            📊 Dashboard
+            📊 Tableau de bord
           </Button>
         </Stack>
       </Paper>

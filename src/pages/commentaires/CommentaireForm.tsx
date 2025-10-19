@@ -6,34 +6,36 @@ import {
   Box,
   Button,
   CircularProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
   Stack,
-  TextField,
   Typography,
   Paper,
 } from "@mui/material";
+import { useQuill } from "react-quilljs";
+import "quill/dist/quill.snow.css";
 
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
 import useForm from "../../hooks/useForm";
 import api from "../../api/axios";
 
+/* ---------- Props ---------- */
 type Props = {
   formationId?: string;
   readonlyFormation?: boolean;
+  /** 🔹 Si fourni, le parent gère la création du commentaire */
+  onSubmit?: (payload: { contenu: string }) => Promise<void> | void;
 };
 
 interface CommentaireFormData {
   formation: string;
   contenu: string;
-  [key: string]: unknown;  // ✅ permet à useForm de l'accepter
+  [key: string]: unknown;
 }
 
-
+/* ---------- Composant ---------- */
 export default function CommentaireForm({
   formationId,
-  readonlyFormation,
+  readonlyFormation = false,
+  onSubmit,
 }: Props) {
   const navigate = useNavigate();
 
@@ -47,28 +49,74 @@ export default function CommentaireForm({
       contenu: "",
     });
 
+  // ✅ Initialise Quill (react-quilljs)
+  const { quill, quillRef } = useQuill({
+    theme: "snow",
+    modules: {
+      toolbar: [
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ color: [] }, { background: [] }],
+        ["clean"],
+      ],
+    },
+  });
+
+  /* ---------- Gestion du contenu ---------- */
   useEffect(() => {
-    if (formationId) {
-      api
-        .get(`/formations/${formationId}/`)
-        .then((res) => setFormationNom(res.data.nom))
-        .catch(() => toast.error("Formation introuvable"))
-        .finally(() => setLoading(false));
+    if (quill) {
+      quill.on("text-change", () => {
+        setValues((prev) => ({
+          ...prev,
+          contenu: quill.root.innerHTML,
+        }));
+      });
     }
+  }, [quill]);
+
+  /* ---------- Chargement auto du nom formation ---------- */
+  useEffect(() => {
+    if (!formationId) return;
+    api
+      .get(`/formations/${formationId}/`)
+      .then((res) => setFormationNom(res.data.nom))
+      .catch(() => toast.error("Formation introuvable"))
+      .finally(() => setLoading(false));
   }, [formationId]);
 
+  /* ---------- Soumission ---------- */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!values.formation || !values.contenu.trim()) {
-      toast.error("Tous les champs sont requis.");
+    const contenuTexte = quill?.root.innerHTML.trim() || values.contenu.trim();
+    if (!contenuTexte || contenuTexte === "<p><br></p>") {
+      toast.error("Le contenu du commentaire est requis.");
+      return;
+    }
+
+    const payload = {
+      contenu: contenuTexte,
+      formation: formationId ?? values.formation,
+    };
+
+    // ✅ Cas 1 : utilisé dans une modale → délégué au parent
+    if (onSubmit) {
+      await onSubmit({ contenu: payload.contenu });
+      setValues((prev) => ({ ...prev, contenu: "" }));
+      if (quill) quill.setText("");
+      return;
+    }
+
+    // ✅ Cas 2 : utilisation autonome
+    if (!payload.formation) {
+      toast.error("Veuillez sélectionner une formation.");
       return;
     }
 
     try {
-      await api.post("/commentaires/", values);
-      toast.success("✅ Commentaire créé");
-      navigate(`/formations/${values.formation}`);
+      await api.post("/commentaires/", payload);
+      toast.success("✅ Commentaire créé avec succès");
+      navigate(`/formations/${payload.formation}`);
     } catch (err: unknown) {
       const axiosError = err as {
         response?: { data?: Record<string, string[]> };
@@ -84,18 +132,20 @@ export default function CommentaireForm({
           }
         }
         setErrors(formattedErrors);
-        toast.error("Erreur lors de la création");
+        toast.error("Erreur lors de la création du commentaire");
       }
     }
   };
 
+  /* ---------- Rendu ---------- */
   return (
     <Paper sx={{ p: 3 }}>
       {loading ? (
         <CircularProgress />
       ) : (
         <Box component="form" onSubmit={handleSubmit}>
-          {formationNom && (
+          {/* ✅ Affiche la formation si readonly */}
+          {readonlyFormation && formationNom && (
             <Box
               sx={{
                 mb: 2,
@@ -105,11 +155,13 @@ export default function CommentaireForm({
               }}
             >
               <Typography variant="body2">
-                📚 Formation sélectionnée : <strong>{formationNom}</strong>
+                📚 Commentaire pour la formation :{" "}
+                <strong>{formationNom}</strong>
               </Typography>
             </Box>
           )}
 
+          {/* 🔍 Sélection manuelle uniquement si non readonly */}
           {!readonlyFormation && (
             <>
               <Button
@@ -117,7 +169,10 @@ export default function CommentaireForm({
                 onClick={() => setShowModal(true)}
                 sx={{ mb: 2 }}
               >
-                🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
+                🔍{" "}
+                {formationNom
+                  ? "Changer de formation"
+                  : "Rechercher une formation"}
               </Button>
 
               <FormationSelectModal
@@ -132,34 +187,37 @@ export default function CommentaireForm({
             </>
           )}
 
-          <TextField
-            label="Contenu"
-            value={values.contenu}
-            onChange={(e) =>
-              setValues((prev) => ({ ...prev, contenu: e.target.value }))
-            }
-            multiline
-            rows={6}
-            fullWidth
-            error={!!errors.contenu}
-            helperText={errors.contenu}
-          />
+          {/* 📝 Contenu du commentaire */}
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Contenu
+            </Typography>
+            <div ref={quillRef} style={{ height: 200, marginBottom: "1rem" }} />
+            {errors.contenu && (
+              <Typography variant="caption" color="error">
+                {errors.contenu}
+              </Typography>
+            )}
+          </Box>
 
+          {/* 🔘 Boutons */}
           <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
             <Button type="submit" variant="contained" color="success">
               💾 Enregistrer
             </Button>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() =>
-                values.formation
-                  ? navigate(`/formations/${values.formation}`)
-                  : navigate("/commentaires")
-              }
-            >
-              Annuler
-            </Button>
+            {!onSubmit && (
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() =>
+                  values.formation
+                    ? navigate(`/formations/${values.formation}`)
+                    : navigate("/commentaires")
+                }
+              >
+                Annuler
+              </Button>
+            )}
           </Stack>
         </Box>
       )}

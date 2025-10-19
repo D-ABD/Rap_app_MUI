@@ -2,7 +2,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import api from '../api/axios';
-
 import type {
   Prospection,
   ProspectionFiltresValues,
@@ -118,27 +117,39 @@ function logAxiosError(ns: string, err: unknown) {
    (le back accepte un id simple OU une CSV)
    ──────────────────────────────────────────────────────────────────────────── */
 function normalizeFilters(params: ProspectionFiltresValues): Record<string, unknown> {
+  // Champs que le back accepte sous forme CSV (ex: 1,2,3)
   const csvKeys: Array<keyof ProspectionFiltresValues> = [
-    'centre',
-    'formation_statut',
-    'formation_type_offre',
+    "centre",
+    "formation_statut",
+    "formation_type_offre",
   ];
 
   const out: Record<string, unknown> = {};
+
   for (const [k, v] of Object.entries(params) as Array<[keyof ProspectionFiltresValues, unknown]>) {
-    if (v === undefined || v === null || v === '') continue;
+    // ⚠️ on ignore les valeurs vides ou nulles
+    if (v === undefined || v === null || v === "") continue;
 
     if (csvKeys.includes(k)) {
-      // number[] | string | number
+      // ✅ Conversion number[] → "1,2,3"
       if (Array.isArray(v)) {
-        out[k as string] = v.join(',');
+        out[k as string] = v.join(",");
       } else {
         out[k as string] = v; // string CSV déjà, ou id simple
       }
-    } else {
+    }
+
+    // ✅ compatibilité rétro : avec_archivees OU inclure_archives
+    else if (k === "avec_archivees" || k === "inclure_archives") {
+      out["inclure_archives"] =
+        v === true || v === "1" || v === "true" || v === "yes" ? "true" : "false";
+    }
+
+    else {
       out[k as string] = v;
     }
   }
+
   return out;
 }
 
@@ -192,6 +203,7 @@ export function useProspection(id: number | string | null) {
 
   useEffect(() => {
     if (id == null) {
+      
       setData(null);
       setLoading(false);
       setError(null);

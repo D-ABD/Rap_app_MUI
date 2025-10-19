@@ -12,10 +12,10 @@ import {
   useDeleteAtelierTRE,
   useUpdateAtelierTRE,
 } from "../../hooks/useAtelierTre";
-import AtelierTREForm from "./AteliersTREForm";
 import PageTemplate from "../../components/PageTemplate";
+import AtelierTREForm from "./AteliersTREForm";
 
-// Helpers typés
+// Helpers
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null;
 const isStringArray = (v: unknown): v is string[] =>
@@ -25,9 +25,7 @@ function extractApiMessage(data: unknown): string | null {
   if (!isRecord(data)) return null;
 
   const maybeMessage = (data as { message?: unknown }).message;
-  if (typeof maybeMessage === "string" && maybeMessage.trim()) {
-    return maybeMessage;
-  }
+  if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage;
 
   const maybeErrors = (data as { errors?: unknown }).errors;
   const errorsObj = isRecord(maybeErrors)
@@ -58,13 +56,11 @@ export default function AtelierTREEditPage() {
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (values: AtelierTREFormData) => {
-    if (!id) return;
+    if (Number.isNaN(id)) return;
     try {
       setSubmitting(true);
       const payload = Object.fromEntries(
-        Object.entries(values).map(([k, v]) =>
-          v === "" ? [k, undefined] : [k, v]
-        )
+        Object.entries(values).filter(([_, v]) => v !== undefined && v !== "")
       ) as AtelierTREFormData;
 
       await update(id, payload);
@@ -75,9 +71,7 @@ export default function AtelierTREEditPage() {
       const parsed = axiosErr.response?.data
         ? extractApiMessage(axiosErr.response.data)
         : null;
-      toast.error(
-        parsed ?? axiosErr.message ?? "Erreur lors de la mise à jour"
-      );
+      toast.error(parsed ?? axiosErr.message ?? "Erreur lors de la mise à jour");
       console.error("Update atelier failed:", e);
     } finally {
       setSubmitting(false);
@@ -85,7 +79,7 @@ export default function AtelierTREEditPage() {
   };
 
   const handleDelete = async () => {
-    if (!id) return;
+    if (Number.isNaN(id)) return;
     if (!window.confirm("Supprimer cet atelier ?")) return;
     try {
       await remove(id);
@@ -96,7 +90,6 @@ export default function AtelierTREEditPage() {
     }
   };
 
-  // Cas ID invalide
   if (Number.isNaN(id)) {
     return (
       <PageTemplate title="Modifier un atelier TRE">
@@ -105,7 +98,6 @@ export default function AtelierTREEditPage() {
     );
   }
 
-  // Cas chargement
   if (loading || loadingMeta) {
     return (
       <PageTemplate title={`Modifier un atelier TRE #${id}`} centered>
@@ -115,7 +107,6 @@ export default function AtelierTREEditPage() {
     );
   }
 
-  // Cas erreur
   if (error) {
     return (
       <PageTemplate title={`Modifier un atelier TRE #${id}`}>
@@ -133,11 +124,8 @@ export default function AtelierTREEditPage() {
   }
 
   const initialValues: Partial<AtelierTREFormData> = {
-    type_atelier: data.type_atelier as AtelierTREFormData["type_atelier"],
-    date_atelier:
-      typeof data.date_atelier === "string" && data.date_atelier.trim() !== ""
-        ? data.date_atelier
-        : null,
+    type_atelier: (data.type_atelier as AtelierTREFormData["type_atelier"]) ?? "atelier_1",
+    date_atelier: data.date_atelier?.trim() ? data.date_atelier : null,
     centre: typeof data.centre === "number" ? data.centre : null,
     candidats: Array.isArray(data.candidats)
       ? data.candidats.filter((x): x is number => typeof x === "number")
@@ -157,7 +145,7 @@ export default function AtelierTREEditPage() {
     >
       <Box mt={2}>
         <AtelierTREForm
-          meta={meta ?? null}
+          meta={meta || null}
           initialValues={initialValues}
           submitting={submitting}
           onSubmit={handleSubmit}

@@ -1,4 +1,3 @@
-// src/pages/dashboard/widgets/prospections/ProspectionGroupedWidget.tsx
 import * as React from "react";
 import {
   getErrorMessage,
@@ -21,8 +20,10 @@ import {
   TableBody,
   IconButton,
   TextField,
+  Button,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import ArchiveIcon from "@mui/icons-material/Archive";
 
 /* 🛠 Utils */
 function toFixed0(n?: number | null) {
@@ -109,6 +110,8 @@ export default function ProspectionGroupedWidget({
   const [filters, setFilters] = React.useState<ProspectionFilters>(
     initialFilters ?? {}
   );
+
+  const includeArchived = Boolean(filters.avec_archivees);
 
   const { data: grouped, isLoading, error, refetch } = useProspectionGrouped(
     by,
@@ -203,6 +206,22 @@ export default function ProspectionGroupedWidget({
             }
           />
 
+          {/* 🔘 Bouton Archivées */}
+          <Button
+            size="small"
+            variant={includeArchived ? "contained" : "outlined"}
+            color={includeArchived ? "secondary" : "inherit"}
+            onClick={() =>
+              setFilters((f) => ({
+                ...f,
+                avec_archivees: f.avec_archivees ? undefined : true,
+              }))
+            }
+            startIcon={<ArchiveIcon fontSize="small" />}
+          >
+            {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+          </Button>
+
           {/* Bouton rafraîchir */}
           <IconButton onClick={() => refetch()} title="Rafraîchir">
             <RefreshIcon fontSize="small" />
@@ -240,9 +259,10 @@ export default function ProspectionGroupedWidget({
             </TableHead>
             <TableBody>
               {rowsWithTotal.map((r, idx) => {
-                const label = String(r.group_key).toLowerCase() === "total"
-                  ? "Total"
-                  : resolveProspectionGroupLabel(r, by);
+                const label =
+                  String(r.group_key).toLowerCase() === "total"
+                    ? "Total"
+                    : resolveProspectionGroupLabel(r, by);
                 const taux = r.taux_acceptation ?? 0;
                 let tauxColor: "inherit" | "green" | "orange" | "red" = "inherit";
                 if (taux >= 60) tauxColor = "green";

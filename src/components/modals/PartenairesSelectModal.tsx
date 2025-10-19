@@ -1,4 +1,3 @@
-// src/components/modals/PartenaireSelectModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
@@ -17,6 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { toast } from "react-toastify";
+import { isAxiosError } from "axios";
 import api from "../../api/axios";
 import type { Partenaire } from "../../types/partenaire";
 
@@ -161,10 +161,27 @@ export default function PartenaireSelectModal({ show, onClose, onSelect, onCreat
       onSelect(created as Partenaire);
       onClose();
     } catch (err) {
-      if (import.meta.env.MODE !== "production") {
-        console.error("Création partenaire échouée :", err);
+      if (isAxiosError(err)) {
+        const detail = err.response?.data?.detail;
+        if (typeof detail === "string") {
+          // 🧩 Message contextualisé pour erreurs liées au centre
+          if (detail.toLowerCase().includes("centre")) {
+            toast.error(`❌ ${detail} — contactez votre administrateur.`);
+          } else {
+            toast.error(`❌ ${detail}`);
+          }
+        } else {
+          toast.error("❌ Échec de la création du partenaire.");
+        }
+        if (import.meta.env.MODE !== "production") {
+          console.error("Erreur API création partenaire :", err.response?.data ?? err);
+        }
+      } else {
+        toast.error("❌ Échec de la création du partenaire.");
+        if (import.meta.env.MODE !== "production") {
+          console.error("Création partenaire échouée :", err);
+        }
       }
-      toast.error("❌ Échec de la création du partenaire");
     } finally {
       setCreating(false);
     }

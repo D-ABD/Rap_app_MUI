@@ -86,87 +86,113 @@ export interface Candidat {
   nom: string;
   prenom: string;
 
+  // ───── Identité ─────
+  sexe?: "M" | "F" | null;
+  nom_naissance?: string | null;
   email?: string | null;
   telephone?: string | null;
-  ville?: string | null;
+  date_naissance?: string | null; // ISO
+  departement_naissance?: string | null;
+  commune_naissance?: string | null;
+  pays_naissance?: string | null;
+  nationalite?: string | null;
+  nir?: string | null; // Numéro de sécurité sociale (15 chiffres)
+  rqth: boolean;
+  permis_b: boolean;
+
+    // ───── Adresse détaillée ─────
+  street_number?: string | null;
+  street_name?: string | null;
+  street_complement?: string | null;
   code_postal?: string | null;
+  ville?: string | null;
 
-  compte_utilisateur?: number | { id: number; full_name?: string } | null;
-  inscrit_gespers: boolean;
-  entretien_done: boolean;
-  test_is_ok: boolean;
-
-  statut: string;
-
-  // ✅ Nouveau : statut de CV (valeurs strictes)
-  cv_statut?: CVStatutValue | null;     // value: 'oui' | 'en_cours' | 'a_modifier'
-  cv_statut_display?: string | null;    // label lisible
-
+    // ───── Formation demandée─────
   formation?: number | null;
+  formation_info?: FormationInfo | null;
   centre_id?: number | null;
   centre_nom?: string | null;
-  evenement?: number | null;
-  ateliers_counts?: AtelierCounts;
 
-  notes?: string | null;
-  origine_sourcing?: string | null;
+    // ───── Infos pour contrats ─────
+  situation_avant_contrat?: string | null;
+  dernier_diplome_prepare?: string | null;
+  diplome_plus_eleve_obtenu?: string | null;
+  derniere_classe?: string | null;
+  intitule_diplome_prepare?: string | null;
+  numero_osia?: string | null;
+  regime_social?: string | null;
+  sportif_haut_niveau?: boolean;
+  equivalence_jeunes?: boolean;
+  extension_boe?: boolean;
+  situation_actuelle?: string | null;
+  projet_creation_entreprise?: boolean;
+  // ───── Représentant légal ─────
+  representant_lien?: string | null;
+  representant_nom_naissance?: string | null;
+  representant_prenom?: string | null;
+  representant_email?: string | null;
+  representant_street_name?: string | null;
+  representant_zip_code?: string | null;
+  representant_city?: string | null;
 
-  date_inscription: string; // ISO
-  date_naissance?: string | null; // ISO
 
-  rqth: boolean;
+
+
+ 
+
+  // ───── Statuts ─────
+  statut: string;
+  cv_statut?: CVStatutValue | null;
+  cv_statut_display?: string | null;
   type_contrat?: string | null;
   disponibilite?: string | null;
-  permis_b: boolean;
+
+  entretien_done: boolean;
+  test_is_ok: boolean;
+  admissible: boolean;
+  inscrit_gespers: boolean;
+  courrier_rentree: boolean;
 
   communication?: number | null;
   experience?: number | null;
   csp?: number | null;
-
-  vu_par?: number | null;
+  date_rentree?: string | null; // ISO
+ 
+  // ───── Placement / appairage ─────
   responsable_placement?: number | null;
-
+  responsable_placement_nom?: string | null;
   date_placement?: string | null; // ISO
   entreprise_placement?: number | null;
+  entreprise_placement_nom?: string | null;
   resultat_placement?: string | null;
+  resultat_placement_display?: string | null;
   entreprise_validee?: number | null;
+  entreprise_validee_nom?: string | null;
   contrat_signe?: string | null;
 
-  courrier_rentree: boolean;
-  date_rentree?: string | null; // ISO
-
-  admissible: boolean;
-
-  // ⚠️ Libellés pour l’affichage
-  responsable_placement_nom?: string | null;
-  entreprise_placement_nom?: string | null;
-  entreprise_validee_nom?: string | null;
-  vu_par_nom?: string | null;
-  resultat_placement_display?: string | null;
-
-  // ✅ Dernier appairage (objet lite renvoyé par le backend)
+  // ───── Suivi  ─────
+  nb_appairages?: number;
+  nb_prospections?: number;
   last_appairage?: AppairageLite | null;
+  ateliers_resume?: string;
+  ateliers_counts?: AtelierCounts;
+  notes?: string | null;
+  origine_sourcing?: string | null;
 
-  // champs système (détail uniquement)
+  // ───── Système ─────
+  date_inscription: string; // ISO
   created_at?: string;
   updated_at?: string;
   created_by?: number | { id: number; full_name?: string } | null;
   updated_by?: number | { id: number; full_name?: string } | null;
-
-  // calculés (read-only)
   nom_complet: string;
-  age?: number | null;
-  nb_appairages?: number;
-  nb_prospections?: number;
   role_utilisateur?: string;
-  ateliers_resume?: string;
   peut_modifier?: boolean;
+  compte_utilisateur?: number | { id: number; full_name?: string } | null;
+  age?: number | null; // calculé côté backend
+  vu_par?: number | null;
+  vu_par_nom?: string | null;
 
-  // divers
-  numero_osia?: string | null;
-
-  // infos formation prêtes pour l’UI (liste)
-  formation_info?: FormationInfo | null;
 }
 
 export interface CandidatListResponse {
@@ -180,76 +206,50 @@ export interface CandidatListResponse {
 export type CandidatFormData = Partial<
   Omit<
     Candidat,
-      | 'id'
-      | 'nom_complet'
-      | 'age'
-      | 'nb_appairages'
-      | 'nb_prospections'
-      | 'role_utilisateur'
-      | 'ateliers_resume'
-      | 'peut_modifier'
-      | 'created_at'
-      | 'updated_at'
-      | 'created_by'
-      | 'updated_by'
-      | 'formation_info'
-      | 'date_inscription'
-      | 'last_appairage'                 // ✅ read-only
-      // ⚠️ on exclut aussi les libellés read-only
-      | 'responsable_placement_nom'
-      | 'entreprise_placement_nom'
-      | 'entreprise_validee_nom'
-      | 'vu_par_nom'
-      | 'resultat_placement_display'
-      | 'cv_statut_display'
+    | 'id'
+    | 'nom_complet'
+    | 'age'
+    | 'nb_appairages'
+    | 'nb_prospections'
+    | 'role_utilisateur'
+    | 'ateliers_resume'
+    | 'peut_modifier'
+    | 'created_at'
+    | 'updated_at'
+    | 'created_by'
+    | 'updated_by'
+    | 'formation_info'
+    | 'date_inscription'
+    | 'last_appairage'
+    | 'responsable_placement_nom'
+    | 'entreprise_placement_nom'
+    | 'entreprise_validee_nom'
+    | 'vu_par_nom'
+    | 'resultat_placement_display'
+    | 'cv_statut_display'
+    | 'ateliers_counts'  // ✅ à ajouter (champ calculé)
   >
 >;
 
 // ─────────────────────────────────────────────────────────────────────────────
 export interface CandidatMeta {
   statut_choices: Choice[];
-  /** Source backend (snake_case). */
-  cv_statut_choices: Array<{ value: CVStatutValue; label: string }>; // ✅
-  /** Alias camelCase optionnel si exposé par le backend. */
-  cvStatutChoices?: Array<{ value: CVStatutValue; label: string }>;
+  cv_statut_choices: Array<{ value: CVStatutValue; label: string }>;
   type_contrat_choices: Choice[];
   disponibilite_choices: Choice[];
   resultat_placement_choices: Choice[];
   contrat_signe_choices: Choice[];
   niveau_choices: Choice[];
-  // ✅ aussi renvoyés par /candidats/meta
   centre_choices?: Choice[];
   formation_choices?: Choice[];
+  sexe_choices?: Choice[];
+  pays_choices?: Choice[];
+
+  // ✅ nouveaux possibles selon backend/meta
+  regime_social_choices?: Choice[];
+  situation_actuelle_choices?: Choice[];
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Historique de placement
-// ─────────────────────────────────────────────────────────────────────────────
-
-export interface HistoriquePlacement {
-  id: number;
-  candidat: number;
-  candidat_nom: string;
-  entreprise: number | null;
-  entreprise_nom: string | null;
-  responsable: number | null;
-  responsable_nom: string | null;
-  resultat: string;
-  date_placement: string; // ISO
-  commentaire?: string | null;
-  created_at: string; // ISO
-}
-
-export interface HistoriquePlacementListResponse {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: HistoriquePlacement[];
-}
-
-export interface HistoriquePlacementMeta {
-  resultat_choices: Choice[];
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Filtres + params de liste (UI)
@@ -297,8 +297,7 @@ export interface CandidatReadMinimal {
   code_postal?: string | null;
   formation?: number | null;
   statut: string;
-  cv_statut: CVStatutValue | null; // ✅ plutôt que répéter les string
-  created_at: string; // ISO
-  updated_at: string; // ISO
+  cv_statut: CVStatutValue | null;
+  created_at: string;
+  updated_at: string;
 }
-

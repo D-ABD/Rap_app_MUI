@@ -17,13 +17,17 @@ import type { Commentaire } from '../types/commentaire';
 import type { Evenement } from '../types/evenement';
 import type { Prospection } from '../types/prospection';
 import type { HistoriqueFormation } from '../types/historique';
-import { FormationOption } from '../pages/candidats/CandidatForm';
 
 interface ApiListResponse {
   results?: NomId[];
   data?: {
     results?: NomId[];
   };
+}
+
+export interface FormationOption {
+  value: number;
+  label: string;
 }
 
 // Résultat retourné par le hook
@@ -84,7 +88,7 @@ export function useFormationChoices(): UseFormationChoicesResult {
     loading,
     refresh: fetchChoices,
   };
-}
+} 
 
 interface UseFormationsOptions {
   search?: string;
@@ -95,7 +99,9 @@ interface UseFormationsOptions {
   type_offre?: number;
   start_date?: string;
   end_date?: string;
-   page_size?: number; 
+  page_size?: number; 
+  avec_archivees?: boolean; 
+  activite?: string;
 }
 
 interface WrappedResponse<T> {
@@ -414,7 +420,7 @@ export function useHistoriqueFormation(formationId?: number) {
       .get<{ data: HistoriqueFormation[] }>(url)
       .then((res) => {
         res.data.data.forEach((item, i) => {
-          console.log(`📝 Élement ${i + 1}:`, {
+          (`📝 Élement ${i + 1}:`, {
             champ_modifie: item.champ_modifie,
             saturation: item.saturation,
             badge: item.saturation_badge,
@@ -494,4 +500,53 @@ export function useFormationsOptions() {
   }, []);
 
   return { options, loading, error };
+}
+// ✅ Archiver une formation
+export function useArchiverFormation(id: number) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<AxiosError | null>(null);
+
+  const archiver = async () => {
+    setLoading(true);
+    try {
+      const res = await api.post<{ status: string; detail?: string }>(
+        `/formations/${id}/archiver/`
+      );
+      toast.success('Formation archivée');
+      return res.data;
+    } catch (err) {
+      setError(err as AxiosError);
+      toast.error("Erreur lors de l'archivage");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { archiver, loading, error };
+}
+
+// ✅ Désarchiver une formation
+export function useDesarchiverFormation(id: number) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<AxiosError | null>(null);
+
+  const desarchiver = async () => {
+    setLoading(true);
+    try {
+      const res = await api.post<{ status: string; detail?: string }>(
+        `/formations/${id}/desarchiver/`
+      );
+      toast.success('Formation restaurée');
+      return res.data;
+    } catch (err) {
+      setError(err as AxiosError);
+      toast.error("Erreur lors de la restauration");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { desarchiver, loading, error };
 }

@@ -8,6 +8,8 @@ import {
   DialogActions,
   Typography,
   Box,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import axiosLib from "axios"; // for isAxiosError
@@ -68,6 +70,7 @@ export default function ExportButtonAppairage({
 }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("xlsx"); // ✅ forcé à XLSX
+  const [avecArchivees, setAvecArchivees] = useState(false); // 🆕 checkbox
   const [busy, setBusy] = useState(false);
 
   const openModal = () => setShowModal(true);
@@ -79,22 +82,30 @@ export default function ExportButtonAppairage({
   const handleExport = async () => {
     try {
       setBusy(true);
-      const qs =
+
+      const qsBase =
         typeof window !== "undefined" ? window.location.search || "" : "";
+      const params = new URLSearchParams(qsBase);
+
+      // 🆕 Ajoute le paramètre "avec_archivees" si coché
+      if (avecArchivees) params.set("avec_archivees", "true");
+
+      const qs = params.toString() ? `?${params.toString()}` : "";
       const base = (endpointBase || "/api/appairages").replace(/\/$/, "");
-      const url = `${base}/export-${exportFormat}${qs.startsWith("?") ? qs : ""}`;
-
-
+      const url = `${base}/export-${exportFormat}/${qs}`;
 
       let res;
       if (selectedIds.length > 0) {
-        console.log("   méthode = POST, body.ids =", selectedIds);
-        res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
+        ("👉 POST avec ids =", selectedIds);
+        res = await api.post(
+          url,
+          { ids: selectedIds, ...(avecArchivees ? { avec_archivees: true } : {}) },
+          { responseType: "blob" }
+        );
       } else {
-        console.log("   méthode = GET (aucune sélection)");
+        ("👉 GET (aucune sélection)");
         res = await api.get(url, { responseType: "blob" });
       }
-
 
       const contentType = res.headers["content-type"] || "";
       const fallbackMime =
@@ -105,7 +116,6 @@ export default function ExportButtonAppairage({
       const disposition = res.headers["content-disposition"] || null;
       const defaultName = `${filenameBase}.${exportFormat}`;
       const filename = getFilenameFromDisposition(disposition, defaultName);
-
 
       const link = document.createElement("a");
       const urlBlob = URL.createObjectURL(blob);
@@ -122,8 +132,8 @@ export default function ExportButtonAppairage({
 
       toast.success(
         selectedIds.length
-          ? `Export XLSX des ${selectedIds.length} sélection(s) prêt.`
-          : "Export XLSX du jeu filtré prêt."
+          ? `Export ${exportFormat.toUpperCase()} des ${selectedIds.length} sélection(s) prêt.`
+          : `Export ${exportFormat.toUpperCase()} du jeu filtré prêt.`
       );
       setShowModal(false);
     } catch (e: unknown) {
@@ -164,28 +174,31 @@ export default function ExportButtonAppairage({
             <ExportSelect
               value={exportFormat}
               onChange={setExportFormat}
-              options={["xlsx"]} // ✅ limite à XLSX uniquement
+              options={["xlsx"]}
+            />
+
+            {/* 🆕 Case à cocher “Inclure les archivés” */}
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={avecArchivees}
+                  onChange={(e) => setAvecArchivees(e.target.checked)}
+                />
+              }
+              label="Inclure les appairages archivés"
             />
           </Box>
 
           {typeof window !== "undefined" && window.location.search ? (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2 }}
-            >
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Les filtres/tri actuels (
               <code>{window.location.search}</code>) seront appliqués si aucune
               sélection n’est fournie.
             </Typography>
           ) : (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ mt: 2 }}
-            >
-              Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble
-              du jeu courant.
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              Aucun filtre explicite dans l’URL : l’export portera sur
+              l’ensemble du jeu courant.
             </Typography>
           )}
 
@@ -200,6 +213,7 @@ export default function ExportButtonAppairage({
             </Typography>
           )}
         </DialogContent>
+
         <DialogActions>
           <Button onClick={closeModal} disabled={busy}>
             Annuler

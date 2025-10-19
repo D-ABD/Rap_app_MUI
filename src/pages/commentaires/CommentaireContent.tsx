@@ -1,40 +1,37 @@
-// src/components/ui/CommentaireContent.tsx
-import { styled } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-
-const StyledContent = styled(Box)(({ theme }) => ({
-  fontSize: "1rem",
-  lineHeight: 1.6,
-  color: theme.palette.text.primary,
-  "& b, & strong": { fontWeight: "bold" },
-  "& i, & em": { fontStyle: "italic" },
-  "& a": {
-    color: theme.palette.primary.main,
-    textDecoration: "underline",
-  },
-  "& ul, & ol": {
-    paddingLeft: "1.5rem",
-    marginTop: "0.5rem",
-  },
-  "& li": {
-    marginBottom: "0.25rem",
-  },
-  "& p": {
-    margin: "0.5rem 0",
-  },
-  "& span": {
-    whiteSpace: "pre-line",
-    "&[style]": {
-      display: "inline",
-      whiteSpace: "pre-wrap",
-    },
-  },
-}));
-
+// src/pages/commentaires/CommentaireContent.tsx
+import DOMPurify from "dompurify";
+import "./commentaires.css";
 interface Props {
   html: string;
 }
 
 export default function CommentaireContent({ html }: Props) {
-  return <StyledContent dangerouslySetInnerHTML={{ __html: html }} />;
+  const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
+    ALLOWED_TAGS: [
+      "p",
+      "b",
+      "i",
+      "u",
+      "em",
+      "strong",
+      "ul",
+      "ol",
+      "li",
+      "span",
+      "a",
+      "br",
+    ],
+    ALLOWED_ATTR: ["href", "title", "target", "style"], // ✅ tableau plat accepté
+  });
+
+  return (
+    <div
+      className="commentaire-content"
+      dangerouslySetInnerHTML={{ __html: sanitized }}
+      style={{
+        lineHeight: 1.5,
+        wordBreak: "break-word",
+      }}
+    />
+  );
 }

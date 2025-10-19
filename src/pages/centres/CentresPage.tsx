@@ -204,7 +204,7 @@ export default function CentresPage() {
                 p: 2,
                 cursor: "pointer",
               }}
-              onClick={() => navigate(`/centres/edit/${centre.id}`)}
+            onClick={() => navigate(`/centres/${centre.id}/edit`)}
             >
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Checkbox

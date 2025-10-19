@@ -244,7 +244,7 @@ export default function TypeOffresPage() {
                   p: 2,
                   cursor: "pointer",
                 }}
-                onClick={() => navigate(`/typeoffres/edit/${type.id}`)}
+                onClick={() => navigate(`/typeoffres/${type.id}/edit`)}
               >
                 <Stack direction="row" alignItems="center" spacing={2}>
                   <Checkbox

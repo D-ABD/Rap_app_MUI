@@ -17,8 +17,10 @@ import {
   Alert,
   Card,
   FormControl,
+  Button,
 } from "@mui/material";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import {
   BarChart,
   Bar,
@@ -48,11 +50,19 @@ export default function AppairageOverviewWidget({
     defaultFilters ?? {}
   );
 
-  const { data, isLoading, error } = useAppairageOverview(filters);
+  const [includeArchived, setIncludeArchived] = React.useState(false);
 
+  // 🔁 Actualise les filtres quand on change le toggle
+  React.useEffect(() => {
+    setFilters((f) => ({
+      ...f,
+      avec_archivees: includeArchived ? true : undefined,
+    }));
+  }, [includeArchived]);
+
+  const { data, isLoading, error } = useAppairageOverview(filters);
   const { data: centresGrouped, isLoading: loadingCentres } =
     useAppairageGrouped("centre", { ...filters, centre: undefined });
-
   const { data: depsGrouped } = useAppairageGrouped("departement", {
     ...filters,
     departement: undefined,
@@ -101,11 +111,24 @@ export default function AppairageOverviewWidget({
       }}
     >
       {/* Header */}
-      <Box display="flex" alignItems="center" gap={1}>
-        <AssignmentIcon color="primary" />
-        <Typography variant="subtitle2" fontWeight="bold">
-          Appairages
-        </Typography>
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Box display="flex" alignItems="center" gap={1}>
+          <AssignmentIcon color="primary" />
+          <Typography variant="subtitle2" fontWeight="bold">
+            Appairages
+          </Typography>
+        </Box>
+
+        {/* Bouton Archivées */}
+        <Button
+          size="small"
+          variant={includeArchived ? "contained" : "outlined"}
+          color={includeArchived ? "secondary" : "inherit"}
+          onClick={() => setIncludeArchived((v) => !v)}
+          startIcon={<ArchiveIcon fontSize="small" />}
+        >
+          {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+        </Button>
       </Box>
 
       {/* Filtres */}
@@ -187,7 +210,11 @@ export default function AppairageOverviewWidget({
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
-                <LabelList dataKey="value" position="top" style={{ fontSize: 11 }} />
+                <LabelList
+                  dataKey="value"
+                  position="top"
+                  style={{ fontSize: 11 }}
+                />
               </Bar>
             </BarChart>
           </ResponsiveContainer>

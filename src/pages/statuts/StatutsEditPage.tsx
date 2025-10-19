@@ -15,6 +15,7 @@ import {
 import api from "../../api/axios";
 import useForm from "../../hooks/useForm";
 import PageTemplate from "../../components/PageTemplate";
+import { STATUT_COLORS, getContrastText } from "../../constants/colors";
 
 type Choice = {
   value: string;
@@ -176,31 +177,49 @@ export default function StatutsEditPage() {
               />
             )}
 
-            {/* Champ couleur */}
-            <TextField
-              fullWidth
-              margin="normal"
-              id="couleur"
-              name="couleur"
-              label="Couleur (hexadécimal)"
-              value={values.couleur}
-              onChange={handleChange}
-            />
+            {/* Palette de couleurs */}
+            <Typography variant="subtitle1" sx={{ mt: 2 }}>
+              Choisissez une couleur
+            </Typography>
 
-            {/* Aperçu couleur */}
-            <Box
-              role="img"
-              aria-label={`Aperçu couleur ${previewColor}`}
-              sx={{
-                mt: 2,
-                width: 40,
-                height: 20,
-                borderRadius: 1,
-                bgcolor: previewColor,
-                border: "1px solid",
-                borderColor: "divider",
-              }}
-            />
+            <Stack direction="row" spacing={1} flexWrap="wrap" mt={1}>
+              {STATUT_COLORS.map((color) => (
+                <Box
+                  key={color}
+                  onClick={() => setValues((prev) => ({ ...prev, couleur: color }))}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    bgcolor: color,
+                    border: values.couleur === color ? "3px solid black" : "1px solid #ccc",
+                    cursor: "pointer",
+                    transition: "transform 0.2s",
+                    "&:hover": { transform: "scale(1.1)" },
+                  }}
+                  title={color}
+                />
+              ))}
+            </Stack>
+
+            {/* Aperçu couleur avec texte lisible */}
+            <Stack direction="row" alignItems="center" spacing={1} mt={2}>
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderRadius: 1,
+                  bgcolor: previewColor,
+                  color: getContrastText(previewColor),
+                  border: "1px solid",
+                  borderColor: "divider",
+                  fontWeight: "bold",
+                }}
+              >
+                Exemple texte
+              </Box>
+              <Typography variant="body2">{previewColor}</Typography>
+            </Stack>
 
             {/* Boutons */}
             <Stack direction="row" spacing={2} mt={3}>

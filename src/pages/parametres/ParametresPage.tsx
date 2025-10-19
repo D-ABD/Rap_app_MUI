@@ -1,6 +1,5 @@
 import { Link as RouterLink } from "react-router-dom";
 import {
-  Box,
   Grid,
   Card,
   CardContent,
@@ -15,47 +14,20 @@ const ParametresPage = () => {
   const cards = [
     { title: "Centres", text: "Gérer les centres de formation.", link: "/centres" },
     { title: "Types d'offres", text: "Gérer les types d’offres de formation.", link: "/typeoffres" },
-    { title: "Utilisateurs", text: "Ajouter ou modifier les utilisateurs.", link: "/users" },
-    { title: "Candidats", text: "Ajouter ou modifier les candidats.", link: "/candidats" },
-    { title: "Partenaires", text: "Ajouter ou modifier un partenaire.", link: "/partenaires" },
     { title: "Statuts", text: "Configurer les statuts des formations.", link: "/statuts" },
-    { title: "Commentaires", text: "Consulter ou modifier les commentaires.", link: "/commentaires" },
-    { title: "Événements", text: "Consulter ou modifier les événements.", link: "/evenements" },
-    { title: "Documents", text: "Consulter ou modifier les documents.", link: "/documents" },
-    {
-      title: "Recherche globale",
-      text: "Rechercher sur toutes les ressources (formations, centres, utilisateurs...).",
-      link: "/recherche",
-    },
-    {
-      title: "📜 Historique des Formations",
-      text: "Retrouvez toutes les modifications apportées aux formations : dates, places, statuts, etc.",
-      link: "/formations/historiques",
-    },
-    {
-      title: "Historique Prospections",
-      text: "Consulter l’historique des prospections.",
-      link: "/prospections/historiques",
-    },
-    {
-      title: "Prépa compétences",
-      text: "Gérer les objectifs Prépa Comp.",
-      link: "/prepa-globaux",
-    },
     {
       title: "Administration",
       text: "Accès à l'interface d’administration Django.",
-      link: "/admin",
+      link:
+        process.env.NODE_ENV === "production"
+          ? "https://mon-domaine.com/admin/"
+          : "http://localhost:8000/admin/",
+      external: true,
     },
   ];
 
   const handleLogout = () => {
-    // TODO: branche ton vrai logout ici
-    console.log("Déconnexion");
-  };
-
-  const handleToggleTheme = () => {
-    // TODO: branche ton vrai toggle theme ici
+    ("Déconnexion");
   };
 
   return (
@@ -81,30 +53,34 @@ const ParametresPage = () => {
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button
-                  component={RouterLink}
-                  to={c.link}
-                  size="small"
-                  color="primary"
-                >
-                  Accéder
-                </Button>
+                {c.external ? (
+                  <Button
+                    component="a"
+                    href={c.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    size="small"
+                    color="primary"
+                  >
+                    Accéder
+                  </Button>
+                ) : (
+                  <Button
+                    component={RouterLink}
+                    to={c.link}
+                    size="small"
+                    color="primary"
+                  >
+                    Accéder
+                  </Button>
+                )}
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
 
-      {/* Actions bas de page */}
-      <Stack
-        direction="row"
-        spacing={2}
-        justifyContent="center"
-        sx={{ mt: 4 }}
-      >
-        <Button variant="outlined" onClick={handleToggleTheme}>
-          🎨 Basculer thème
-        </Button>
+      <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 4 }}>
         <Button variant="contained" color="error" onClick={handleLogout}>
           🚪 Déconnexion
         </Button>

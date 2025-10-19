@@ -16,14 +16,14 @@ import {
   TableRow,
   Paper,
   TablePagination,
+  IconButton,
+  Divider,
 } from "@mui/material";
 import {
-  ChatBubbleOutline as MessageSquareTextIcon,
-  Refresh as RefreshCwIcon,
+  Refresh as RefreshIcon,
   Business as Building2Icon,
   Person as UserIcon,
   CalendarToday as CalendarIcon,
-  Link as Link2Icon,
 } from "@mui/icons-material";
 import {
   ProspectionCommentFilters,
@@ -33,6 +33,27 @@ import {
   ProspectionCommentGroupRow,
 } from "../../../types/prospectionCommentStats";
 
+/* ──────────────────────────────
+   Helper de formatage des dates
+────────────────────────────── */
+function formatLocalDateTime(createdAt?: string | null, updatedAt?: string | null) {
+  const iso = updatedAt || createdAt;
+  if (!iso) return "—";
+
+  const date = new Date(iso);
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  };
+  return date.toLocaleString("fr-FR", options).replace(",", " à");
+}
+
+/* ──────────────────────────────
+   Composant principal
+────────────────────────────── */
 export default function ProspectionCommentStatsDashboard({
   title = "Derniers commentaires de prospection",
 }: {
@@ -42,17 +63,9 @@ export default function ProspectionCommentStatsDashboard({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error, refetch, isFetching } =
-    useProspectionCommentLatest(filters);
-
-  const { data: centresGrouped } = useProspectionCommentGrouped("centre", {
-    ...filters,
-    centre: undefined,
-  });
-  const { data: depsGrouped } = useProspectionCommentGrouped("departement", {
-    ...filters,
-    departement: undefined,
-  });
+  const { data, isLoading, error, refetch, isFetching } = useProspectionCommentLatest(filters);
+  const { data: centresGrouped } = useProspectionCommentGrouped("centre", { ...filters, centre: undefined });
+  const { data: depsGrouped } = useProspectionCommentGrouped("departement", { ...filters, departement: undefined });
 
   const centreOptions = useMemo(() => {
     const rows = centresGrouped?.results ?? [];
@@ -81,85 +94,70 @@ export default function ProspectionCommentStatsDashboard({
 
   // Pagination
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
-  const paginated = results.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="flex-end"
-        flexWrap="wrap"
-        gap={2}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
-
-        {/* Filtres rapides */}
-        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-          {/* Centre */}
-          <Select
-            size="small"
-            value={filters.centre ? String(filters.centre) : ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                centre: e.target.value ? Number(e.target.value) : undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 160 }}
-          >
-            <MenuItem value="">Tous centres</MenuItem>
-            {centreOptions.map((c) => (
-              <MenuItem key={c.id} value={String(c.id)}>
-                {c.label}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Département */}
-          <Select
-            size="small"
-            value={filters.departement ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                departement: e.target.value || undefined,
-              }))
-            }
-            displayEmpty
-            sx={{ minWidth: 120 }}
-          >
-            <MenuItem value="">Tous départements</MenuItem>
-            {departementOptions.map((code) => (
-              <MenuItem key={code} value={code}>
-                {code}
-              </MenuItem>
-            ))}
-          </Select>
-
-          {/* Refresh */}
-          <RefreshCwIcon
-            fontSize="small"
-            onClick={() => refetch()}
-            style={{ cursor: "pointer" }}
-            titleAccess="Rafraîchir"
-            color={isFetching ? "disabled" : "action"}
-          />
-        </Box>
+        <IconButton onClick={() => refetch()} disabled={isFetching} size="small" title="Rafraîchir">
+          <RefreshIcon fontSize="small" />
+        </IconButton>
       </Box>
+
+      {/* Filtres */}
+      <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+        {/* Centre */}
+        <Select
+          size="small"
+          value={filters.centre ? String(filters.centre) : ""}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              centre: e.target.value ? Number(e.target.value) : undefined,
+            }))
+          }
+          displayEmpty
+          sx={{ minWidth: 160 }}
+        >
+          <MenuItem value="">Tous centres</MenuItem>
+          {centreOptions.map((c) => (
+            <MenuItem key={c.id} value={String(c.id)}>
+              {c.label}
+            </MenuItem>
+          ))}
+        </Select>
+
+        {/* Département */}
+        <Select
+          size="small"
+          value={filters.departement ?? ""}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              departement: e.target.value || undefined,
+            }))
+          }
+          displayEmpty
+          sx={{ minWidth: 120 }}
+        >
+          <MenuItem value="">Tous départements</MenuItem>
+          {departementOptions.map((code) => (
+            <MenuItem key={code} value={code}>
+              {code}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
+
+      <Divider />
 
       {/* Content */}
       {isLoading ? (
@@ -184,65 +182,42 @@ export default function ProspectionCommentStatsDashboard({
                 {paginated.map((c: ProspectionCommentItem) => (
                   <TableRow key={c.id} hover>
                     {/* Formation / Prospection */}
-                    <TableCell>
-                      <Box display="flex" flexDirection="column" gap={0.5}>
-                        <Typography variant="body2" fontWeight="bold">
-                          {c.formation_nom ??
-                            `Prospection #${c.prospection_id ?? "—"}`}
+                    <TableCell sx={{ maxWidth: 300 }}>
+                      <Typography variant="body2" fontWeight="bold">
+                        {c.formation_nom ?? `Prospection #${c.prospection_id ?? "—"}`}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {c.type_offre_nom ?? "?"} • #{c.num_offre ?? "?"}
+                      </Typography>
+                      <Typography variant="caption" display="block" color="text.secondary">
+                        {c.centre_nom ?? "Centre inconnu"}
+                      </Typography>
+                      {(c.start_date || c.end_date) && (
+                        <Typography variant="caption" display="block" color="text.secondary">
+                          {c.start_date?.slice(0, 10) ?? "?"} → {c.end_date?.slice(0, 10) ?? "?"}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {c.type_offre_nom ?? "?"} • #{c.num_offre ?? "?"}
-                        </Typography>
-                        {c.centre_nom && (
-                          <Box display="flex" alignItems="center" gap={0.5}>
-                            <Building2Icon fontSize="small" />
-                            {c.centre_nom}
-                          </Box>
-                        )}
-                        {(c.start_date || c.end_date) && (
-                          <Box display="flex" alignItems="center" gap={0.5}>
-                            <CalendarIcon fontSize="small" />
-                            {c.start_date?.slice(0, 10) ?? "?"} →{" "}
-                            {c.end_date?.slice(0, 10) ?? "?"}
-                          </Box>
-                        )}
-                      </Box>
+                      )}
                     </TableCell>
 
-                    {/* Commentaire */}
+                    {/* ✅ Colonne Commentaire */}
                     <TableCell>
-                      <Box display="flex" flexDirection="column" gap={0.5}>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <UserIcon fontSize="small" />
-                          <Typography
-                            variant="body2"
-                            noWrap
-                            title={c.auteur}
-                            sx={{ maxWidth: 150 }}
-                          >
-                            {c.auteur}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                          >
-                            • {c.date} {c.heure}
-                          </Typography>
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            display: "-webkit-box",
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: "vertical",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            maxWidth: 500,
-                          }}
-                          title={c.body}
-                        >
-                          {c.body}
-                        </Typography>
+                      <Typography variant="body2" fontWeight="bold" gutterBottom>
+                        <UserIcon fontSize="small" sx={{ mr: 0.5 }} />
+                        {c.auteur} • {formatLocalDateTime(c.created_at, c.updated_at)}
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: 400,
+                          color: "text.secondary",
+                        }}
+                      >
+                        {c.body || <em>—</em>}
                       </Box>
                     </TableCell>
                   </TableRow>

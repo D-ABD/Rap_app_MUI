@@ -1,13 +1,13 @@
 // src/pages/DashboardCandidatPage.tsx
-
 import { Link as RouterLink } from "react-router-dom";
 import { Typography, Button, Box, Grid } from "@mui/material";
 import { useAuth } from "../hooks/useAuth";
 import PageWrapper from "../components/PageWrapper";
 
-// Tu pourras ajouter quelques widgets allégés si besoin
+// Widgets
 import ProspectionOverviewWidget from "./widgets/overviewDashboard/ProspectionOverviewWidget";
 import ProspectionCommentStatsDashboard from "./widgets/commentsDahboard/ProspectionCommentStatsDashboard";
+import ProspectionConversionKpi from "./widgets/saturationdashboard/ProspectionConversionKpi";
 
 const DashboardCandidatPage = () => {
   const { user } = useAuth();
@@ -32,14 +32,18 @@ const DashboardCandidatPage = () => {
         </Button>
       </Box>
 
-      {/* Widgets utiles pour un candidat */}
+      {/* Widgets pour un candidat */}
       <Grid container spacing={2}>
+        {/* Bloc 1 : synthèse prospections */}
         <Grid item xs={12} sm={6}>
           <ProspectionOverviewWidget title="Mes Prospections" />
         </Grid>
-        {/* Ici tu peux ajouter un widget Formations liées ou Appairages si besoin */}
-            <ProspectionCommentStatsDashboard />,
-    
+
+        {/* Bloc 2 : taux et répartition côte à côte */}
+        <Grid item xs={12} sm={6}>
+          <ProspectionConversionKpi title="Tx transformation Prospections" />
+        </Grid>
+          <ProspectionCommentStatsDashboard />
       </Grid>
     </PageWrapper>
   );

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import api from '../api/axios';
+import { useState, useEffect } from "react";
+import api from "../api/axios";
 import {
   Appairage,
   AppairageCreatePayload,
@@ -9,14 +9,16 @@ import {
   HistoriqueAppairage,
   PaginatedResults,
   AppairageFiltresValues,
-  CommentaireAppairage
-} from '../types/appairage';
+  CommentaireAppairage,
+} from "../types/appairage";
 
 export function useListAppairages(
   params: AppairageFiltresValues = {},
   reloadKey?: number
 ) {
-  const [data, setData] = useState<PaginatedResults<AppairageListItem> | null>(null);
+  const [data, setData] = useState<PaginatedResults<AppairageListItem> | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -24,28 +26,41 @@ export function useListAppairages(
     setLoading(true);
     setError(null);
 
+    // Nettoyage des params avant envoi
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
+    );
+
     api
-      .get('/appairages/', { params })
+      .get("/appairages/", { params: cleanParams })
       .then((res) => {
         const actualData = res.data.data || res.data;
         setData(actualData as PaginatedResults<AppairageListItem>);
       })
       .catch((err) => {
-        console.error('❌ [useListAppairages] Error:', err);
+        console.error("❌ [useListAppairages] Error:", err);
         setError(err);
       })
       .finally(() => setLoading(false));
-  }, [params, reloadKey]);
+  }, [JSON.stringify(params), reloadKey]); // 👈 stringify pour bien détecter tout changement
 
   return { data, loading, error };
 }
 
-export function useAppairage(id: number) {
+/* ✅ Correction principale : id peut être null ou undefined */
+export function useAppairage(id?: number | null) {
   const [data, setData] = useState<Appairage | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    // ⛔ Ignore si id invalide
+    if (!id || id <= 0) {
+      setData(null);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -55,7 +70,7 @@ export function useAppairage(id: number) {
         setData(res.data as Appairage);
       })
       .catch((err) => {
-        console.error('❌ [useAppairage] Error:', err);
+        console.error("❌ [useAppairage] Error:", err);
         setError(err);
       })
       .finally(() => setLoading(false));
@@ -71,10 +86,10 @@ export function useCreateAppairage() {
   const create = async (payload: AppairageCreatePayload) => {
     setLoading(true);
     try {
-      const res = await api.post('/appairages/', payload);
+      const res = await api.post("/appairages/", payload);
       return res.data as Appairage;
     } catch (err) {
-      console.error('❌ [useCreateAppairage] Error:', err);
+      console.error("❌ [useCreateAppairage] Error:", err);
       setError(err as Error);
       throw err;
     } finally {
@@ -95,7 +110,7 @@ export function useUpdateAppairage(id: number) {
       const res = await api.patch(`/appairages/${id}/`, payload);
       return res.data as Appairage;
     } catch (err) {
-      console.error('❌ [useUpdateAppairage] Error:', err);
+      console.error("❌ [useUpdateAppairage] Error:", err);
       setError(err as Error);
       throw err;
     } finally {
@@ -135,13 +150,13 @@ export function useAppairageMeta() {
     setError(null);
 
     api
-      .get('/appairages/meta/')
+      .get("/appairages/meta/")
       .then((res) => {
         const metaData = res.data.data || res.data;
         setData(metaData as AppairageMeta);
       })
       .catch((err) => {
-        console.error('❌ [useAppairageMeta] Error:', err);
+        console.error("❌ [useAppairageMeta] Error:", err);
         setError(err);
       })
       .finally(() => setLoading(false));
@@ -165,7 +180,7 @@ export function useAppairageHistoriques(appairageId: number) {
         setData(res.data as HistoriqueAppairage[]);
       })
       .catch((err) => {
-        console.error('❌ [useAppairageHistoriques] Error:', err);
+        console.error("❌ [useAppairageHistoriques] Error:", err);
         setError(err);
       })
       .finally(() => setLoading(false));
@@ -190,7 +205,10 @@ export function useAppairageComments(appairageId: number) {
   }, [appairageId]);
 
   const addComment = async (payload: { body: string; is_internal?: boolean }) => {
-    const res = await api.post(`/appairages/${appairageId}/commentaires/`, payload);
+    const res = await api.post(
+      `/appairages/${appairageId}/commentaires/`,
+      payload
+    );
     setData((prev) => (prev ? [res.data, ...prev] : [res.data]));
     return res.data;
   };

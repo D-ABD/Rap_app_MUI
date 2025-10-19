@@ -18,13 +18,36 @@ export interface BaseMeta {
   is_active?: boolean;
 }
 
-// ── Présence ─────────────────────────────────────────────────────────────────
-export type PresenceStatut = "present" | "absent" | "excuse" | "non_renseigne";
+// ── Présences ─────────────────────────────────────────────────────────────────
+// Aligné sur PresenceStatut du modèle
+export type PresenceStatut = "present" | "absent" | "excuse" | "inconnu";
 
-export interface ParticipantAtelier {
+// Lecture (serializer complet)
+export interface AtelierTREPresence {
   id: number;
-  nom: string;              // nom complet
-  presence: PresenceStatut; // statut de présence pour cet atelier
+  candidat: { id: number; nom: string };
+  candidat_id?: number;
+  statut: PresenceStatut;
+  statut_display: string;
+  commentaire: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Écriture (formulaire / POST)
+export interface AtelierTREPresenceInput {
+  candidat_id: number;
+  statut: PresenceStatut;
+  commentaire?: string | null;
+}
+
+// ── Formulaire ───────────────────────────────────────────────────────────────
+export interface AtelierTREFormData {
+  type_atelier: TypeAtelier;
+  date_atelier?: string | null;
+  centre?: number | null;
+  candidats?: number[];
+  presences?: AtelierTREPresenceInput[]; // ✅ type correct pour POST/PUT
 }
 
 // ── AtelierTRE (liste + détail) ──────────────────────────────────────────────
@@ -42,9 +65,11 @@ export interface AtelierTRE extends BaseMeta {
   // M2M (écriture via ids)
   candidats: number[];
 
-  // Lecture conviviale (ancienne & nouvelle forme)
-  candidats_detail?: { id: number; nom: string }[]; // ← conservé pour compat
-  participants_detail?: ParticipantAtelier[];       // ← recommandé pour la présence
+  // Lecture conviviale
+  candidats_detail?: { id: number; nom: string }[];
+
+  // Présences détaillées (nouveau champ du serializer)
+  presences?: AtelierTREPresence[];
 
   // Stats
   nb_inscrits: number;
@@ -52,15 +77,8 @@ export interface AtelierTRE extends BaseMeta {
     present: number;
     absent: number;
     excuse: number;
-    non_renseigne: number;
+    inconnu: number;
   };
-}
-
-export interface AtelierTREFormData {
-  type_atelier: TypeAtelier;
-  date_atelier?: string | null; // ISO; peut être null si autorisé
-  centre?: number | null;
-  candidats?: number[];         // optionnel
 }
 
 // ── Réponses API ─────────────────────────────────────────────────────────────
@@ -75,8 +93,22 @@ export interface AtelierTREMeta {
   type_atelier_choices: Choice[];
   centre_choices: Choice[];
   candidat_choices: Choice[];
-  // optionnel si tu exposes aussi les statuts de présence côté /meta
-  presence_choices?: Choice[]; // [{value:"present", label:"Présent"}, ...]
+  presence_statut_choices?: Choice[]; // ✅ correspond au backend
+}
+// ── Export Excel ──────────────────────────────────────────────────────────────
+export interface AtelierTREExportRow {
+  id: number;
+  type_atelier: string;
+  centre: string | null;
+  date_atelier: string | null;
+  nb_inscrits: number;
+  pres_present: number;
+  pres_absent: number;
+  pres_excuse: number;
+  pres_inconnu: number;
+  created_by?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 }
 
 // ── Filtres liste (inchangé) ────────────────────────────────────────────────

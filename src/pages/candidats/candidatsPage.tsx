@@ -28,6 +28,7 @@ import CandidatsTable from "./CandidatsTable";
 import FiltresCandidatsPanel from "../../components/filters/FiltresCandidatsPanel";
 import PageTemplate from "../../components/PageTemplate";
 import ExportButtonCandidat from "../../components/export_buttons/ExportButtonCandidat";
+import CandidatDetailModal from "./CandidatDetailModal";
 
 export default function CandidatsPage() {
   const navigate = useNavigate();
@@ -113,6 +114,29 @@ export default function CandidatsPage() {
       toast.error("Erreur lors de la suppression");
     }
   };
+// ── Détail du candidat ─────────────────────────────────────────────
+const [showDetail, setShowDetail] = useState(false);
+const [selectedCandidat, setSelectedCandidat] = useState<Candidat | null>(null);
+const [loadingDetail, setLoadingDetail] = useState(false);
+
+const handleRowClick = async (id: number) => {
+  setLoadingDetail(true);
+  setShowDetail(true);
+  try {
+    const api = (await import("../../api/axios")).default;
+    const { data } = await api.get<Candidat>(`/candidats/${id}/`);
+    setSelectedCandidat(data);
+  } catch {
+    toast.error("Erreur lors du chargement du candidat");
+    setShowDetail(false);
+  } finally {
+    setLoadingDetail(false);
+  }
+};
+
+const handleEdit = (id: number) => {
+  navigate(`/candidats/${id}/edit`);
+};
 
   return (
     <PageTemplate
@@ -234,15 +258,17 @@ export default function CandidatsPage() {
           <Typography>Aucun candidat trouvé.</Typography>
         </Box>
       ) : (
-        <CandidatsTable
-          items={items}
-          selectedIds={selectedIds}
-          onSelectionChange={setSelectedIds}
-          onDelete={(id) => {
-            setSelectedId(id);
-            setShowConfirm(true);
-          }}
-        />
+<CandidatsTable
+  items={items}
+  selectedIds={selectedIds}
+  onSelectionChange={setSelectedIds}
+  onDelete={(id) => {
+    setSelectedId(id);
+    setShowConfirm(true);
+  }}
+  onRowClick={handleRowClick} // ✅ clic → ouvre la modale
+/>
+
       )}
 
       {/* Confirmation dialog */}
@@ -267,6 +293,15 @@ export default function CandidatsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+      {/* ───────────── Détail du candidat ───────────── */}
+<CandidatDetailModal
+  open={showDetail}
+  onClose={() => setShowDetail(false)}
+  candidat={selectedCandidat}
+  loading={loadingDetail}
+  onEdit={handleEdit}
+/>
+
     </PageTemplate>
   );
 }

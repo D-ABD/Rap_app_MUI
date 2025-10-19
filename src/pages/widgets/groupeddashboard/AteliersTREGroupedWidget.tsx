@@ -1,4 +1,3 @@
-// src/components/ateliers/AteliersTREGroupedWidget.tsx
 import * as React from "react";
 import {
   Card,
@@ -97,6 +96,19 @@ export default function AteliersTREGroupedWidget() {
       absent: grouped.results.reduce((acc, r) => acc + (r.absent ?? 0), 0),
       excuse: grouped.results.reduce((acc, r) => acc + (r.excuse ?? 0), 0),
       inconnu: grouped.results.reduce((acc, r) => acc + (r.inconnu ?? 0), 0),
+      taux_presence:
+        (() => {
+          const present = grouped.results.reduce(
+            (acc, r) => acc + (r.present ?? 0),
+            0
+          );
+          const denom = grouped.results.reduce(
+            (acc, r) =>
+              acc + (r.present ?? 0) + (r.absent ?? 0) + (r.excuse ?? 0),
+            0
+          );
+          return denom > 0 ? Math.round((present / denom) * 1000) / 10 : null;
+        })(),
     };
     return [...grouped.results, totalRow];
   }, [grouped]);
@@ -207,7 +219,7 @@ export default function AteliersTREGroupedWidget() {
             <table
               style={{
                 width: "100%",
-                minWidth: 900,
+                minWidth: 950,
                 borderCollapse: "collapse",
                 fontSize: "0.9rem",
               }}
@@ -222,6 +234,7 @@ export default function AteliersTREGroupedWidget() {
                   <th>Absent</th>
                   <th>Excusé</th>
                   <th>Non renseigné</th>
+                  <th>Taux de présence %</th>
                 </tr>
               </thead>
               <tbody>
@@ -253,6 +266,11 @@ export default function AteliersTREGroupedWidget() {
                       </td>
                       <td style={{ background: "#e0e0e0" }}>
                         {fmt(r.inconnu)}
+                      </td>
+                      <td style={{ background: "#bbdefb" }}>
+                        {r.taux_presence != null
+                          ? `${r.taux_presence.toFixed(1)} %`
+                          : "—"}
                       </td>
                     </tr>
                   );

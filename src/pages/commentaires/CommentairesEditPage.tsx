@@ -1,4 +1,8 @@
+// ======================================================
 // src/pages/commentaires/CommentairesEditPage.tsx
+// Édition d’un commentaire avec archivage/désarchivage
+// ======================================================
+
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -14,32 +18,25 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  TextField,
 } from "@mui/material";
+import { useQuill } from "react-quilljs";
+import "quill/dist/quill.snow.css";
 
 import api from "../../api/axios";
 import useForm from "../../hooks/useForm";
-import type { CommentaireFormData } from "../../types/commentaire";
 import PageTemplate from "../../components/PageTemplate";
 import CommentaireContent from "./CommentaireContent";
-
-interface MetaData {
-  centre_nom?: string;
-  statut?: string;
-  type_offre?: string;
-  num_offre?: string;
-  formation_nom?: string;
-  formation_id?: number;
-  saturation_formation?: number;
-}
+import type { Commentaire } from "../../types/commentaire";
 
 export default function CommentairesEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [meta, setMeta] = useState<MetaData>({});
+  const [meta, setMeta] = useState<Commentaire | null>(null);
   const [showNavigationModal, setShowNavigationModal] = useState(false);
+  const [isArchived, setIsArchived] = useState(false);
+  const [busyArchive, setBusyArchive] = useState(false);
 
   const { values, errors, setValues, setErrors } = useForm<{
     contenu: string;
@@ -49,113 +46,231 @@ export default function CommentairesEditPage() {
     formation: null,
   });
 
+  // ✅ Initialise l’éditeur Quill
+  const { quill, quillRef } = useQuill({
+    theme: "snow",
+    modules: {
+      toolbar: [
+        ["bold", "italic", "underline", "strike"],
+        [{ list: "ordered" }, { list: "bullet" }],
+        [{ color: [] }, { background: [] }],
+        ["clean"],
+      ],
+    },
+  });
+
+  // ────────────────────────────── Synchronisation Quill → state ──────────────────────────────
+  useEffect(() => {
+    if (!quill) return;
+
+    const handler = () => {
+      setValues((prev) => ({
+        ...prev,
+        contenu: quill.root.innerHTML,
+      }));
+    };
+
+    quill.on("text-change", handler);
+    return () => {
+      quill.off("text-change", handler);
+    };
+  }, [quill, setValues]);
+
+  // ────────────────────────────── Chargement du commentaire ──────────────────────────────
   useEffect(() => {
     if (!id) {
       toast.error("ID du commentaire manquant");
       navigate("/commentaires");
       return;
     }
-    api
-      .get(`/commentaires/${id}/`)
-      .then((res) => {
-        const data = res.data?.data ?? res.data;
+
+    const fetchData = async () => {
+      try {
+        const res = await api.get(`/commentaires/${id}/`);
+        const data =
+          res.data?.data && typeof res.data.data === "object"
+            ? res.data.data
+            : res.data;
+
+        if (!data || typeof data !== "object" || !data.id)
+          throw new Error("Réponse invalide du serveur");
+
         setValues({
           contenu: data.contenu ?? "",
-          formation: data.formation_id ?? null,
+          formation: data.formation_id ?? data.formation ?? null,
         });
-        setMeta({
-          centre_nom: data.centre_nom,
-          statut: data.statut,
-          type_offre: data.type_offre,
-          num_offre: data.num_offre,
-          formation_nom: data.formation_nom,
-          formation_id: data.formation,
-          saturation_formation: data.saturation_formation,
-        });
-      })
-      .catch(() => {
+        setMeta(data);
+        setIsArchived(data.statut_commentaire === "archive");
+
+        // 🪄 Pré-remplir Quill avec le HTML enrichi
+        if (quill) {
+          quill.clipboard.dangerouslyPasteHTML(data.contenu || "");
+        }
+      } catch (err) {
+        console.error("❌ Erreur lors du chargement du commentaire :", err);
         toast.error("Erreur lors du chargement du commentaire");
         navigate("/commentaires");
-      })
-      .finally(() => setLoading(false));
-  }, [id, navigate, setValues]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchData();
+  }, [id, navigate, setValues, quill]);
+
+  // ────────────────────────────── Soumission du formulaire ──────────────────────────────
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const contenu = values.contenu.trim();
-    if (!contenu) {
+
+    const contenuHtml = quill?.root.innerHTML?.trim() || "";
+    const cleanHtml = contenuHtml.replace(/\s+/g, " ").trim();
+
+    if (!cleanHtml || cleanHtml === "<p><br></p>") {
       setErrors({ contenu: "Le contenu ne peut pas être vide." });
       return;
     }
+
     if (values.formation == null) {
       toast.error("Formation manquante");
       return;
     }
+
     try {
       await api.put(`/commentaires/${id}/`, {
-        contenu,
+        contenu: cleanHtml,
         formation: values.formation,
       });
-      toast.success("✅ Commentaire mis à jour");
+
+      toast.success("✅ Commentaire mis à jour avec succès");
       setShowNavigationModal(true);
-    } catch {
+    } catch (err) {
+      console.error("❌ Erreur lors de la modification :", err);
       toast.error("Erreur lors de la modification");
     }
   };
 
+  // ────────────────────────────── Archivage / Désarchivage ──────────────────────────────
+  const handleArchiveToggle = async () => {
+    if (!id) return;
+    setBusyArchive(true);
+
+    try {
+      const endpoint = isArchived
+        ? `/commentaires/${id}/desarchiver/`
+        : `/commentaires/${id}/archiver/`;
+
+      const res = await api.post(endpoint);
+      const updated = res.data?.data ?? res.data;
+      setMeta(updated);
+      setIsArchived(updated?.statut_commentaire === "archive");
+
+      toast.success(
+        isArchived
+          ? "💬 Commentaire désarchivé avec succès"
+          : "📦 Commentaire archivé avec succès"
+      );
+    } catch (err) {
+      console.error("❌ Erreur archivage :", err);
+      toast.error("Erreur lors du changement de statut");
+    } finally {
+      setBusyArchive(false);
+    }
+  };
+
+  // ────────────────────────────── Rendu ──────────────────────────────
   return (
     <PageTemplate
       title="✏️ Modifier un commentaire"
       backButton
-      onBack={() => navigate(-1)}
+      onBack={() => navigate("/commentaires")}
+      actionsRight={
+        !loading && (
+          <Button
+            variant="contained"
+            color="warning"
+            disabled={busyArchive}
+            onClick={handleArchiveToggle}
+          >
+            {busyArchive
+              ? "⏳"
+              : isArchived
+              ? "♻️ Désarchiver"
+              : "📦 Archiver"}
+          </Button>
+        )
+      }
     >
       {loading ? (
         <CircularProgress />
       ) : (
         <Paper sx={{ p: 3 }}>
           <Stack spacing={2} component="form" onSubmit={handleSubmit}>
-            {/* Infos meta */}
+            {/* ───────────── Infos meta ───────────── */}
             <Box sx={{ bgcolor: "grey.100", p: 2, borderRadius: 1 }}>
               <Typography variant="body2">
-                📚 Formation : <strong>{meta.formation_nom || "—"}</strong>
+                📚 Formation : <strong>{meta?.formation_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                📍 Centre : <strong>{meta.centre_nom || "—"}</strong>
+                📍 Centre : <strong>{meta?.centre_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                📌 Statut : <strong>{meta.statut || "—"}</strong>
+                📌 Statut :{" "}
+                <strong>
+                  {isArchived ? "Archivé" : meta?.statut_nom || "—"}
+                </strong>
               </Typography>
               <Typography variant="body2">
-                🧩 Type d’offre : <strong>{meta.type_offre || "—"}</strong>
+                🧩 Type d’offre : <strong>{meta?.type_offre_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                🔢 Numéro d’offre : <strong>{meta.num_offre || "—"}</strong>
+                🔢 Numéro d’offre : <strong>{meta?.num_offre || "—"}</strong>
+              </Typography>
+              <Typography variant="body2" mt={1}>
+                🧪 Saturation au moment du commentaire :{" "}
+                <strong>{meta?.saturation_formation ?? "—"}%</strong>
               </Typography>
               <Typography variant="body2">
-                🧪 Saturation : <strong>{meta.saturation_formation ?? "—"}%</strong>
+                📈 Saturation actuelle :{" "}
+                <strong>{meta?.taux_saturation ?? "—"}%</strong>
               </Typography>
             </Box>
 
-            {/* Contenu actuel */}
-            <Typography variant="subtitle1">Contenu actuel</Typography>
-            <CommentaireContent html={values.contenu || "<em>—</em>"} />
+            {/* 🧮 Éditeur HTML Quill */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Modifier le contenu *
+              </Typography>
+              <div
+                ref={quillRef}
+                style={{
+                  height: 220,
+                  backgroundColor: "white",
+                  marginBottom: "1rem",
+                  borderRadius: 2,
+                  border: "1px solid #ddd",
+                }}
+              />
+              {errors.contenu && (
+                <Typography variant="caption" color="error">
+                  {errors.contenu}
+                </Typography>
+              )}
+            </Box>
 
-            {/* Éditeur simple MUI */}
-            <TextField
-              id="contenu"
-              label="Modifier le contenu *"
-              value={values.contenu}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, contenu: e.target.value }))
-              }
-              error={Boolean(errors.contenu)}
-              helperText={errors.contenu}
-              fullWidth
-              multiline
-              minRows={4}
-            />
+            {/* 📝 Aperçu rendu */}
+            <Typography variant="subtitle1">Aperçu du rendu :</Typography>
+            <Box
+              sx={{
+                border: "1px solid #e0e0e0",
+                borderRadius: 1,
+                p: 2,
+                bgcolor: "grey.50",
+              }}
+            >
+              <CommentaireContent html={values.contenu || "<em>—</em>"} />
+            </Box>
 
-            <Stack direction="row" spacing={2} justifyContent="flex-end">
+            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
               <Button type="submit" variant="contained">
                 💾 Enregistrer
               </Button>
@@ -174,7 +289,7 @@ export default function CommentairesEditPage() {
         </Paper>
       )}
 
-      {/* Confirmation après sauvegarde */}
+      {/* ───────────── Confirmation après sauvegarde ───────────── */}
       <Dialog
         open={showNavigationModal}
         onClose={() => setShowNavigationModal(false)}
@@ -195,9 +310,7 @@ export default function CommentairesEditPage() {
             ← Retour à la formation
           </Button>
           <Button
-            onClick={() =>
-              navigate(`/formations/${values.formation}/commentaires`)
-            }
+            onClick={() => navigate("/commentaires")}
             variant="contained"
           >
             💬 Voir commentaires

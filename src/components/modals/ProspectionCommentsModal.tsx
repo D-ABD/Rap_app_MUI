@@ -32,6 +32,7 @@ type Props = {
   onClose: () => void;
   prospectionId: number;
   isStaff?: boolean;
+  onCommentAdded?: (newComment: ProspectionCommentDTO) => void; // ✅ ajouté
 };
 
 type ProspectionMeta = {
@@ -51,6 +52,7 @@ export default function ProspectionCommentsModal({
   onClose,
   prospectionId,
   isStaff = false,
+  onCommentAdded, // ✅
 }: Props) {
   const [reloadKey, setReloadKey] = useState(0);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -91,10 +93,7 @@ export default function ProspectionCommentsModal({
     };
   }, [open, prospectionId]);
 
-  const rows: ProspectionCommentDTO[] = useMemo(
-    () => (Array.isArray(data) ? data : []),
-    [data]
-  );
+  const rows = data?.results ?? [];
 
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -123,6 +122,21 @@ export default function ProspectionCommentsModal({
     }
   };
 
+const handleAddComment = async (payload: { body: string; is_internal?: boolean }) => {
+  try {
+    // ✅ ajoute l’ID requis attendu par le hook
+    const input = { ...payload, prospection_id: prospectionId };
+    const created = await create(input);
+    setReloadKey((k) => k + 1);
+
+    if (onCommentAdded) onCommentAdded(created as ProspectionCommentDTO);
+  } catch (err) {
+    console.error("[ProspectionCommentsModal] CREATE ✗", err);
+  }
+};
+
+
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>💬 Commentaires de prospection</DialogTitle>
@@ -139,7 +153,10 @@ export default function ProspectionCommentsModal({
       <DialogContent dividers>
         {/* Header badges & actions */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Chip label={`${rows.length} commentaire${rows.length > 1 ? "s" : ""}`} color="primary" />
+          <Chip
+            label={`${rows.length} commentaire${rows.length > 1 ? "s" : ""}`}
+            color="primary"
+          />
           <Box display="flex" gap={1}>
             <IconButton
               onClick={() => setReloadKey((k) => k + 1)}
@@ -158,10 +175,7 @@ export default function ProspectionCommentsModal({
         <ProspectionCommentForm
           prospectionId={prospectionId}
           canSetInternal={isStaff}
-          onSubmit={async (payload) => {
-            await create(payload);
-            setReloadKey((k) => k + 1);
-          }}
+          onSubmit={handleAddComment} // ✅ simplifié
         />
 
         {/* Toolbar */}
@@ -177,7 +191,9 @@ export default function ProspectionCommentsModal({
             <Select
               size="small"
               value={visibility}
-              onChange={(e) => setVisibility(e.target.value as "all" | "public" | "internal")}
+              onChange={(e) =>
+                setVisibility(e.target.value as "all" | "public" | "internal")
+              }
             >
               <MenuItem value="all">Tous</MenuItem>
               <MenuItem value="public">Public</MenuItem>

@@ -41,26 +41,64 @@ type PartenaireWritePayload = {
   nom?: string;
   type?: Partenaire["type"];
   secteur_activite?: string | null;
+
+  // 🏠 Adresse
+  street_number?: string | null;
   street_name?: string | null;
+  street_complement?: string | null;
   zip_code?: string | null;
   city?: string | null;
   country?: string | null;
+
+  // ☎️ Coordonnées générales
+  telephone?: string | null;
+  email?: string | null;
 
   // ✅ en écriture: ids seulement
   default_centre?: number | null;
   default_centre_id?: number | null;
 
+  // 👤 Contact principal
   contact_nom?: string | null;
   contact_poste?: string | null;
   contact_telephone?: string | null;
   contact_email?: string | null;
 
+  // 🌐 Web
   website?: string | null;
   social_network_url?: string | null;
 
+  // ⚙️ Actions et descriptif
   actions?: Partenaire["actions"] | null;
   action_description?: string | null;
   description?: string | null;
+
+  // 🏢 Données employeur
+  siret?: string | null;
+  type_employeur?: "prive" | "public" | null;
+  employeur_specifique?: string | null;
+  code_ape?: string | null;
+  effectif_total?: number | null;
+  idcc?: string | null;
+  assurance_chomage_speciale?: boolean;
+
+  // 🎓 Maître d’apprentissage n°1
+  maitre1_nom_naissance?: string | null;
+  maitre1_prenom?: string | null;
+  maitre1_date_naissance?: string | null;
+  maitre1_courriel?: string | null;
+  maitre1_emploi_occupe?: string | null;
+  maitre1_diplome_titre?: string | null;
+  maitre1_niveau_diplome?: string | null;
+
+  // 🎓 Maître d’apprentissage n°2
+  maitre2_nom_naissance?: string | null;
+  maitre2_prenom?: string | null;
+  maitre2_date_naissance?: string | null;
+  maitre2_courriel?: string | null;
+  maitre2_emploi_occupe?: string | null;
+  maitre2_diplome_titre?: string | null;
+  maitre2_niveau_diplome?: string | null;
 
   is_active?: boolean;
 };
@@ -76,27 +114,70 @@ type PartenaireWritePayload = {
  */
 function cleanPartenairePayload(input: Partial<Partenaire>): PartenaireWritePayload {
   // Clés autorisées côté écriture
-  const allowedKeys: (keyof PartenaireWritePayload)[] = [
-    "nom",
-    "type",
-    "secteur_activite",
-    "street_name",
-    "zip_code",
-    "city",
-    "country",
-    "default_centre",
-    "default_centre_id",
-    "contact_nom",
-    "contact_poste",
-    "contact_telephone",
-    "contact_email",
-    "website",
-    "social_network_url",
-    "actions",
-    "action_description",
-    "description",
-    "is_active",
-  ];
+const allowedKeys: (keyof PartenaireWritePayload)[] = [
+  "nom",
+  "type",
+  "secteur_activite",
+
+  // Adresse
+  "street_number",
+  "street_name",
+  "street_complement",
+  "zip_code",
+  "city",
+  "country",
+
+  // Coordonnées
+  "telephone",
+  "email",
+
+  // Centre
+  "default_centre",
+  "default_centre_id",
+
+  // Contact
+  "contact_nom",
+  "contact_poste",
+  "contact_telephone",
+  "contact_email",
+
+  // Web
+  "website",
+  "social_network_url",
+
+  // Actions / descriptions
+  "actions",
+  "action_description",
+  "description",
+
+  // Données employeur
+  "siret",
+  "type_employeur",
+  "employeur_specifique",
+  "code_ape",
+  "effectif_total",
+  "idcc",
+  "assurance_chomage_speciale",
+
+  // Maîtres d’apprentissage
+  "maitre1_nom_naissance",
+  "maitre1_prenom",
+  "maitre1_date_naissance",
+  "maitre1_courriel",
+  "maitre1_emploi_occupe",
+  "maitre1_diplome_titre",
+  "maitre1_niveau_diplome",
+
+  "maitre2_nom_naissance",
+  "maitre2_prenom",
+  "maitre2_date_naissance",
+  "maitre2_courriel",
+  "maitre2_emploi_occupe",
+  "maitre2_diplome_titre",
+  "maitre2_niveau_diplome",
+
+  "is_active",
+];
 
   // 1) Copie filtrée + normalisation "" -> null + trim
   const baseEntries = Object.entries(input)
@@ -299,7 +380,10 @@ export function usePartenaireWithRelations(id?: number) {
 export function useCreatePartenaire() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-
+/**
+ * Crée un partenaire (ou réutilise un existant si doublon détecté côté backend).
+ * Retourne l'objet complet du partenaire, avec `was_reused=true` si réutilisation.
+ */
   async function create(payload: Partial<Partenaire>): Promise<Partenaire> {
     setLoading(true);
     setError(null);

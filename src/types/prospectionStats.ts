@@ -18,6 +18,8 @@ export type ProspectionFilters = {
   motif?: string;              // ProspectionChoices
   type?: string;               // ProspectionChoices (type_prospection)
   relance_due?: boolean | string | number; // true/false/1/0
+    /** ✅ Nouveau : inclure les prospections archivées */
+  avec_archivees?: boolean | string | number;
 };
 
 export type ProspectionOverviewKpis = {

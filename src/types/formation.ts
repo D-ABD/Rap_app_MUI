@@ -1,41 +1,73 @@
-// 🔷 Utilitaires génériques
+// ===============================
+// 🔷 Types front conformes backend
+// ===============================
 
+// -- Utilitaires génériques
 export interface NomId {
   id: number;
   nom: string;
 }
 
-export interface CouleurLibelleNom extends NomId {
+export interface CodeLibelle {
+  code: string;
   libelle: string;
-  couleur: string;
 }
 
-// 🔷 Entités liées
+// -- Entités liées (imports)
+import type { Commentaire } from "./commentaire";
+import type { Document } from "./document";
+import type { Evenement } from "./evenement";
+import type { Prospection } from "./prospection";
+import type { HistoriqueFormation } from "./historique";
+import type { Partenaire } from "./partenaire";
 
-import type { Commentaire } from './commentaire';
-import type { Document } from './document';
-import type { Evenement } from './evenement';
-import type { Prospection } from './prospection';
-import { HistoriqueFormation } from './historique';
+// -- Référentiels (plus précis que CouleurLibelleNom)
+export interface TypeOffreRef {
+  id: number;
+  nom: string;
+  libelle?: string;
+  couleur?: string;
+}
 
-// 🔷 Donnée principale : Formation (lecture complète)
+export interface StatutRef {
+  id: number;
+  nom: string;
+  libelle?: string;
+  couleur?: string;
+}
 
+// -- Activité (alignée sur l’enum modèle)
+export type ActiviteCode = "active" | "archivee";
+
+// ===============================
+// 🔷 Donnée principale : Formation
+// ===============================
 export interface Formation {
   id: number;
   nom: string;
 
+  // FK / référentiels
   centre?: NomId | null;
-  type_offre?: CouleurLibelleNom | null;
-  statut?: CouleurLibelleNom | null;
+  type_offre?: TypeOffreRef | null;
+  statut?: StatutRef | null;
 
+  // activité & dérivés
+  activite?: ActiviteCode; // "active" | "archivee"
+  est_archivee?: boolean; // booléen exposé par le modèle
+  statut_color?: string | null; // couleur calculée (si exposée par le backend)
+
+  // dates & identifiants
   start_date?: string;
   end_date?: string;
-  num_kairos?: string | null;
-  num_offre?: string | null;
-  num_produit?: string | null;
+  num_kairos?: string;
+  num_offre?: string;
+  num_produit?: string;
+
+  // personnes & indicateurs simples
   assistante?: string | null;
   convocation_envoie?: boolean;
 
+  // places & inscrits
   prevus_crif?: number;
   prevus_mp?: number;
   inscrits_crif?: number;
@@ -47,39 +79,63 @@ export interface Formation {
   nombre_entretiens?: number;
   nombre_evenements?: number;
 
+  // métriques calculées (côté modèle)
   saturation?: number | null;
-  saturation_badge?: string;
   taux_transformation?: number | null;
-  transformation_badge?: string;
-
+  taux_saturation?: number | null;
   total_places?: number;
+  total_inscrits?: number;
+  places_disponibles?: number;
+  places_restantes_crif?: number;
+  places_restantes_mp?: number;
+
+  // alias front historiques (pour compatibilité)
   inscrits_total?: number;
   prevus_total?: number;
   places_restantes?: number | null;
-  a_recruter?: number;
-  is_a_recruter?: boolean;
 
+  // badges/labels
+  saturation_badge?: string | null;
+  transformation_badge?: string | null;
+  saturation_badge_label?: string | null;
+
+  // 🎓 Diplôme ou titre visé
+  intitule_diplome?: string | null;
+  code_diplome?: string | null;
+  code_rncp?: string | null;
+  total_heures?: number | null;
+  heures_distanciel?: number | null;
+
+  // commentaires & métadonnées
   dernier_commentaire?: string | null;
-
   created_at?: string;
   updated_at?: string;
 
+  // collections liées
   commentaires?: Commentaire[];
   documents?: Document[];
   evenements?: Evenement[];
   prospections?: Prospection[];
   historique?: HistoriqueFormation[];
+  partenaires?: Partenaire[]; // ManyToMany
 
-  // Propriétés calculées (issues du modèle)
+  // dérivés temporels
   is_active?: boolean;
   is_future?: boolean;
   is_past?: boolean;
-  status_temporel?: 'active' | 'past' | 'future' | 'unknown';
-  saturation_badge_label?: string;
+  a_recruter?: number;
+  is_a_recruter?: boolean;
+  status_temporel?: "active" | "past" | "future" | "unknown";
+
 }
 
-// 🔷 Formulaire de création / édition
 
+
+
+
+// =====================================
+// 🔷 Formulaire de création / d’édition
+// =====================================
 export interface FormationFormData {
   nom: string;
   centre_id: number | null;
@@ -88,6 +144,7 @@ export interface FormationFormData {
 
   start_date?: string;
   end_date?: string;
+
   num_kairos?: string;
   num_offre?: string;
   num_produit?: string;
@@ -97,13 +154,23 @@ export interface FormationFormData {
   inscrits_crif?: number;
   inscrits_mp?: number;
 
+  // 🎓 Diplôme ou titre visé
+  intitule_diplome?: string;
+  code_diplome?: string;
+  code_rncp?: string;
+  total_heures?: number;
+  heures_distanciel?: number;
+
   assistante?: string;
   cap?: number;
   convocation_envoie?: boolean;
+
   entree_formation?: number;
   nombre_candidats?: number;
   nombre_entretiens?: number;
+  nombre_evenements?: number;
   dernier_commentaire?: string;
+  
 }
 
 export type FormationFormDataRaw = {
@@ -112,13 +179,15 @@ export type FormationFormDataRaw = {
 
 export type FormationFormErrors = Partial<Record<keyof FormationFormData, string>>;
 
-// 🔷 Filtres pour les recherches de formations
-
+// ======================
+// 🔷 Filtres / Recherches
+// ======================
 export interface FiltresFormationsData {
   centres: NomId[];
   statuts: NomId[];
   type_offres: NomId[];
-  formations?: { id: number; nom: string }[]; // ✅ Ajout facultatif si présent dans les filtres
+  activites: CodeLibelle[]; // [{ code: "active", libelle: "Active" }, ...]
+  formations?: { id: number; nom: string }[];
 }
 
 export interface FiltresFormationsValues {
@@ -130,11 +199,14 @@ export interface FiltresFormationsValues {
   date_fin?: string;
   places_disponibles?: boolean;
   tri?: string;
-  page?: number; // ✅ support pagination DRF
+  page?: number;
+  avec_archivees?: boolean;
+  activite?: ActiviteCode;
 }
 
-// 🔷 Résumé compact (ex: pour badge, cards)
-
+// ===========================
+// 🔷 Résumé compact (endpoint)
+// ===========================
 export interface FormationResume {
   formation_nom: string;
   centre_nom: string;
@@ -147,19 +219,21 @@ export interface FormationResume {
   saturation_badge: string;
 }
 
-// 🔷 Liste simplifiée (ex: menu déroulant)
-
+// ==================================
+// 🔷 Liste simplifiée (dropdown, etc.)
+// ==================================
 export interface FormationSimple {
   id: number;
   nom: string;
   num_offre?: string | null;
   centre?: NomId | null;
-  type_offre?: CouleurLibelleNom | null;
-  statut?: CouleurLibelleNom | null;
+  type_offre?: TypeOffreRef | null;
+  statut?: StatutRef | null;
 }
 
-// 🔷 Pagination standard
-
+// ====================
+// 🔷 Pagination DRF std
+// ====================
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
@@ -167,8 +241,9 @@ export interface PaginatedResponse<T> {
   results: T[];
 }
 
-// 🔷 Réponses d'API
-
+// ===================
+// 🔷 Réponses d’API
+// ===================
 export interface FormationAPIResponse {
   success: boolean;
   message: string;
@@ -184,20 +259,34 @@ export interface FormationsListAPIResponse {
   };
 }
 
-// 🔷 Statistiques mensuelles
+// Archiver / désarchiver
+export type ArchiverResponse =
+  | { status: "archived" }
+  | { detail: string }; // "Déjà archivée."
 
+export type DesarchiverResponse =
+  | { status: "unarchived" }
+  | { detail: string }; // "Déjà active."
+
+// ========================
+// 🔷 Statistiques mensuelles
+// ========================
 export interface FormationStatsParMois {
   [mois: number]: {
-    label: string;
+    label: string; // "Janvier", ...
     count: number;
     inscrits: number;
   };
 }
 
-// 🔷 Formats d’export disponibles
-export type FormationExportFormat = 'csv' | 'pdf' | 'word';
+// =========================
+// 🔷 Formats d’export (front)
+// =========================
+export type FormationExportFormat = "csv" | "pdf" | "word";
 
-// 🔷 Données globales retournées par /formations/meta/
+// ==========================================
+// 🔷 Données globales (si tu exposes /meta/)
+// ==========================================
 export interface FormationMeta {
   total_formations: number;
   total_inscrits: number;
@@ -205,5 +294,3 @@ export interface FormationMeta {
   saturation_moyenne: number;
   taux_transformation_moyen: number;
 }
-
-// 🔷 Entrée d’historique de formation

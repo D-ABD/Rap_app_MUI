@@ -1,13 +1,20 @@
 import { useState, type ChangeEvent } from "react";
 import type { SelectChangeEvent } from "@mui/material/Select";
 
+/**
+ * Hook générique de gestion de formulaire
+ * Compatible avec :
+ * - TextField, Select, Textarea
+ * - Checkbox, Switch
+ * - MUI Select (SelectChangeEvent)
+ */
 export default function useForm<T extends Record<string, unknown>>(
   initialValues: T
 ) {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
 
-  // 🔹 Gère input, textarea, checkbox, select natif ET MUI Select
+  /** 🔹 Gère les changements standard (TextField, Select, etc.) */
   const handleChange = (
     e:
       | ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -21,7 +28,7 @@ export default function useForm<T extends Record<string, unknown>>(
       checked?: boolean;
     };
 
-    const key = name || id; // support des deux conventions
+    const key = name || id;
     if (!key) return;
 
     const newValue =
@@ -33,8 +40,8 @@ export default function useForm<T extends Record<string, unknown>>(
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  // 🔹 Alias dédié pour les checkboxes (optionnel mais utile)
-  const handleCheckbox = (e: ChangeEvent<HTMLInputElement>) => {
+  /** 🔹 Alias explicite pour les Checkbox / Switch */
+  const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { id, name, checked } = e.target;
     const key = name || id;
     if (!key) return;
@@ -43,13 +50,13 @@ export default function useForm<T extends Record<string, unknown>>(
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  // 🔹 Modifie une seule valeur proprement
+  /** 🔹 Mise à jour d’un champ spécifique */
   const setFieldValue = <K extends keyof T>(key: K, value: T[K]) => {
     setValues((prev) => ({ ...prev, [key]: value }));
     setErrors((prev) => ({ ...prev, [key]: "" }));
   };
 
-  // 🔹 Réinitialise le formulaire
+  /** 🔹 Réinitialise le formulaire et les erreurs */
   const resetForm = () => {
     setValues(initialValues);
     setErrors({});
@@ -58,11 +65,12 @@ export default function useForm<T extends Record<string, unknown>>(
   return {
     values,
     errors,
-    handleChange,
-    handleCheckbox,
-    setFieldValue,
-    setErrors,
     setValues,
+    setErrors,
+    handleChange,
+    handleCheckboxChange, // ✅ alias ajouté pour compatibilité
+    handleCheckbox: handleCheckboxChange, // ✅ garde ton ancien nom aussi
+    setFieldValue,
     resetForm,
   };
 }

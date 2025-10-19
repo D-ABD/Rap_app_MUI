@@ -113,6 +113,13 @@ export default function LoginPage() {
             Créer un compte
           </Link>
         </Typography>
+        <Typography variant="caption" align="center" display="block" sx={{ mt: 2 }}>
+          En vous connectant, vous acceptez nos{" "}
+          <Link component={RouterLink} to="/politique-confidentialite" target="_blank">
+            conditions de confidentialité
+          </Link>.
+        </Typography>
+
       </Paper>
     </Box>
   );

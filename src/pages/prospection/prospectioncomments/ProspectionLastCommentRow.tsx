@@ -1,4 +1,3 @@
-// src/pages/prospections/components/ProspectionLastCommentRow.tsx
 import { useMemo } from "react";
 import {
   Box,
@@ -14,6 +13,11 @@ import type { ProspectionCommentDTO } from "../../../types/prospectionComment";
 type Props = {
   prospectionId: number;
   onOpenModal: () => void;
+
+  /** Permet au parent (ProspectionEditPage) de forcer l’affichage d’un dernier commentaire local */
+  lastComment?: string | null;
+  /** Permet au parent d’afficher le compteur de commentaires sans recharger */
+  commentsCount?: number;
 };
 
 const formatDate = (iso?: string) => {
@@ -30,6 +34,8 @@ const formatDate = (iso?: string) => {
 export default function ProspectionLastCommentRow({
   prospectionId,
   onOpenModal,
+  lastComment = null,
+  commentsCount,
 }: Props) {
   const params = useMemo(
     () => ({ prospection: prospectionId, ordering: "-created_at" as const }),
@@ -37,9 +43,16 @@ export default function ProspectionLastCommentRow({
   );
   const { data, loading, error } = useListProspectionComments(params);
 
-  const last: ProspectionCommentDTO | undefined = Array.isArray(data)
-    ? data[0]
-    : undefined;
+  // Gestion des données
+  const rows: ProspectionCommentDTO[] = Array.isArray(data?.results)
+    ? (data.results as ProspectionCommentDTO[])
+    : Array.isArray(data)
+    ? data
+    : [];
+
+  const lastFromAPI: ProspectionCommentDTO | undefined = rows[0];
+  const effectiveLastBody = lastComment ?? lastFromAPI?.body ?? null;
+  const effectiveCount = commentsCount ?? rows.length ?? 0;
 
   return (
     <Paper
@@ -70,18 +83,18 @@ export default function ProspectionLastCommentRow({
           </Typography>
         )}
 
-        {!loading && !error && !last && (
+        {!loading && !error && !effectiveLastBody && (
           <Typography variant="body2" color="text.secondary">
             Aucun commentaire pour le moment.
           </Typography>
         )}
 
-        {!loading && !error && last && (
+        {!loading && !error && effectiveLastBody && (
           <Stack spacing={0.5}>
             <Typography
               variant="body2"
               noWrap
-              title={last.body}
+              title={effectiveLastBody}
               sx={{
                 display: "-webkit-box",
                 WebkitLineClamp: 2,
@@ -89,12 +102,11 @@ export default function ProspectionLastCommentRow({
                 overflow: "hidden",
               }}
             >
-              {last.body}
+              {effectiveLastBody}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              par {last.created_by_username} • {formatDate(last.created_at)}
-              {typeof data?.length === "number" && data.length > 1
-                ? ` • ${data.length} au total`
+              {typeof effectiveCount === "number" && effectiveCount > 1
+                ? `(${effectiveCount} au total)`
                 : ""}
             </Typography>
           </Stack>

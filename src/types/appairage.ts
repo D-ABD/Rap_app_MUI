@@ -11,7 +11,22 @@ export type AppairageStatut =
   | "a_faire"
   | "contrat_a_signer"
   | "contrat_en_attente"
-  | "appairage_ok";
+  | "appairage_ok"
+
+// ----------------------------------
+// Nouvelle énumération DRF : activité
+// ----------------------------------
+export type AppairageActivite = "actif" | "archive";
+
+// Labels associés
+export const AppairageActiviteLabels: Record<AppairageActivite, string> = {
+  actif: "Actif",
+  archive: "Archivé",
+};
+
+export const isAppairageArchived = (
+  a: { activite?: AppairageActivite }
+): boolean => a.activite === "archive";
 
 // Labels associés
 export const AppairageStatutLabels: Record<AppairageStatut, string> = {
@@ -82,7 +97,7 @@ export interface Appairage {
   candidat_nom: string;
   partenaire: number;
   partenaire_nom: string;
-
+  partenaire_contact_nom?: string | null;
   partenaire_email?: string | null;
   partenaire_telephone?: string | null;
 
@@ -106,7 +121,8 @@ export interface Appairage {
   date_appairage: string; // ISO
   statut: AppairageStatut;
   statut_display: string;
-
+  activite?: AppairageActivite;
+  activite_display?: string;
   commentaire: string | null;
   commentaires?: CommentaireAppairage[];
 
@@ -132,6 +148,7 @@ export interface AppairageListItem {
   id: number;
   candidat_nom: string;
   partenaire_nom: string;
+  partenaire_contact_nom?: string | null;
 
   partenaire_email?: string | null;
   partenaire_telephone?: string | null;
@@ -156,11 +173,13 @@ export interface AppairageListItem {
   date_appairage: string;
   statut: AppairageStatut;
   statut_display: string;
-
+  activite?: AppairageActivite;
+  activite_display?: string;
   commentaire: string | null;
   last_commentaire?: string | null;
 
   created_by_nom: string | null;
+    created_at?: string; 
   updated_by_nom?: string | null;
   updated_at?: string | null;
 }
@@ -188,6 +207,8 @@ export interface AppairageFormData {
   candidat_prenom: string | null;
 
   statut: AppairageStatut;
+activite?: AppairageActivite | null;
+
   commentaire: string;
 
   last_commentaire: string | null;
@@ -225,4 +246,7 @@ export interface AppairageFiltresValues {
   page?: number;
   page_size?: number;
   created_by?: number;
+  avec_archivees?: boolean; // 👈 ajouté
+    activite?: AppairageActivite; // ✅ ajouté
+
 }

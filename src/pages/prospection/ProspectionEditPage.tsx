@@ -1,5 +1,4 @@
-// src/pages/prospections/ProspectionEditPage.tsx
-import { useEffect, useMemo, useState } from "react";
+import { useRef, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
@@ -15,8 +14,14 @@ import {
 
 import PageTemplate from "../../components/PageTemplate";
 import ProspectionForm from "./ProspectionForm";
-import type { ProspectionFormData } from "../../types/prospection";
+import ProspectionLastCommentRow from "./prospectioncomments/ProspectionLastCommentRow";
+import ProspectionCommentsModal from "../../components/modals/ProspectionCommentsModal";
+import CreatePartenaireButton from "./CreatePartenaireButton";
 
+import type {
+  ProspectionDetailDTO,
+  ProspectionFormData,
+} from "../../types/prospection";
 import api from "../../api/axios";
 import {
   useProspection,
@@ -24,40 +29,20 @@ import {
   useDeleteProspection,
 } from "../../hooks/useProspection";
 
-import ProspectionLastCommentRow from "./prospectioncomments/ProspectionLastCommentRow";
-import ProspectionCommentsModal from "../../components/modals/ProspectionCommentsModal";
-import ProspectionDetail from "./ProspectionDetail";
-import CreatePartenaireButton from "./CreatePartenaireButton";
-
-type ProspectionDetailDTO = ProspectionFormData & {
-  partenaire_nom?: string | null;
-  formation_nom?: string | null;
-  centre_nom?: string | null;
-  num_offre?: string | null;
-  moyen_contact?: string | null;
-  created_by?: string | null;
-  created_at?: string | null;
-  updated_at?: string | null;
-  user_role?: string | null;
-  last_comment?: string | null;
-  last_comment_at?: string | null;
-  last_comment_id?: number | null;
-  comments_count?: number | null;
-};
-
-type FormationLight = {
-  id: number;
-  nom: string;
-  num_offre?: string | null;
-};
+// ✅ on étend le type pour inclure l'id
+type ProspectionFormDataWithId = ProspectionFormData & { id?: number };
 
 export default function ProspectionEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const formRef = useRef<HTMLDivElement | null>(null);
 
   const [openComments, setOpenComments] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [localLastComment, setLocalLastComment] = useState<string | null>(null);
+  const [localCount, setLocalCount] = useState<number>(0);
+  const [localDetail, setLocalDetail] = useState<ProspectionDetailDTO | null>(null);
 
   const prospectionId = useMemo(() => {
     const n = Number(id);
@@ -73,21 +58,24 @@ export default function ProspectionEditPage() {
   const { update, loading: saving } = useUpdateProspection(prospectionId ?? 0);
   const { remove, loading: removing } = useDeleteProspection(prospectionId ?? 0);
 
-  const [detail, setDetail] = useState<ProspectionDetailDTO | null>(null);
-  const [formationFallback, setFormationFallback] = useState<FormationLight | null>(null);
+  const [formationFallback, setFormationFallback] = useState<{
+    id: number;
+    nom: string;
+    num_offre?: string | null;
+  } | null>(null);
 
   useEffect(() => {
-    if (hookDetail) setDetail(hookDetail as ProspectionDetailDTO);
+    if (hookDetail) setLocalDetail(hookDetail as ProspectionDetailDTO);
   }, [hookDetail]);
 
-  // fallback formation si pas de nom
+  // Fallback formation (si nom manquant)
   useEffect(() => {
     let alive = true;
     (async () => {
-      if (!detail?.formation) return;
-      if (detail.formation_nom && detail.formation_nom.trim() !== "") return;
+      if (!localDetail?.formation) return;
+      if (localDetail.formation_nom && localDetail.formation_nom.trim() !== "") return;
       try {
-        const res = await api.get(`/formations/${detail.formation}/`);
+        const res = await api.get(`/formations/${localDetail.formation}/`);
         const raw = res.data as any;
         const data = raw?.data ?? raw;
         if (data?.nom && alive) {
@@ -104,15 +92,14 @@ export default function ProspectionEditPage() {
     return () => {
       alive = false;
     };
-  }, [detail?.formation, detail?.formation_nom]);
+  }, [localDetail?.formation, localDetail?.formation_nom]);
 
   const handleUpdate = async (data: ProspectionFormData) => {
     if (!prospectionId) return;
     try {
       const updated = await update(data);
-      setDetail(updated as ProspectionDetailDTO);
+      setLocalDetail(updated as ProspectionDetailDTO);
       toast.success("✅ Prospection mise à jour");
-      navigate("/prospection");
     } catch {
       toast.error("❌ Échec de la mise à jour");
     }
@@ -123,80 +110,102 @@ export default function ProspectionEditPage() {
     try {
       await remove();
       toast.success("🗑️ Prospection supprimée");
-      navigate("/prospection");
+      navigate("/prospections");
     } catch {
       toast.error("❌ Échec de la suppression");
     }
   };
 
-  // --- états de rendu ---
-  if (!prospectionId) {
-    return (
-      <PageTemplate title="Prospection — détail" backButton onBack={() => navigate(-1)} centered>
-        <Box>❌ Identifiant invalide.</Box>
-      </PageTemplate>
-    );
-  }
+  // 🔹 Archiver / Désarchiver (nouvelle logique via activite)
+  const handleArchiveToggle = async () => {
+    if (!prospectionId || !localDetail) return;
 
-  if (loading || (!detail && !error)) {
-    return (
-      <PageTemplate title={`Prospection #${prospectionId}`} backButton onBack={() => navigate(-1)} centered>
-        <CircularProgress />
-      </PageTemplate>
-    );
-  }
+    try {
+      if (localDetail.activite === "archivee") {
+        await api.post(`/prospections/${prospectionId}/desarchiver/`);
+        toast.success("♻️ Prospection désarchivée");
+        setLocalDetail({
+          ...localDetail,
+          activite: "active",
+          activite_display: "Active",
+        });
+      } else {
+        await api.post(`/prospections/${prospectionId}/archiver/`);
+        toast.info("📦 Prospection archivée");
+        setLocalDetail({
+          ...localDetail,
+          activite: "archivee",
+          activite_display: "Archivée",
+        });
+      }
+    } catch (err) {
+      console.error("Erreur d’archivage :", err);
+      toast.error("❌ Échec de l’opération d’archivage");
+    }
+  };
 
-  if (error) {
-    return (
-      <PageTemplate title={`Prospection #${prospectionId}`} backButton onBack={() => navigate(-1)} centered>
-        <Box>❌ Impossible de charger la prospection.</Box>
-      </PageTemplate>
-    );
-  }
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  if (!detail) {
-    return (
-      <PageTemplate title={`Prospection #${prospectionId}`} backButton onBack={() => navigate(-1)} centered>
-        <Box>❌ Données indisponibles.</Box>
-      </PageTemplate>
-    );
-  }
+  if (!prospectionId) return null;
+  if (loading) return <CircularProgress />;
+  if (error || !localDetail) return <Box>Erreur de chargement</Box>;
 
-  const initialValues: ProspectionFormData = {
-    partenaire: detail.partenaire ?? null,
-    partenaire_nom: detail.partenaire_nom ?? null,
-    formation: detail.formation ?? null,
-    date_prospection: detail.date_prospection,
-    type_prospection: detail.type_prospection,
-    motif: detail.motif,
-    statut: detail.statut,
-    objectif: detail.objectif,
-    relance_prevue: detail.relance_prevue ?? null,
-    owner: detail.owner ?? null,
-    owner_username: detail.owner_username ?? null,
-    formation_nom: detail.formation_nom ?? formationFallback?.nom ?? null,
-    centre_nom: detail.centre_nom ?? null,
-    num_offre: detail.num_offre ?? formationFallback?.num_offre ?? null,
-    moyen_contact: detail.moyen_contact ?? null,
+  // ✅ on inclut l'id dans les valeurs initiales
+  const initialValues: ProspectionFormDataWithId = {
+    id: prospectionId,
+    partenaire: localDetail.partenaire ?? null,
+    partenaire_nom: localDetail.partenaire_nom ?? null,
+    formation: localDetail.formation ?? null,
+    date_prospection: localDetail.date_prospection,
+    type_prospection: localDetail.type_prospection,
+    motif: localDetail.motif,
+    statut: localDetail.statut,
+    objectif: localDetail.objectif,
+    relance_prevue: localDetail.relance_prevue ?? null,
+    owner: localDetail.owner ?? null,
+    owner_username: localDetail.owner_username ?? null,
+    formation_nom:
+      localDetail.formation_nom ?? formationFallback?.nom ?? null,
+    centre_nom: localDetail.centre_nom ?? null,
+    num_offre:
+      localDetail.num_offre ?? formationFallback?.num_offre ?? null,
+    moyen_contact: localDetail.moyen_contact ?? null,
+    activite: localDetail.activite ?? "active",
+    activite_display: localDetail.activite_display ?? "Active",
   };
 
   const isStaff = ["admin", "staff", "superuser"].includes(
-    String(detail?.user_role ?? "").toLowerCase()
+    String(localDetail?.user_role ?? "").toLowerCase()
   );
+
+  const handleCommentAdded = (newComment: { body: string }) => {
+    setLocalLastComment(newComment.body);
+    setLocalCount((prev) => prev + 1);
+  };
+
+  const isArchived = localDetail?.activite === "archivee";
 
   return (
     <PageTemplate
-      title={`Prospection #${prospectionId} — détail (éditable)`}
+      title={`Prospection #${prospectionId} — ${
+        localDetail.activite_display ?? (isArchived ? "Archivée" : "Active")
+      }`}
       backButton
       onBack={() => navigate(-1)}
       actions={
         <Box display="flex" gap={1}>
           <Button
-            variant="outlined"
-            onClick={() => navigate("/prospection")}
+            variant="contained"
+            color={isArchived ? "success" : "warning"}
+            onClick={handleArchiveToggle}
             disabled={saving || removing}
           >
-            Retour à la liste
+            {isArchived ? "♻️ Désarchiver" : "📦 Archiver"}
+          </Button>
+          <Button variant="contained" color="primary" onClick={scrollToForm}>
+            ✏️ Modifier
           </Button>
           <Button
             variant="contained"
@@ -216,40 +225,51 @@ export default function ProspectionEditPage() {
         onClose={() => setOpenComments(false)}
         prospectionId={prospectionId}
         isStaff={isStaff}
+        onCommentAdded={handleCommentAdded}
       />
 
-      <ProspectionDetail prospection={detail} formationFallback={formationFallback} />
-
+      {/* --- Dernier commentaire --- */}
       <Box my={2}>
         <ProspectionLastCommentRow
           prospectionId={prospectionId}
+          lastComment={localLastComment ?? localDetail.last_comment ?? null}
+          commentsCount={localCount || localDetail.comments_count || 0}
           onOpenModal={() => setOpenComments(true)}
         />
       </Box>
 
-      <ProspectionForm
-        mode="edit"
-        initialValues={initialValues}
-        onSubmit={handleUpdate}
-        loading={saving}
-      />
+      {/* --- Formulaire d’édition --- */}
+      <Box ref={formRef} mt={4}>
+        <ProspectionForm
+          mode="edit"
+          initialValues={initialValues}
+          onSubmit={handleUpdate}
+          loading={saving}
+        />
+      </Box>
 
-      {/* Dialog suppression */}
+      {/* --- Dialog suppression --- */}
       <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
         aria-labelledby="delete-dialog-title"
       >
-        <DialogTitle id="delete-dialog-title">Supprimer la prospection</DialogTitle>
+        <DialogTitle id="delete-dialog-title">
+          Supprimer la prospection
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Voulez-vous vraiment supprimer la prospection #{prospectionId} ? Cette action est
-            irréversible.
+            Voulez-vous vraiment supprimer la prospection #{prospectionId} ?
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDeleteDialog(false)}>Annuler</Button>
-          <Button onClick={handleDelete} color="error" variant="contained" disabled={removing}>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            variant="contained"
+            disabled={removing}
+          >
             {removing ? "Suppression…" : "Confirmer"}
           </Button>
         </DialogActions>

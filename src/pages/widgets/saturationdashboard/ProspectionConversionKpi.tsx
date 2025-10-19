@@ -15,8 +15,10 @@ import {
   MenuItem,
   TextField,
   FormControl,
+  Button,
 } from "@mui/material";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import DashboardTemplateSaturation from "../../../components/dashboard/DashboardTemplateSaturation";
 
 function ProgressBar({ value }: { value: number }) {
@@ -47,6 +49,7 @@ export default function ProspectionConversionKpi({
     initialFilters ?? {}
   );
   const [autoDepartement, setAutoDepartement] = React.useState(true);
+  const includeArchived = Boolean(filters.avec_archivees);
 
   const { data, isLoading, error, isFetching } = useProspectionOverview(filters);
 
@@ -131,6 +134,22 @@ export default function ProspectionConversionKpi({
         }}
         sx={{ width: 100 }}
       />
+
+      {/* 🔘 Bouton Archivées */}
+      <Button
+        size="small"
+        variant={includeArchived ? "contained" : "outlined"}
+        color={includeArchived ? "secondary" : "inherit"}
+        onClick={() =>
+          setFilters((f) => ({
+            ...f,
+            avec_archivees: f.avec_archivees ? undefined : true,
+          }))
+        }
+        startIcon={<ArchiveIcon fontSize="small" />}
+      >
+        {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+      </Button>
     </>
   );
 

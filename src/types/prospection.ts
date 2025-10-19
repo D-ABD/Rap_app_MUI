@@ -16,6 +16,10 @@ export type ProspectionStatut =
   | "annulee"
   | "non_renseigne";
 
+export type ProspectionActivite = "active" | "archivee";
+
+  
+
 export type ProspectionObjectif =
   | "prise_contact"
   | "rendez_vous"
@@ -88,6 +92,8 @@ export interface Prospection {
   motif_display: string;
   statut: ProspectionStatut;            // statut de la prospection
   statut_display: string;
+  activite: ProspectionActivite;
+  activite_display: string;
   objectif: ProspectionObjectif;
   objectif_display: string;
   commentaire: string;                  // (conservé tel quel pour compat)
@@ -140,6 +146,9 @@ export interface Prospection {
 export interface ProspectionFormData {
   partenaire: number | null;
   partenaire_nom?: string | null;
+
+  activite?: ProspectionActivite;
+activite_display?: string;
 
   formation?: number | null;
   date_prospection: string; // ISO date
@@ -200,11 +209,11 @@ export interface ProspectionFiltresValues {
   motif?: ProspectionMotif;
   type_prospection?: ProspectionTypeProspection;
   moyen_contact?: ProspectionMoyenContact;
-
+  avec_archivees?: boolean | "1" | "true";
   formation?: number;
   formation_num_offre?: string;
   partenaire?: number;
-
+activite?: ProspectionActivite;
   // 🔎 recherche & période
   search?: string;
   date_min?: string; // ISO date (sur date_prospection)
@@ -223,6 +232,9 @@ export interface ProspectionFiltresValues {
   formation_type_offre?: number | number[] | string;
   formation_statut?: number | number[] | string;
   centre?: number | number[] | string;
+
+    inclure_archives?: boolean | string; // ← nouveau
+
 
   // (optionnel) tri supporté par l'API
   ordering?:
@@ -294,6 +306,7 @@ export interface ProspectionChoicesResponse {
   message: string;
   data: {
     statut: Choice<ProspectionStatut>[];
+    activite?: Choice<ProspectionActivite>[];  // 🆕 si renvoyé par le back
     objectif: Choice<ProspectionObjectif>[];
     motif: Choice<ProspectionMotif>[];
     type_prospection: Choice<ProspectionTypeProspection>[];
@@ -368,13 +381,16 @@ export interface ProspectionChangeStatutPayload {
 export type ProspectionChangeStatutResponse<T = unknown> = ApiEnvelope<T>;
 
 export type ProspectionDetailDTO = ProspectionFormData & {
+  id?: number;
+  centre?: number | null;
+  centre_nom?: string | null;
+
   partenaire_nom?: string | null;
   partenaire_ville?: string | null;
   partenaire_tel?: string | null;
   partenaire_email?: string | null;
 
   formation_nom?: string | null;
-  centre_nom?: string | null;
   num_offre?: string | null;
   formation_date_debut?: string | null;
   formation_date_fin?: string | null;
@@ -382,22 +398,35 @@ export type ProspectionDetailDTO = ProspectionFormData & {
   formation_statut_display?: string | null;
   places_disponibles?: number | null;
 
-  // 🆕 Ajoute les champs display
-  type_prospection_display?: string;
-  motif_display?: string;
-  objectif_display?: string;
-  statut_display?: string;
-  moyen_contact_display?: string;
+  // 🧾 Champs de description / statut
+  type_prospection_display?: string | null;
+  motif_display?: string | null;
+  objectif_display?: string | null;
+  statut_display?: string | null;
+  moyen_contact_display?: string | null;
 
+  // 🗓️ Dates
+  date_prospection?: string | null;   // ISO datetime
+  relance_prevue?: string | null;     // ISO date (YYYY-MM-DD)
+
+  // 💬 Commentaires
+  commentaire?: string | null;
   last_comment?: string | null;
   last_comment_at?: string | null;
   last_comment_id?: number | null;
   comments_count?: number | null;
 
+  // ⚙️ Indicateurs
+  is_active?: boolean;
+  relance_necessaire?: boolean;
+
+  // 👤 Métadonnées
   created_by?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
+  owner?: number | null;
   owner_username?: string | null;
 
+  // 🧑‍💼 Rôle utilisateur (pour front)
   user_role?: string | null;
 };

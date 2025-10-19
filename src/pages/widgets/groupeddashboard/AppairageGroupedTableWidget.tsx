@@ -14,8 +14,10 @@ import {
   TableCell,
   TableContainer,
   IconButton,
+  Button,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import {
   AppairageFilters,
   AppairageGroupBy,
@@ -94,8 +96,14 @@ export default function AppairageGroupedTableWidget({
   const [filters, setFilters] = React.useState<AppairageFilters>(
     defaultFilters ?? {}
   );
+  const [includeArchived, setIncludeArchived] = React.useState(false);
 
-  const { data, isLoading, error, refetch } = useAppairageGrouped(by, filters);
+  // ✅ Combine les filtres avec le flag "archivés"
+  const filtersWithArchived = { ...filters, avec_archivees: includeArchived };
+  const { data, isLoading, error, refetch } = useAppairageGrouped(
+    by,
+    filtersWithArchived
+  );
 
   /* Agrégats totaux */
   const totals = React.useMemo(() => {
@@ -169,6 +177,17 @@ export default function AppairageGroupedTableWidget({
             }
             sx={{ minWidth: 100 }}
           />
+
+{/* Bouton Archivées */}
+<Button
+  size="small"
+  variant={includeArchived ? "contained" : "outlined"}
+  color={includeArchived ? "secondary" : "inherit"}
+  onClick={() => setIncludeArchived((v) => !v)}
+  startIcon={<ArchiveIcon fontSize="small" />}
+>
+  {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+</Button>
 
           {/* Bouton de rafraîchissement */}
           <IconButton onClick={() => refetch()} title="Rafraîchir">
@@ -256,9 +275,7 @@ export default function AppairageGroupedTableWidget({
                 );
               })}
               {/* Totaux */}
-              <TableRow
-                sx={{ bgcolor: "#f5f5f5", fontWeight: 700 }}
-              >
+              <TableRow sx={{ bgcolor: "#f5f5f5", fontWeight: 700 }}>
                 <TableCell>Total</TableCell>
                 <TableCell align="right">{fmtInt(totals.appairages_total)}</TableCell>
                 <TableCell align="right">{fmtInt(totals.nb_candidats)}</TableCell>

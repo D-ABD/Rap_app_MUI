@@ -1,6 +1,5 @@
 // src/components/appairages/AppairageTable.tsx
 import {
-  Box,
   Table,
   TableBody,
   TableCell,
@@ -11,6 +10,8 @@ import {
   Link,
   Typography,
   Stack,
+  Chip,
+  Box,
 } from "@mui/material";
 import { useEffect, useMemo, useRef, useCallback } from "react";
 import type { AppairageListItem, TypeOffreMini } from "../../types/appairage";
@@ -60,16 +61,6 @@ function resolveTypeOffre(r: AppairageListItem): string {
   if (typeof maybe === "string") return maybe;
   const obj = maybe as TypeOffreMini;
   return obj.libelle ?? obj.nom ?? "—";
-}
-
-function resolvePlacesDispo(r: AppairageListItem): string {
-  const v = r.formation_places_disponibles;
-  return typeof v === "number" ? String(v) : "—";
-}
-
-function resolvePlacesTotal(r: AppairageListItem): string {
-  const v = r.formation_places_total;
-  return typeof v === "number" ? String(v) : "—";
 }
 
 export default function AppairageTable({
@@ -167,31 +158,23 @@ export default function AppairageTable({
                 bgcolor: "grey.100",
               }}
             >
-              Candidat
+              👤 Candidat
             </TableCell>
-            <TableCell>Partenaire</TableCell>
-            <TableCell>Tél. partenaire</TableCell>
-            <TableCell>Email partenaire</TableCell>
-            <TableCell>Formation</TableCell>
-            <TableCell>Type d’offre</TableCell>
-            <TableCell>N° offre</TableCell>
-            <TableCell>Places totales</TableCell>
-            <TableCell>Places dispo</TableCell>
-            <TableCell>Centre</TableCell>
-            <TableCell>Début formation</TableCell>
-            <TableCell>Fin formation</TableCell>
-            <TableCell>Statut formation</TableCell>
-            <TableCell>Statut appairage</TableCell>
-            <TableCell>Dernier commentaire</TableCell>
-            <TableCell>Date appairage</TableCell>
-            <TableCell>MAJ le</TableCell>
-            <TableCell>MAJ par</TableCell>
-            <TableCell>Créé par</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell>📌 Appairage</TableCell>
+            <TableCell>🟢 Activité</TableCell>
+            <TableCell>🏢 Partenaire</TableCell>
+            <TableCell>🎓 Formation + Centre</TableCell>
+            <TableCell>📑 Offre</TableCell>
+            <TableCell>📅 Dates</TableCell>
+            <TableCell>📊 Places</TableCell>
+            <TableCell>💬 Commentaire</TableCell>
+            <TableCell>Création</TableCell>
+            <TableCell>Mise à jour</TableCell>
+            <TableCell>⚙️ Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {items.map((r, idx) => {
+          {items.map((r) => {
             const isChecked = selectedSet.has(r.id);
             const formationLib = resolveFormationLabel(r, formationMap);
             const typeOffreLib = resolveTypeOffre(r);
@@ -208,8 +191,8 @@ export default function AppairageTable({
             );
             const fin = formatDateFR(r.formation_detail?.end_date);
             const statutFormation = r.formation_detail?.statut ?? "—";
-            const placesDispo = resolvePlacesDispo(r);
-            const placesTotal = resolvePlacesTotal(r);
+            const placesDispo = r.formation_places_disponibles;
+            const placesTotal = r.formation_places_total;
 
             return (
               <TableRow
@@ -228,6 +211,7 @@ export default function AppairageTable({
                   }
                 }}
               >
+                {/* ✅ Sélection */}
                 <TableCell
                   sx={{
                     width: STICKY_COL_1_PX,
@@ -245,6 +229,7 @@ export default function AppairageTable({
                   />
                 </TableCell>
 
+                {/* ✅ Candidat */}
                 <TableCell
                   sx={{
                     position: "sticky",
@@ -255,64 +240,179 @@ export default function AppairageTable({
                   }}
                   title={r.candidat_nom ?? ""}
                 >
-                  {r.candidat_nom ?? "—"}
+                  <Typography variant="body2" fontWeight={600}>
+                    {r.candidat_nom ?? "—"}
+                  </Typography>
                 </TableCell>
 
-                <TableCell>{r.partenaire_nom ?? "—"}</TableCell>
-                <TableCell>{r.partenaire_telephone ?? "—"}</TableCell>
+                {/* ✅ Date + statut appairage */}
                 <TableCell>
-                  {r.partenaire_email ? (
+                  <Box display="flex" flexDirection="column">
+                    <Typography variant="body2">
+                      {formatDateFR(r.date_appairage)}
+                    </Typography>
+                    {r.statut_display && (
+                      <Chip
+                        size="small"
+                        color="info"
+                        label={r.statut_display}
+                        sx={{ mt: 0.3, maxWidth: "100%" }}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
+
+                {/* ✅ Activité */}
+                <TableCell>
+                  {r.activite_display ? (
+                    <Chip
+                      size="small"
+                      label={r.activite_display}
+                      color={r.activite_display.toLowerCase().includes("archiv") ? "default" : "success"}
+                      sx={{
+                        fontWeight: 600,
+                        textTransform: "capitalize",
+                        bgcolor: r.activite_display.toLowerCase().includes("archiv")
+                          ? "grey.200"
+                          : "success.light",
+                      }}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="text.disabled">
+                      —
+                    </Typography>
+                  )}
+                </TableCell>
+
+
+                {/* ✅ Partenaire */}
+                <TableCell sx={{ maxWidth: 220 }}>
+                  <Typography variant="body2" fontWeight="bold" noWrap>
+                    {r.partenaire_nom ?? "—"}
+                  </Typography>
+                  {r.partenaire_contact_nom && (
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      👤 {r.partenaire_contact_nom}
+                    </Typography>
+                  )}
+                  {r.partenaire_telephone && (
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      📞 {r.partenaire_telephone}
+                    </Typography>
+                  )}
+                  {r.partenaire_email && (
                     <Link
                       href={`mailto:${r.partenaire_email}`}
                       onClick={(e) => e.stopPropagation()}
+                      underline="hover"
+                      sx={{ fontSize: "0.75rem" }}
                     >
-                      {r.partenaire_email}
+                      ✉️ {r.partenaire_email}
                     </Link>
-                  ) : (
-                    "—"
                   )}
                 </TableCell>
 
-                <TableCell title={formationLib}>{formationLib}</TableCell>
-                <TableCell>{typeOffreLib}</TableCell>
-                <TableCell>{numOffre}</TableCell>
-                <TableCell>{placesTotal}</TableCell>
-                <TableCell>{placesDispo}</TableCell>
-                <TableCell>{centreNom}</TableCell>
-                <TableCell>{debut}</TableCell>
-                <TableCell>{fin}</TableCell>
-                <TableCell>{statutFormation}</TableCell>
-                <TableCell>{r.statut_display ?? "—"}</TableCell>
+                {/* ✅ Formation */}
+                <TableCell>
+                  <Typography variant="body2" fontWeight="bold">
+                    {formationLib}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    {centreNom}
+                  </Typography>
+                </TableCell>
 
+                {/* ✅ Offre */}
+                <TableCell>
+                  <Typography variant="body2">{typeOffreLib}</Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    N° {numOffre} — {statutFormation}
+                  </Typography>
+                </TableCell>
+
+                {/* ✅ Dates */}
+                <TableCell>
+                  <Typography variant="body2">{debut}</Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    → {fin}
+                  </Typography>
+                </TableCell>
+
+                {/* ✅ Places */}
+                <TableCell>
+                  {typeof placesTotal === "number" && (
+                    <Typography variant="body2">Total: {placesTotal}</Typography>
+                  )}
+                  {typeof placesDispo === "number" ? (
+                    <Chip
+                      size="small"
+                      variant="outlined"
+                      color={placesDispo > 0 ? "success" : "error"}
+                      label={`${placesDispo} dispo`}
+                      sx={{ mt: 0.3 }}
+                    />
+                  ) : (
+                    <Typography variant="caption" color="text.disabled">—</Typography>
+                  )}
+                </TableCell>
+
+                {/* ✅ Dernier commentaire */}
                 <TableCell>
                   {r.last_commentaire ? (
-                    <Typography
-                      noWrap
+                    <Box
                       sx={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        maxWidth: 300,
+                        backgroundColor: (theme) => theme.palette.action.hover,
+                        p: 0.6,
+                        borderRadius: 1,
+                        maxWidth: 260,
                       }}
-                      title={r.last_commentaire}
                     >
-                      {r.last_commentaire}
-                    </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {r.last_commentaire}
+                      </Typography>
+                    </Box>
                   ) : (
-                    "—"
+                    <Typography variant="body2" color="text.disabled">—</Typography>
                   )}
                 </TableCell>
 
-                <TableCell>{formatDateFR(r.date_appairage)}</TableCell>
-                <TableCell>{formatDateFR(r.updated_at)}</TableCell>
-                <TableCell>{r.updated_by_nom ?? "—"}</TableCell>
-                <TableCell>{r.created_by_nom ?? "—"}</TableCell>
+                {/* ✅ Audit création */}
+                <TableCell>
+                  <Typography variant="body2">{r.created_by_nom ?? "—"}</Typography>
+                  {r.created_at && (
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDateFR(r.created_at)}
+                    </Typography>
+                  )}
+                </TableCell>
 
+                {/* ✅ Audit maj */}
+                <TableCell>
+                  <Typography variant="body2">{r.updated_by_nom ?? "—"}</Typography>
+                  {r.updated_at && (
+                    <Typography variant="caption" color="text.secondary">
+                      {formatDateFR(r.updated_at)}
+                    </Typography>
+                  )}
+                </TableCell>
+
+                {/* ✅ Actions */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1}>
-                    <Link component="button" onClick={() => onRowClick(r.id)}>
+                    <Link
+                      component="button"
+                      color="primary"
+                      onClick={() => onRowClick(r.id)}
+                    >
                       Éditer
                     </Link>
                     {onDeleteClick && (

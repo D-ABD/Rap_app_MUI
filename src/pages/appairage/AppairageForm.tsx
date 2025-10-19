@@ -340,26 +340,27 @@ export default function AppairageForm({
         disabled={loading}
       />
 
-      {/* Date de retour */}
-      <TextField
-        label="Date de retour"
-        type={resolvedDateType}
-        value={dateRetourLocal}
-        onChange={(e) =>
-          handleChange(
-            "date_retour",
-            resolvedDateType === "datetime-local"
-              ? e.target.value
-                ? fromDatetimeLocal(e.target.value)
-                : null
-              : e.target.value
-              ? new Date(`${e.target.value}T00:00:00`).toISOString()
-              : null
-          )
-        }
-        fullWidth
-        disabled={loading}
-      />
+{/* Date de retour */}
+<TextField
+  label="Date de retour"
+  type={resolvedDateType}
+  value={dateRetourLocal}
+  onChange={(e) =>
+    handleChange(
+      "date_retour",
+      resolvedDateType === "datetime-local"
+        ? e.target.value
+          ? fromDatetimeLocal(e.target.value)
+          : null
+        : e.target.value
+        ? new Date(`${e.target.value}T00:00:00`).toISOString()
+        : null
+    )
+  }
+  fullWidth
+  disabled={loading}
+  InputLabelProps={{ shrink: true }}   // ✅ corrige le chevauchement label/valeur
+/>
 
       {/* Submit */}
       {useOwnForm ? (

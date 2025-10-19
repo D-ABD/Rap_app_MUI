@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PieChartIcon from "@mui/icons-material/PieChart";
+import ArchiveIcon from "@mui/icons-material/Archive"; // ← icône ajoutée
 
 import {
   PieChart,
@@ -82,24 +83,26 @@ export default function FormationOverviewWidget2({
   const [localFilters, setLocalFilters] = React.useState<Filters>(
     filters ?? {}
   );
+
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
+    !!filters?.avec_archivees
+  );
+
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
-  const centreQuery = useFormationGrouped(
-    "centre",
-    omit(localFilters, ["centre"])
-  );
-  const deptQuery = useFormationGrouped(
-    "departement",
-    omit(localFilters, ["departement"])
-  );
-  const typeOffreQuery = useFormationGrouped(
-    "type_offre",
-    omit(localFilters, ["type_offre"])
+  // ⚙️ Hook principal avec le flag archivées
+  const effectiveFilters = React.useMemo(
+    () => ({ ...localFilters, avec_archivees: includeArchived }),
+    [localFilters, includeArchived]
   );
 
-  const { refetch, isFetching } = useFormationOverview(localFilters);
+  const centreQuery = useFormationGrouped("centre", omit(effectiveFilters, ["centre"]));
+  const deptQuery = useFormationGrouped("departement", omit(effectiveFilters, ["departement"]));
+  const typeOffreQuery = useFormationGrouped("type_offre", omit(effectiveFilters, ["type_offre"]));
+
+  const { refetch, isFetching } = useFormationOverview(effectiveFilters);
   const dicts = useFormationDictionaries().data;
 
   // ✅ Données brutes (MP + CRIF)
@@ -164,63 +167,19 @@ export default function FormationOverviewWidget2({
           </Typography>
         </Box>
 
-        <Box display="flex" gap={1} flexWrap="wrap">
-          <Select
+        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+          {/* Bouton archivées */}
+          <Button
             size="small"
-            value={localFilters.centre ?? ""}
-            onChange={(e) =>
-              setLocalFilters((f) => ({
-                ...f,
-                centre: e.target.value ? String(e.target.value) : undefined,
-              }))
-            }
-            sx={{ minWidth: 120 }}
-            displayEmpty
+            variant={includeArchived ? "contained" : "outlined"}
+            color={includeArchived ? "secondary" : "inherit"}
+            onClick={() => setIncludeArchived((v) => !v)}
+            startIcon={<ArchiveIcon fontSize="small" />}
           >
-            <MenuItem value="">Tous centres</MenuItem>
-            {centreQuery.data?.results?.map((r: GroupRow) => {
-              const label =
-                (typeof r["centre__nom"] === "string" && r["centre__nom"]) ||
-                (typeof r.group_label === "string" && r.group_label) ||
-                undefined;
-              const value = r.group_key ?? r.centre_id ?? label;
-              return value && label ? (
-                <MenuItem key={String(value)} value={String(value)}>
-                  {label}
-                </MenuItem>
-              ) : null;
-            })}
-          </Select>
+            {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+          </Button>
 
-          <Select
-            size="small"
-            value={localFilters.departement ?? ""}
-            onChange={(e) =>
-              setLocalFilters((f) => ({
-                ...f,
-                departement: e.target.value
-                  ? String(e.target.value)
-                  : undefined,
-              }))
-            }
-            sx={{ minWidth: 100 }}
-            displayEmpty
-          >
-            <MenuItem value="">Tous dépts</MenuItem>
-            {deptQuery.data?.results?.map((r: GroupRow) => {
-              const label =
-                (typeof r.group_label === "string" && r.group_label) ||
-                (typeof r.departement === "string" && r.departement) ||
-                undefined;
-              const value = r.group_key ?? r.departement ?? label;
-              return value && label ? (
-                <MenuItem key={String(value)} value={String(value)}>
-                  {label}
-                </MenuItem>
-              ) : null;
-            })}
-          </Select>
-
+          {/* Rafraîchir */}
           <Button
             size="small"
             variant="outlined"
@@ -237,6 +196,63 @@ export default function FormationOverviewWidget2({
             Rafraîchir
           </Button>
         </Box>
+      </Box>
+
+      {/* Filtres (centres, départements) */}
+      <Box display="flex" gap={1} flexWrap="wrap" justifyContent="flex-end">
+        <Select
+          size="small"
+          value={localFilters.centre ?? ""}
+          onChange={(e) =>
+            setLocalFilters((f) => ({
+              ...f,
+              centre: e.target.value ? String(e.target.value) : undefined,
+            }))
+          }
+          sx={{ minWidth: 120 }}
+          displayEmpty
+        >
+          <MenuItem value="">Tous centres</MenuItem>
+          {centreQuery.data?.results?.map((r: GroupRow) => {
+            const label =
+              (typeof r["centre__nom"] === "string" && r["centre__nom"]) ||
+              (typeof r.group_label === "string" && r.group_label) ||
+              undefined;
+            const value = r.group_key ?? r.centre_id ?? label;
+            return value && label ? (
+              <MenuItem key={String(value)} value={String(value)}>
+                {label}
+              </MenuItem>
+            ) : null;
+          })}
+        </Select>
+
+        <Select
+          size="small"
+          value={localFilters.departement ?? ""}
+          onChange={(e) =>
+            setLocalFilters((f) => ({
+              ...f,
+              departement: e.target.value ? String(e.target.value) : undefined,
+            }))
+          }
+          sx={{ minWidth: 100 }}
+          displayEmpty
+        >
+          <MenuItem value="">Tous dépts</MenuItem>
+          {deptQuery.data?.results?.map((r: GroupRow) => {
+            const label =
+              (typeof r.group_label === "string" && r.group_label) ||
+              (typeof r.departement === "string" && r.departement) ||
+              undefined;
+            const value = r.group_key ?? r.departement ?? label;
+            return value && label ? (
+              <MenuItem key={String(value)} value={String(value)}>
+                {label}
+              </MenuItem>
+            ) : null;
+          })}
+        </Select>
       </Box>
 
       {/* Camembert */}
@@ -259,7 +275,7 @@ export default function FormationOverviewWidget2({
                 paddingAngle={3}
                 dataKey="value"
                 labelLine={false}
-                label={renderLabel} // ✅ centré vertical/horizontal
+                label={renderLabel}
               >
                 {chartData.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />

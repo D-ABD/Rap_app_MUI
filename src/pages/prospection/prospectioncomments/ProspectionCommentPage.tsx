@@ -1,4 +1,5 @@
 // src/pages/prospection/ProspectionComment/ProspectionCommentPage.tsx
+
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -13,6 +14,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Pagination,
+  MenuItem,
+  Select,
 } from "@mui/material";
 
 import PageTemplate from "../../../components/PageTemplate";
@@ -21,19 +25,22 @@ import type {
   ProspectionCommentDTO,
   ProspectionCommentListParams,
 } from "../../../types/prospectionComment";
-import { useListProspectionComments } from "../../../hooks/useProspectionComments";
+import {
+  useListProspectionComments,
+  useProspectionCommentFilterOptions,
+} from "../../../hooks/useProspectionComments";
 import api from "../../../api/axios";
 import FiltresProspectionCommentsPanel from "../../../components/filters/FiltresProspectionCommentsPanel";
 import { useMe } from "../../../hooks/useUsers";
 import { CustomUserRole, User } from "../../../types/User";
 import ExportButtonProspectionComment from "../../../components/export_buttons/ExportButtonProspectionComment";
+import usePagination from "../../../hooks/usePagination";
 
 type ProspectionDisplayLite = {
   partenaire_nom: string | null;
   formation_nom: string | null;
 };
 
-type ChoiceStr = { value: string; label: string };
 type NormalizedRole =
   | "superadmin"
   | "admin"
@@ -42,7 +49,6 @@ type NormalizedRole =
   | "candidat"
   | "autre";
 
-/** Normalise le rôle d’après le type User + flags staff/superuser */
 function normalizeRole(u: User | null): NormalizedRole {
   if (!u) return "autre";
   if (u.is_superuser) return "superadmin";
@@ -62,8 +68,11 @@ export default function ProspectionCommentPage() {
   const { user: me } = useMe();
   const role: NormalizedRole = useMemo(() => normalizeRole(me), [me]);
 
-  const showFilters = ["superadmin", "admin", "staff"].includes(role);
-  const panelMode: "default" | "candidate" = showFilters ? "default" : "candidate";
+  const canUseFilters = ["superadmin", "admin", "staff"].includes(role);
+  const panelMode: "default" | "candidate" = canUseFilters ? "default" : "candidate";
+
+  // 🔹 filtres masqués par défaut
+  const [showFilters, setShowFilters] = useState(false);
 
   const [params, setParams] = useState<
     ProspectionCommentListParams & { search?: string }
@@ -78,18 +87,53 @@ export default function ProspectionCommentPage() {
     return initial;
   });
 
+  // ✅ Pagination
+  const {
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    count,
+    setCount,
+    totalPages,
+  } = usePagination();
+
   const [reloadKey, setReloadKey] = useState(0);
 
-  const { data, loading, error } = useListProspectionComments(params, reloadKey);
+  // params effectifs envoyés à l’API (avec page et page_size)
+  const effectiveParams = useMemo(
+    () => ({
+      ...params,
+      page,
+      page_size: pageSize,
+    }),
+    [params, page, pageSize]
+  );
+
+  const { data, loading, error } = useListProspectionComments(
+    effectiveParams,
+    reloadKey
+  );
+
+  // ✅ filtre options
+  const { data: filterOptions, loading: loadingFilters } =
+    useProspectionCommentFilterOptions(reloadKey);
 
   const rows: ProspectionCommentDTO[] = useMemo(
-    () => (Array.isArray(data) ? data : []),
+    () => (Array.isArray(data?.results) ? data.results : []),
     [data]
   );
 
-  const [prospLookup, setProspLookup] = useState<
-    Record<number, ProspectionDisplayLite>
-  >({});
+  useEffect(() => {
+
+    if (data?.count != null) {
+      setCount(data.count);
+    }
+  }, [data, setCount]);
+
+  const [prospLookup, setProspLookup] = useState<Record<number, ProspectionDisplayLite>>(
+    {}
+  );
 
   useEffect(() => {
     const missingIds = Array.from(new Set(rows.map((r) => r.prospection))).filter(
@@ -152,31 +196,7 @@ export default function ProspectionCommentPage() {
     [enrichedRows]
   );
 
-  const filtresFromRows = useMemo(() => {
-    const add = (set: Set<string>, v?: string | null) => {
-      if (v) set.add(v);
-    };
-    const formations = new Set<string>();
-    const partenaires = new Set<string>();
-    const authors = new Set<string>();
-    for (const r of enrichedRows) {
-      add(formations, r.formation_nom);
-      add(partenaires, r.partenaire_nom);
-      add(authors, r.created_by_username);
-    }
-    const toChoices = (arr: string[]): ChoiceStr[] =>
-      arr.sort((a, b) => a.localeCompare(b)).map((x) => ({ value: x, label: x }));
-    return {
-      formations: toChoices(Array.from(formations)),
-      partenaires: toChoices(Array.from(partenaires)),
-      authors: toChoices(Array.from(authors)),
-      user_role: role,
-    };
-  }, [enrichedRows, role]);
-
-  const [selectedRow, setSelectedRow] = useState<ProspectionCommentDTO | null>(
-    null
-  );
+  const [selectedRow, setSelectedRow] = useState<ProspectionCommentDTO | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
 
   const handleDelete = useCallback(async () => {
@@ -198,17 +218,40 @@ export default function ProspectionCommentPage() {
       refreshButton
       onRefresh={() => setReloadKey((k) => k + 1)}
       actions={
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} flexWrap="wrap">
+          {/* 🔹 Bouton toggle filtres */}
+          {canUseFilters && (
+            <Button
+              variant="outlined"
+              onClick={() => setShowFilters((v) => !v)}
+            >
+              {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
+            </Button>
+          )}
+
           <Chip
             label={`Rôle : ${role}`}
             size="small"
             color="primary"
             variant="outlined"
           />
-          <ExportButtonProspectionComment
-            data={exportRows}
-            selectedIds={[]}
-          />
+          <ExportButtonProspectionComment data={exportRows} selectedIds={[]} />
+
+          <Select
+            size="small"
+            value={pageSize}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
+          >
+            {[5, 10, 20].map((s) => (
+              <MenuItem key={s} value={s}>
+                {s} / page
+              </MenuItem>
+            ))}
+          </Select>
+
           <Button
             variant="contained"
             onClick={() => navigate("/prospection-commentaires/create")}
@@ -218,32 +261,74 @@ export default function ProspectionCommentPage() {
         </Stack>
       }
       filters={
-        <FiltresProspectionCommentsPanel
-          mode={panelMode}
-          filtres={
-            showFilters
-              ? filtresFromRows
-              : { authors: [], formations: [], partenaires: [], user_role: role }
-          }
-          values={params}
-          onChange={(next) => setParams(next)}
-          onRefresh={() => setReloadKey((k) => k + 1)}
-          onReset={() =>
-            setParams({
-              prospection:
-                prospectionId && Number.isFinite(Number(prospectionId))
-                  ? Number(prospectionId)
-                  : undefined,
-              is_internal: undefined,
-              created_by: undefined,
-              ordering: "-created_at",
-              search: "",
-              formation_nom: undefined,
-              partenaire_nom: undefined,
-              created_by_username: undefined,
-            })
-          }
-        />
+        showFilters && (
+          <FiltresProspectionCommentsPanel
+            mode={panelMode}
+            filtres={
+              canUseFilters
+                ? filterOptions ?? {
+                    authors: [],
+                    formations: [],
+                    partenaires: [],
+                    centres: [],
+                    owners: [],
+                    user_role: role,
+                  }
+                : {
+                    authors: [],
+                    formations: [],
+                    partenaires: [],
+                    centres: [],
+                    owners: [],
+                    user_role: role,
+                  }
+            }
+            values={params}
+            onChange={(next) => {
+              setParams(next);
+              setPage(1); // reset pagination
+            }}
+            onRefresh={() => setReloadKey((k) => k + 1)}
+            onReset={() => {
+              setParams({
+                prospection:
+                  prospectionId && Number.isFinite(Number(prospectionId))
+                    ? Number(prospectionId)
+                    : undefined,
+                is_internal: undefined,
+                created_by: undefined,
+                ordering: "-created_at",
+                search: "",
+                formation_nom: undefined,
+                partenaire_nom: undefined,
+                created_by_username: undefined,
+                formation_centre_nom: undefined,
+                prospection_owner: undefined,
+              });
+              setPage(1);
+            }}
+          />
+        )
+      }
+      footer={
+        count > 0 && (
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={1}
+          >
+            <Typography variant="body2">
+              Page {page} / {totalPages} ({count} résultats)
+            </Typography>
+            <Pagination
+              page={page}
+              count={totalPages}
+              onChange={(_, val) => setPage(val)}
+              color="primary"
+            />
+          </Stack>
+        )
       }
     >
       {loading ? (

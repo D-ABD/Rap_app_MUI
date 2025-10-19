@@ -1,4 +1,3 @@
-// src/pages/widgets/overviewDashboard/AteliersTREOverviewWidget.tsx
 import * as React from "react";
 import {
   ATELIER_TYPE_LABELS,
@@ -20,6 +19,7 @@ import {
   CircularProgress,
   Alert,
   useTheme,
+  Divider,
 } from "@mui/material";
 import InventoryIcon from "@mui/icons-material/Inventory";
 import {
@@ -208,11 +208,28 @@ export default function AteliersTREOverviewWidget() {
 
       {/* KPI Global */}
       {overview && (
-        <Box display="flex" alignItems="center" gap={1} mt={1}>
-          <Typography variant="h6">{fmt(overview.kpis.nb_ateliers)}</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Total ateliers
-          </Typography>
+        <Box display="flex" flexWrap="wrap" alignItems="center" gap={3} mt={1}>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6">
+              {fmt(overview.kpis.nb_ateliers)}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Total ateliers
+            </Typography>
+          </Box>
+
+          <Divider orientation="vertical" flexItem />
+
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="h6">
+              {overview.kpis.taux_presence != null
+                ? `${overview.kpis.taux_presence.toFixed(1)} %`
+                : "—"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Taux de présence
+            </Typography>
+          </Box>
         </Box>
       )}
 

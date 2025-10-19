@@ -177,6 +177,17 @@ export default function PartenairesTable({
       width: 260,
       render: (p) => <strong>{p.nom || "—"}</strong>,
     },
+    // 🆕 Ajout du centre
+    {
+      key: "default_centre_nom",
+      label: "Centre",
+      render: (p) =>
+        p.default_centre_nom ? (
+          <Typography component="span">{p.default_centre_nom}</Typography>
+        ) : (
+          "—"
+        ),
+    },
     { key: "type_display", label: "Type" },
     { key: "contact_nom", label: "Contact" },
     {
@@ -216,6 +227,8 @@ export default function PartenairesTable({
     { key: "zip_code", label: "CP" },
     { key: "city", label: "Ville" },
     { key: "secteur_activite", label: "Secteur" },
+
+
     {
       key: "description",
       label: "Description",

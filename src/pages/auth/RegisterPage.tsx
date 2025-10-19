@@ -13,17 +13,19 @@ import {
   Alert,
   Checkbox,
   FormControlLabel,
+  Divider,
 } from "@mui/material";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+
   const [form, setForm] = useState({
     email: "",
     password1: "",
     password2: "",
     first_name: "",
     last_name: "",
-    acceptRGPD: false, // ✅ ajout consentement
+    acceptRGPD: false, // ✅ consentement explicite RGPD
   });
 
   const [error, setError] = useState("");
@@ -56,11 +58,10 @@ export default function RegisterPage() {
         password: form.password1,
         first_name: form.first_name,
         last_name: form.last_name,
+        consent_rgpd: true, // 🔒 trace du consentement côté backend si tu veux le journaliser
       });
 
-      toast.success(
-        "✅ Compte créé avec succès. En attente de validation par un administrateur."
-      );
+      toast.success("✅ Compte créé avec succès. En attente de validation.");
       navigate("/login");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -93,13 +94,23 @@ export default function RegisterPage() {
       <Paper
         elevation={6}
         sx={{
-          maxWidth: 400,
+          maxWidth: 420,
           width: "100%",
           p: 4,
+          borderRadius: 3,
         }}
       >
-        <Typography variant="h5" component="h1" gutterBottom align="center">
-          Créer un compte
+        <Typography variant="h5" component="h1" fontWeight="bold" align="center" gutterBottom>
+          Création de compte
+        </Typography>
+
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          align="center"
+          sx={{ mb: 3 }}
+        >
+          Créez votre compte pour accéder à votre espace personnel sécurisé.
         </Typography>
 
         <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -124,7 +135,7 @@ export default function RegisterPage() {
           />
 
           <TextField
-            label="Email"
+            label="Adresse e-mail"
             name="email"
             type="email"
             value={form.email}
@@ -156,7 +167,7 @@ export default function RegisterPage() {
             required
           />
 
-          {/* ✅ Consentement RGPD */}
+          {/* ✅ Consentement RGPD obligatoire */}
           <FormControlLabel
             control={
               <Checkbox
@@ -167,16 +178,25 @@ export default function RegisterPage() {
               />
             }
             label={
-              <Typography variant="body2">
-                J’accepte la{" "}
+              <Typography variant="body2" sx={{ lineHeight: 1.4 }}>
+                J’ai lu et j’accepte la{" "}
                 <Link to="/politique-confidentialite" target="_blank">
                   politique de confidentialité
                 </Link>{" "}
-                et le traitement de mes données personnelles.
+                ainsi que le traitement de mes données personnelles conformément au RGPD.
               </Typography>
             }
             sx={{ mt: 2 }}
           />
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", mt: 1.5 }}
+          >
+            Vos données sont utilisées uniquement pour la gestion de votre compte
+            et ne seront jamais transmises à des tiers sans votre accord.
+          </Typography>
 
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
@@ -191,9 +211,18 @@ export default function RegisterPage() {
             fullWidth
             sx={{ mt: 3 }}
           >
-            Créer un compte
+            Créer mon compte
           </Button>
         </Box>
+
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="body2" align="center">
+          Déjà inscrit ?{" "}
+          <Link to="/login" style={{ textDecoration: "none" }}>
+            Se connecter
+          </Link>
+        </Typography>
       </Paper>
     </Box>
   );

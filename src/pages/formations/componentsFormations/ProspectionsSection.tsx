@@ -8,6 +8,7 @@ import {
   Stack,
   Button,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import type { Prospection } from "../../../types/prospection";
 
@@ -15,17 +16,31 @@ interface Props {
   prospections: Prospection[];
   formationId: number;
   limit?: number;
+  loading?: boolean; // ✅ ajouté pour compatibilité avec FormationsEditPage
 }
 
 export default function ProspectionsSection({
   prospections,
   formationId,
   limit = 3,
+  loading = false,
 }: Props) {
   const navigate = useNavigate();
   const [displayLimit, setDisplayLimit] = useState(limit);
 
   const affichées = prospections.slice(0, displayLimit);
+
+  // ✅ Affichage du loader pendant le chargement
+  if (loading) {
+    return (
+      <Paper sx={{ p: 3, textAlign: "center" }}>
+        <CircularProgress />
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          Chargement des prospections...
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -55,6 +70,7 @@ export default function ProspectionsSection({
         </Box>
       ))}
 
+      {/* Boutons de navigation */}
       <Stack
         direction="row"
         spacing={2}

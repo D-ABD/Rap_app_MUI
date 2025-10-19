@@ -1,128 +1,86 @@
-import { useEffect, useState, useCallback, type FormEvent } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Paper,
-  Stack,
-  Button,
-  TextField,
-  Typography,
-  CircularProgress,
-} from "@mui/material";
-
 import api from "../../api/axios";
-import useForm from "../../hooks/useForm";
 import PageTemplate from "../../components/PageTemplate";
+import CentreForm from "./CentreForm";
+import CentreDetailPage from "./CentreDetailPage";
+import { CircularProgress, Box, Button, Stack } from "@mui/material";
+import type { Centre } from "../../types/centre";
 
-export default function CentresEditPage() {
+export default function EditCentre() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // 🔹 On type correctement avec Centre
+  const [initialValues, setInitialValues] = useState<Centre | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const { values, handleChange, setValues } = useForm({
-    nom: "",
-    code_postal: "",
-  });
+  const formRef = useRef<HTMLDivElement | null>(null);
 
   const fetchCentre = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get(`/centres/${id}/`);
-      setValues({
-        nom: res.data.nom,
-        code_postal: res.data.code_postal,
-      });
+      const res = await api.get<Centre>(`/centres/${id}/`);
+      setInitialValues(res.data);
     } catch {
       toast.error("Erreur lors du chargement du centre");
       navigate("/centres");
     } finally {
       setLoading(false);
     }
-  }, [id, navigate, setValues]);
+  }, [id, navigate]);
 
   useEffect(() => {
     fetchCentre();
   }, [fetchCentre]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    const { nom, code_postal } = values;
-    if (!nom.trim() || !code_postal.trim()) {
-      toast.error("Tous les champs sont obligatoires.");
-      return;
-    }
-
+  const handleSubmit = async (values: Partial<Centre>) => {
     try {
       await api.put(`/centres/${id}/`, values);
-      toast.success("Centre mis à jour");
-      navigate("/centres");
+      toast.success("Centre mis à jour avec succès !");
+      fetchCentre(); // 🔁 recharge les détails
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
-      toast.error("Erreur lors de la mise à jour");
+      toast.error("Erreur lors de la mise à jour du centre");
     }
   };
 
+  const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  if (loading || !initialValues) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="30vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <PageTemplate
-      title="Modifier un centre"
-      backButton
-      onBack={() => navigate(-1)}
-      refreshButton
-      onRefresh={fetchCentre}
-    >
-      {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="30vh">
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom fontWeight="bold">
-            Modifier les informations
-          </Typography>
+    <PageTemplate title={`🏫 Modifier le centre : ${initialValues.nom}`} backButton onBack={() => navigate(-1)}>
+      {/* ───────── Détails ───────── */}
+            <Stack direction="row" justifyContent="center" mb={4}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={scrollToForm}
+          sx={{ textTransform: "none", fontWeight: "bold" }}
+        >
+          ✏️ Modifier les informations
+        </Button>
+      </Stack>
+      <Box mb={3}>
+        <CentreDetailPage centre={initialValues} />
+      </Box>
 
-          <form onSubmit={handleSubmit}>
-            <Stack spacing={2}>
-              <TextField
-                id="nom"
-                name="nom"
-                label="Nom"
-                value={values.nom}
-                onChange={handleChange}
-                required
-                fullWidth
-              />
 
-              <TextField
-                id="code_postal"
-                name="code_postal"
-                label="Code postal"
-                value={values.code_postal}
-                onChange={handleChange}
-                required
-                fullWidth
-              />
 
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={2}
-                justifyContent="flex-end"
-              >
-                <Button type="submit" variant="contained" color="success">
-                  💾 Enregistrer
-                </Button>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={() => navigate("/centres")}
-                >
-                  Annuler
-                </Button>
-              </Stack>
-            </Stack>
-          </form>
-        </Paper>
-      )}
+      {/* ───────── Formulaire ───────── */}
+      <div ref={formRef}>
+        <CentreForm initialValues={initialValues} onSubmit={handleSubmit} mode="edit" />
+      </div>
     </PageTemplate>
   );
 }

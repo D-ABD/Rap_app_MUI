@@ -1,4 +1,3 @@
-// src/pages/ateliers/AteliersTrePage.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -29,6 +28,8 @@ import {
   useDeleteAtelierTRE,
 } from "../../hooks/useAtelierTre";
 import PageTemplate from "../../components/PageTemplate";
+import AtelierTREDetailModal from "./AtelierTREDetailModal";
+import ExportButtonAteliersTRE from "../../components/export_buttons/ExportButtonAteliersTRE";
 
 export default function AteliersTrePage() {
   const navigate = useNavigate();
@@ -122,6 +123,18 @@ export default function AteliersTrePage() {
     }
   };
 
+  // ─────── Détail ───────
+  const [selectedAtelier, setSelectedAtelier] = useState<AtelierTRE | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+
+  const handleRowClick = (id: number) => {
+    const atelier = items.find((i) => i.id === id);
+    if (atelier) {
+      setSelectedAtelier(atelier);
+      setShowDetail(true);
+    }
+  };
+
   return (
     <PageTemplate
       title="Ateliers TRE"
@@ -161,6 +174,9 @@ export default function AteliersTrePage() {
           >
             ➕ Nouvel atelier
           </Button>
+
+          {/* ✅ Bouton Export Excel */}
+          <ExportButtonAteliersTRE data={items} selectedIds={selectedIds} />
         </Stack>
       }
       filters={
@@ -222,8 +238,17 @@ export default function AteliersTrePage() {
             setSelectedId(id);
             setShowConfirm(true);
           }}
+          onRowClick={handleRowClick}
         />
       )}
+
+      {/* ───────────── Modale de détail ───────────── */}
+      <AtelierTREDetailModal
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        atelier={selectedAtelier}
+        onEdit={(id) => navigate(`/ateliers-tre/${id}/edit`)}
+      />
 
       {/* Confirmation dialog */}
       <Dialog open={showConfirm} onClose={() => setShowConfirm(false)}>

@@ -6,6 +6,11 @@ import {
   Typography,
   CircularProgress,
   Avatar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import { toast } from "react-toastify";
 import { useMe } from "../../hooks/useUsers";
@@ -16,10 +21,12 @@ import { useAuth } from "../../hooks/useAuth";
 export default function MonProfil() {
   const { user, loading, error } = useMe();
   const { logout } = useAuth();
+
   const [formData, setFormData] = useState<MeUpdatePayload>({});
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -64,7 +71,7 @@ export default function MonProfil() {
       });
 
       toast.success("✅ Profil mis à jour !");
-      console.log("Nouvel utilisateur :", res.data.data);
+      ("Nouvel utilisateur :", res.data.data);
     } catch (e) {
       toast.error("❌ Erreur lors de la mise à jour");
       console.error(e);
@@ -74,17 +81,17 @@ export default function MonProfil() {
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("⚠️ Êtes-vous sûr de vouloir supprimer votre compte ?")) return;
     try {
       setDeleting(true);
-      await api.post("/users/deactivate/");
-      toast.success("🗑️ Votre compte a été désactivé.");
-      logout(); // ✅ déconnecter l’utilisateur
+      await api.delete("/users/delete-account/");
+      toast.success("🗑️ Votre compte a été supprimé conformément au RGPD.");
+      logout();
     } catch (e) {
-      toast.error("❌ Erreur lors de la désactivation du compte");
+      toast.error("❌ Erreur lors de la suppression du compte");
       console.error(e);
     } finally {
       setDeleting(false);
+      setOpenDeleteDialog(false);
     }
   };
 
@@ -111,6 +118,8 @@ export default function MonProfil() {
         </Button>
       </Box>
 
+      <TextField label="Rôle" fullWidth margin="normal" value={user.role || "—"} disabled />
+
       <TextField
         label="Email"
         fullWidth
@@ -118,20 +127,23 @@ export default function MonProfil() {
         value={formData.email || ""}
         onChange={(e) => handleChange("email", e.target.value)}
       />
+
+      {/* 👇 Lecture seule */}
       <TextField
         label="Prénom"
         fullWidth
         margin="normal"
         value={formData.first_name || ""}
-        onChange={(e) => handleChange("first_name", e.target.value)}
+        InputProps={{ readOnly: true }}
       />
       <TextField
         label="Nom"
         fullWidth
         margin="normal"
         value={formData.last_name || ""}
-        onChange={(e) => handleChange("last_name", e.target.value)}
+        InputProps={{ readOnly: true }}
       />
+
       <TextField
         label="Téléphone"
         fullWidth
@@ -139,6 +151,7 @@ export default function MonProfil() {
         value={formData.phone || ""}
         onChange={(e) => handleChange("phone", e.target.value)}
       />
+
       <TextField
         label="Bio"
         fullWidth
@@ -148,6 +161,50 @@ export default function MonProfil() {
         value={formData.bio || ""}
         onChange={(e) => handleChange("bio", e.target.value)}
       />
+
+      {/* 🔒 Informations RGPD */}
+      {user && (
+        <Box
+          sx={{
+            mt: 3,
+            p: 2,
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 2,
+          }}
+        >
+          <Typography variant="subtitle1" gutterBottom>
+            🔐 Consentement RGPD
+          </Typography>
+
+          {user.consent_rgpd ? (
+            <Typography variant="body2">
+              Vous avez accepté la politique de confidentialité
+              {user.consent_date
+                ? ` le ${new Date(user.consent_date).toLocaleDateString("fr-FR")}.`
+                : "."}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="error">
+              ❌ Vous n'avez pas encore accepté la politique de confidentialité.
+            </Typography>
+          )}
+
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            Consultez notre{" "}
+            <a
+              href="/politique-confidentialite"
+              style={{ color: "#1976d2", textDecoration: "underline" }}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              politique de confidentialité
+            </a>{" "}
+            pour plus d’informations.
+          </Typography>
+        </Box>
+      )}
 
       {/* ✅ Actions */}
       <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
@@ -163,23 +220,54 @@ export default function MonProfil() {
         <Button
           variant="outlined"
           color="error"
-          onClick={handleDeleteAccount}
+          onClick={() => setOpenDeleteDialog(true)}
           disabled={deleting}
         >
           {deleting ? "⏳ Suppression..." : "🗑️ Supprimer mon compte"}
         </Button>
       </Box>
+
+      {/* 🧩 Modale de confirmation RGPD */}
+      <Dialog
+        open={openDeleteDialog}
+        onClose={() => setOpenDeleteDialog(false)}
+        aria-labelledby="delete-account-dialog-title"
+      >
+        <DialogTitle id="delete-account-dialog-title">
+          Suppression de votre compte
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ whiteSpace: "pre-line" }}>
+            ⚠️ Cette action est irréversible.
+            {"\n\n"}
+            Votre compte et vos données personnelles seront anonymisés conformément au RGPD.
+            {"\n\n"}
+            Souhaitez-vous continuer ?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDeleteDialog(false)}>Annuler</Button>
+          <Button
+            onClick={handleDeleteAccount}
+            color="error"
+            disabled={deleting}
+          >
+            {deleting ? "Suppression..." : "Confirmer"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Typography
         variant="body2"
         color="text.secondary"
         sx={{ mt: 3, fontSize: "0.85rem", lineHeight: 1.4 }}
-        >
+      >
         Conformément au RGPD, vous pouvez demander la suppression de votre compte.
         Cela entraîne la désactivation de votre accès. Certaines données peuvent être
         conservées temporairement pour des obligations légales ou statistiques.
         Pour toute demande complémentaire (export ou effacement total des données),
         veuillez contacter l’administrateur.
-        </Typography>
+      </Typography>
     </Box>
   );
 }

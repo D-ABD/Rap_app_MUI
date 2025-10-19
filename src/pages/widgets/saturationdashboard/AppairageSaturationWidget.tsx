@@ -15,8 +15,10 @@ import {
   MenuItem,
   TextField,
   FormControl,
+  Button,
 } from "@mui/material";
 import HandshakeIcon from "@mui/icons-material/Handshake";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import DashboardTemplateSaturation from "../../../components/dashboard/DashboardTemplateSaturation";
 
 function pct(n: number) {
@@ -37,6 +39,15 @@ export default function AppairageConversionKpi({
   );
   const [autoDepartement, setAutoDepartement] = React.useState(true);
 
+  // 🔘 Gestion du bouton "archivées"
+  const [includeArchived, setIncludeArchived] = React.useState(false);
+  React.useEffect(() => {
+    setFilters((f) => ({
+      ...f,
+      avec_archivees: includeArchived ? true : undefined,
+    }));
+  }, [includeArchived]);
+
   const { data, isLoading, error, isFetching } = useAppairageOverview(filters);
 
   const {
@@ -55,18 +66,21 @@ export default function AppairageConversionKpi({
             ? r.group_key
             : undefined);
         if (rawId == null) return null;
-        return { id: String(rawId), label: resolveAppairageGroupLabel(r, "centre") };
+        return {
+          id: String(rawId),
+          label: resolveAppairageGroupLabel(r, "centre"),
+        };
       })
       .filter(Boolean)
-      .sort((a, b) => (a!.label || "").localeCompare(b!.label || "")) as Array<{
-      id: string;
-      label: string;
-    }>;
+      .sort((a, b) =>
+        (a!.label || "").localeCompare(b!.label || "")
+      ) as Array<{ id: string; label: string }>;
   }, [centresGrouped]);
 
-  const centreValue = filters.centre && centreOptions.some((c) => c.id === filters.centre)
-    ? filters.centre
-    : "";
+  const centreValue =
+    filters.centre && centreOptions.some((c) => c.id === filters.centre)
+      ? filters.centre
+      : "";
 
   const { data: depForCentre } = useAppairageGrouped("departement", {
     ...filters,
@@ -95,7 +109,10 @@ export default function AppairageConversionKpi({
           value={centreValue}
           onChange={(e) => {
             const value = e.target.value as string;
-            setFilters((f) => ({ ...f, centre: value === "" ? undefined : value }));
+            setFilters((f) => ({
+              ...f,
+              centre: value === "" ? undefined : value,
+            }));
             setAutoDepartement(true);
           }}
           displayEmpty
@@ -122,6 +139,17 @@ export default function AppairageConversionKpi({
         }}
         sx={{ width: 100 }}
       />
+
+      {/* Bouton Archivées */}
+      <Button
+        size="small"
+        variant={includeArchived ? "contained" : "outlined"}
+        color={includeArchived ? "secondary" : "inherit"}
+        onClick={() => setIncludeArchived((v) => !v)}
+        startIcon={<ArchiveIcon fontSize="small" />}
+      >
+        {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+      </Button>
     </>
   );
 
@@ -131,7 +159,13 @@ export default function AppairageConversionKpi({
       toneColor="primary.main"
       isFetching={isFetching}
       isLoading={isLoading}
-      error={error ? getErrorMessage(error) : errCentres ? getErrorMessage(errCentres) : null}
+      error={
+        error
+          ? getErrorMessage(error)
+          : errCentres
+          ? getErrorMessage(errCentres)
+          : null
+      }
       filters={filtersBar}
     >
       {total > 0 && (

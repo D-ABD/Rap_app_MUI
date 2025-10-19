@@ -525,3 +525,51 @@ export function useAtelierTREFiltresOptions() {
 
   return { options, loading, error };
 }
+
+// ── Export Excel (XLSX) ──────────────────────────────────────────────────────
+export function useExportAteliersTRE() {
+  /**
+   * Permet d’exporter les ateliers TRE filtrés au format Excel (.xlsx)
+   * en respectant les filtres actuels et les permissions du backend.
+   */
+  const exportXlsx = async (params?: Partial<AtelierTREFiltresValues>) => {
+    try {
+      const res = await api.get<Blob>("/ateliers-tre/export-xlsx/", {
+        params,
+        responseType: "blob",
+      });
+
+      // Récupère le nom de fichier depuis le header Content-Disposition
+      const disposition = res.headers["content-disposition"];
+      let filename = "ateliers_tre.xlsx";
+      if (disposition) {
+        const match = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+        if (match && match[1]) {
+          filename = decodeURIComponent(match[1].replace(/['"]/g, ""));
+        }
+      }
+
+      // Crée le lien de téléchargement
+      const blob = new Blob([res.data], {
+        type:
+          res.headers["content-type"] ||
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const link = document.createElement("a");
+      const url = window.URL.createObjectURL(blob);
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return true;
+    } catch (e) {
+      console.error("❌ Erreur export ateliers TRE :", e);
+      throw e;
+    }
+  };
+
+  return { exportXlsx };
+}

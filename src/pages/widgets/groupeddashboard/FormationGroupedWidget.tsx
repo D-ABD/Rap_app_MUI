@@ -13,8 +13,11 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TableFooter,
+  Button,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
+import ArchiveIcon from "@mui/icons-material/Archive";
 import {
   Filters,
   GroupBy,
@@ -23,11 +26,11 @@ import {
   resolveGroupLabel,
 } from "../../../types/formationStats";
 
-function toFixed0(n?: number) {
+function toFixed0(n?: number | null) {
   return n == null ? "—" : Math.round(n).toString();
 }
 
-// 🔹 Colonnes définies une seule fois (perf + clarté)
+// 🔹 Colonnes définies une seule fois
 const COLUMNS = [
   "Formations",
   "Places CRIF",
@@ -62,8 +65,75 @@ export default function FormationGroupedWidget({
   filters?: Filters;
 }) {
   const [by, setBy] = React.useState<GroupBy>(initialBy);
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
+    !!filters?.avec_archivees
+  );
+
+  const effectiveFilters = React.useMemo(
+    () => ({ ...(filters ?? {}), avec_archivees: includeArchived }),
+    [filters, includeArchived]
+  );
+
   const { data: dicts } = useFormationDictionaries();
-  const { data, isLoading, error } = useFormationGrouped(by, filters ?? {});
+  const { data, isLoading, error } = useFormationGrouped(by, effectiveFilters);
+
+  // 🧮 Calcul des totaux
+  const totals = React.useMemo(() => {
+    if (!data?.results?.length) return null;
+    const sum = <K extends keyof any>(key: K) =>
+      data.results.reduce((acc, row: any) => acc + (Number(row[key]) || 0), 0);
+
+    const nbFormations = sum("nb_formations");
+    const totalPlacesCrif = sum("total_places_crif");
+    const totalInscritsCrif = sum("total_inscrits_crif");
+    const totalPlacesMp = sum("total_places_mp");
+    const totalInscritsMp = sum("total_inscrits_mp");
+    const totalDispo = sum("total_disponibles");
+    const totalEntrees = sum("entrees_formation");
+    const totalCandidats = sum("nb_candidats");
+    const totalAdmissibles = sum("nb_admissibles");
+    const totalEntretien = sum("nb_entretien_ok");
+    const totalTest = sum("nb_test_ok");
+    const totalGespers = sum("nb_inscrits_gespers");
+    const totalAppr = sum("nb_contrats_apprentissage");
+    const totalProf = sum("nb_contrats_professionnalisation");
+    const totalPoeiPoec = sum("nb_contrats_poei_poec");
+    const totalAutres = sum("nb_contrats_autres");
+    const totalAppTotal = sum("app_total");
+    const totalAppOk = sum("app_appairage_ok");
+    const totalAppAttente = sum("app_en_attente");
+    const totalAppAFaire = sum("app_a_faire");
+
+    const moyenneSaturation =
+      data.results.reduce(
+        (acc, r) => acc + (Number(r.taux_saturation) || 0),
+        0
+      ) / data.results.length;
+
+    return {
+      nbFormations,
+      totalPlacesCrif,
+      totalInscritsCrif,
+      totalPlacesMp,
+      totalInscritsMp,
+      totalDispo,
+      moyenneSaturation,
+      totalEntrees,
+      totalCandidats,
+      totalAdmissibles,
+      totalEntretien,
+      totalTest,
+      totalGespers,
+      totalAppr,
+      totalProf,
+      totalPoeiPoec,
+      totalAutres,
+      totalAppTotal,
+      totalAppOk,
+      totalAppAttente,
+      totalAppAFaire,
+    };
+  }, [data]);
 
   return (
     <Card sx={{ p: 2, width: "100%" }}>
@@ -74,22 +144,36 @@ export default function FormationGroupedWidget({
         alignItems="center"
         flexWrap="wrap"
         mb={2}
+        gap={1}
       >
         <Typography variant="h6" fontWeight="bold">
           {title}
         </Typography>
-        <Select
-          size="small"
-          value={by}
-          onChange={(e) => setBy(e.target.value as GroupBy)}
-          sx={{ minWidth: 180 }}
-        >
-          <MenuItem value="formation">Par formation</MenuItem>
-          <MenuItem value="centre">Par centre</MenuItem>
-          <MenuItem value="departement">Par département</MenuItem>
-          <MenuItem value="type_offre">Par type d’offre</MenuItem>
-          <MenuItem value="statut">Par statut</MenuItem>
-        </Select>
+
+        <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
+          <Select
+            size="small"
+            value={by}
+            onChange={(e) => setBy(e.target.value as GroupBy)}
+            sx={{ minWidth: 180 }}
+          >
+            <MenuItem value="formation">Par formation</MenuItem>
+            <MenuItem value="centre">Par centre</MenuItem>
+            <MenuItem value="departement">Par département</MenuItem>
+            <MenuItem value="type_offre">Par type d’offre</MenuItem>
+            <MenuItem value="statut">Par statut</MenuItem>
+          </Select>
+
+          <Button
+            size="small"
+            variant={includeArchived ? "contained" : "outlined"}
+            color={includeArchived ? "secondary" : "inherit"}
+            onClick={() => setIncludeArchived((v) => !v)}
+            startIcon={<ArchiveIcon fontSize="small" />}
+          >
+            {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+          </Button>
+        </Box>
       </Box>
 
       {/* Contenu */}
@@ -100,14 +184,8 @@ export default function FormationGroupedWidget({
       ) : error ? (
         <Alert severity="error">{(error as Error).message}</Alert>
       ) : !data ? null : (
-        <Box
-          sx={{
-            overflowX: "auto",
-            maxHeight: { xs: "50vh", md: "65vh" },
-          }}
-        >
-          <Table stickyHeader size="small" aria-label="Tableau des formations">
-            {/* 🔹 Entête */}
+        <Box sx={{ overflowX: "auto", maxHeight: { xs: "50vh", md: "65vh" } }}>
+          <Table stickyHeader size="small">
             <TableHead>
               <TableRow>
                 <TableCell
@@ -138,39 +216,18 @@ export default function FormationGroupedWidget({
               </TableRow>
             </TableHead>
 
-            {/* 🔹 Corps */}
             <TableBody>
               {data.results.map((r, idx) => {
                 const label = resolveGroupLabel(r, by, dicts);
                 const rowAny = r as Record<string, unknown>;
-
-                const centreNom =
-                  by === "formation" && typeof rowAny["centre__nom"] === "string"
-                    ? (rowAny["centre__nom"] as string)
-                    : undefined;
-                const numOffreRaw =
-                  by === "formation" && rowAny["num_offre"] != null
-                    ? String(rowAny["num_offre"])
-                    : undefined;
-                const meta =
-                  by === "formation"
-                    ? [centreNom, numOffreRaw ? `Offre ${numOffreRaw}` : undefined]
-                        .filter(Boolean)
-                        .join(" · ")
-                    : undefined;
-
-                const nbContratsAppr = rowAny["nb_contrats_apprentissage"] as number;
-                const nbContratsProf = rowAny["nb_contrats_professionnalisation"] as number;
-                const nbContratsPoeiPoec = rowAny["nb_contrats_poei_poec"] as number;
-                const nbContratsAutres = rowAny["nb_contrats_autres"] as number;
-
                 const isEven = idx % 2 === 0;
                 const saturation = r.taux_saturation ?? 0;
-
-                let saturationColor: string;
-                if (saturation < 50) saturationColor = "success.main";
-                else if (saturation < 80) saturationColor = "warning.main";
-                else saturationColor = "error.main";
+                const saturationColor =
+                  saturation < 50
+                    ? "success.main"
+                    : saturation < 80
+                    ? "warning.main"
+                    : "error.main";
 
                 return (
                   <TableRow
@@ -180,12 +237,13 @@ export default function FormationGroupedWidget({
                       "&:hover": { backgroundColor: "action.hover" },
                     }}
                   >
-                    {/* Groupe */}
                     <TableCell
                       sx={{
                         position: "sticky",
                         left: 0,
-                        backgroundColor: isEven ? "background.default" : "grey.50",
+                        backgroundColor: isEven
+                          ? "background.default"
+                          : "grey.50",
                         zIndex: 1,
                         fontWeight: 500,
                         minWidth: 180,
@@ -196,77 +254,78 @@ export default function FormationGroupedWidget({
                       }}
                     >
                       <Typography variant="body2">{label}</Typography>
-                      {meta && (
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          display="block"
-                        >
-                          {meta}
-                        </Typography>
-                      )}
                     </TableCell>
 
-                    {/* Valeurs */}
                     <TableCell align="right">{toFixed0(r.nb_formations)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_places_crif)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_inscrits_crif)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_places_mp)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_inscrits_mp)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_disponibles)}</TableCell>
-
-                    {/* 🔸 Saturation colorée */}
                     <TableCell
                       align="right"
                       sx={{ color: saturationColor, fontWeight: 600 }}
                     >
                       {Math.round(saturation)}%
                     </TableCell>
-
                     <TableCell align="right">{toFixed0(r.entrees_formation)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_candidats)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_admissibles)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_entretien_ok)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_test_ok)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_inscrits_gespers)}</TableCell>
-                    <TableCell align="right">{toFixed0(nbContratsAppr)}</TableCell>
-                    <TableCell align="right">{toFixed0(nbContratsProf)}</TableCell>
-                    <TableCell align="right">{toFixed0(nbContratsPoeiPoec)}</TableCell>
-                    <TableCell align="right">{toFixed0(nbContratsAutres)}</TableCell>
+                    <TableCell align="right">{toFixed0(r.nb_contrats_apprentissage)}</TableCell>
+                    <TableCell align="right">{toFixed0(r.nb_contrats_professionnalisation)}</TableCell>
+                    <TableCell align="right">{toFixed0(r.nb_contrats_poei_poec)}</TableCell>
+                    <TableCell align="right">{toFixed0(r.nb_contrats_autres)}</TableCell>
                     <TableCell align="right">{toFixed0(r.app_total)}</TableCell>
-
-                    {/* 🔸 Appairages mis en avant */}
-                    <TableCell
-                      align="right"
-                      sx={{
-                        backgroundColor: alpha("#4caf50", 0.15),
-                        fontWeight: 600,
-                      }}
-                    >
-                      {toFixed0(r.app_appairage_ok)}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{
-                        backgroundColor: alpha("#ff9800", 0.15),
-                        fontWeight: 600,
-                      }}
-                    >
-                      {toFixed0(r.app_en_attente)}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{
-                        backgroundColor: alpha("#f44336", 0.15),
-                        fontWeight: 600,
-                      }}
-                    >
-                      {toFixed0(r.app_a_faire)}
-                    </TableCell>
+                    <TableCell align="right">{toFixed0(r.app_appairage_ok)}</TableCell>
+                    <TableCell align="right">{toFixed0(r.app_en_attente)}</TableCell>
+                    <TableCell align="right">{toFixed0(r.app_a_faire)}</TableCell>
                   </TableRow>
                 );
               })}
             </TableBody>
+
+            {/* 🔸 Ligne Totale */}
+            {totals && (
+              <TableFooter>
+                <TableRow
+                  sx={{
+                    backgroundColor: alpha("#1976d2", 0.1),
+                    fontWeight: "bold",
+                  }}
+                >
+                  <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
+                  <TableCell align="right">{toFixed0(totals.nbFormations)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalPlacesCrif)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalInscritsCrif)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalPlacesMp)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalInscritsMp)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalDispo)}</TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ fontWeight: 700 }}
+                  >
+                    {Math.round(totals.moyenneSaturation)}%
+                  </TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalEntrees)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalCandidats)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAdmissibles)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalEntretien)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalTest)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalGespers)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAppr)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalProf)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalPoeiPoec)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAutres)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAppTotal)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAppOk)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAppAttente)}</TableCell>
+                  <TableCell align="right">{toFixed0(totals.totalAppAFaire)}</TableCell>
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
         </Box>
       )}

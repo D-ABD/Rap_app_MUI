@@ -1,4 +1,3 @@
-// src/pages/partenaires/PartenaireForm.tsx
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -13,7 +12,25 @@ import {
   Button,
   Chip,
   Link,
+  Divider,
+  AccordionDetails,
+  Accordion,
+  AccordionSummary,
 } from "@mui/material";
+import {
+  Business as BusinessIcon,
+  Home as HomeIcon,
+  Work as WorkIcon,
+  Group as GroupIcon,
+  Description as DescriptionIcon,
+  Info as InfoIcon,
+  Link as LinkIcon,
+  Save as SaveIcon,
+  RestartAlt as RestartAltIcon,
+  LocationOn as LocationOnIcon,
+} from "@mui/icons-material";
+import { ExpandMore as ExpandMoreIcon } from "@mui/icons-material";
+
 import type {
   Partenaire,
   PartenaireChoicesResponse,
@@ -31,7 +48,7 @@ type FormProps = {
   centreOptions?: CentreOption[];
 };
 
-const onlyDigits = (s: string) => s.replace(/\D/g, "").slice(0, 5);
+const onlyDigits = (s: string, limit = 5) => s.replace(/\D/g, "").slice(0, limit);
 
 function getDefaultCentreId(p: Partial<Partenaire>): number | "" {
   if (typeof p.default_centre_id === "number") return p.default_centre_id;
@@ -40,6 +57,34 @@ function getDefaultCentreId(p: Partial<Partenaire>): number | "" {
   return "";
 }
 
+// 🔹 Déclaré tout en haut, avant le composant principal
+function Section({
+  icon,
+  title,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Paper
+      variant="outlined"
+      sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}
+    >
+      <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+        {icon}
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+          {title}
+        </Typography>
+      </Stack>
+      <Divider sx={{ mb: 2 }} />
+      {children}
+    </Paper>
+  );
+}
+
+
 export default function PartenaireForm({
   initialValues = {},
   onSubmit,
@@ -47,25 +92,32 @@ export default function PartenaireForm({
   choices,
   centreOptions,
 }: FormProps) {
-  const [form, setForm] = useState<Partial<Partenaire>>(initialValues);
+
+const [form, setForm] = useState<Partial<Partenaire>>(() => initialValues);
   const [openCentreModal, setOpenCentreModal] = useState(false);
 
-  useEffect(() => {
-    setForm(initialValues);
-  }, [initialValues]);
+// ⚙️ Initialiser le form UNE SEULE FOIS au montage
+useEffect(() => {
+    ("🔹 Initialisation du form uniquement au montage");
+
+  setForm((prev) =>
+    Object.keys(prev).length === 0 ? { ...initialValues } : prev
+  );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
+
+
 
   const handleChange = <K extends keyof Partenaire>(
     field: K,
     value: Partenaire[K] | undefined
-  ) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
+  ) => setForm((prev) => ({ ...prev, [field]: value }));
 
   const handleDefaultCentreChange = (val: string) => {
     const id = val ? Number(val) : null;
     const label =
       id != null ? centreOptions?.find((c) => c.value === id)?.label ?? null : null;
-
     setForm((prev) => ({
       ...prev,
       default_centre_id: id,
@@ -74,36 +126,49 @@ export default function PartenaireForm({
     }));
   };
 
-  const handleDefaultCentrePick = (c: { id: number; label: string }) => {
-    setForm((prev) => ({
-      ...prev,
-      default_centre_id: c.id,
-      default_centre: { id: c.id, nom: c.label },
-      default_centre_nom: c.label,
-    }));
-    setOpenCentreModal(false);
-  };
+const handleDefaultCentrePick = (c: { id: number; label: string }) => {
+  ("✅ Nouveau centre sélectionné :", c.id, c.label);
 
-  const count = (s?: string | null) => (s ? s.length : 0);
-  const defaultCentreId = getDefaultCentreId(form);
+  setForm((prev) => ({
+    ...prev,
+    default_centre_id: c.id,
+    default_centre: { id: c.id, nom: c.label },
+    default_centre_nom: c.label,
+  }));
+  setOpenCentreModal(false);
+};
+
+const count = (s?: string | null) => (s ? s.length : 0);
+
+// ✅ Correction ici :
+const defaultCentreId = getDefaultCentreId(form);
+const safeCentreValue =
+  defaultCentreId !== "" && defaultCentreId != null
+    ? String(defaultCentreId)
+    : "";
+
 
   return (
     <Box
       component="form"
       onSubmit={(e) => {
         e.preventDefault();
+
+        if (!form.default_centre_id) {
+          alert("❌ Vous devez sélectionner un centre avant de créer le partenaire.");
+          return;
+        }
+
         onSubmit(form);
       }}
+
       aria-busy={loading || undefined}
     >
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-      >
-        <Typography variant="h6">Informations du partenaire</Typography>
+      {/* ─────────── En-tête ─────────── */}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h5" fontWeight={600} color="primary">
+          🏢 Partenaire
+        </Typography>
         <Chip
           label={(form.is_active ?? true) ? "Actif" : "Inactif"}
           color={(form.is_active ?? true) ? "success" : "error"}
@@ -111,322 +176,503 @@ export default function PartenaireForm({
         />
       </Stack>
 
-      {/* Général */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Général
+{/* ─────────── Général ─────────── */}
+<Section icon={<InfoIcon color="primary" />} title="Informations générales">
+  <Grid container spacing={2}>
+    {/* Nom entreprise */}
+    <Grid item xs={12} md={8}>
+      <TextField
+        fullWidth
+        required
+        label="Nom de l’entreprise (raison sociale)"
+        value={form.nom || ""}
+        onChange={(e) => handleChange("nom", e.target.value)}
+        disabled={loading}
+      />
+    </Grid>
+
+    {/* Nom du contact */}
+    <Grid item xs={12} md={8}>
+      <TextField
+        fullWidth
+        label="Nom du contact"
+        value={form.contact_nom || ""} // ✅ champ corrigé
+        onChange={(e) => handleChange("contact_nom", e.target.value)}
+        disabled={loading}
+      />
+    </Grid>
+
+    {/* Téléphone */}
+    <Grid item xs={12} md={6}>
+      <TextField
+        label="Téléphone"
+        value={form.telephone || ""}
+        onChange={(e) => handleChange("telephone", e.target.value)}
+        fullWidth
+      />
+    </Grid>
+
+    {/* Email */}
+    <Grid item xs={12} md={4}>
+      <TextField
+        type="email"
+        label="Email"
+        value={form.email || ""}
+        onChange={(e) => handleChange("email", e.target.value)}
+        fullWidth
+      />
+    </Grid>
+
+    {/* Type */}
+    <Grid item xs={12} md={4}>
+      <TextField
+        select
+        fullWidth
+        label="Type"
+        value={form.type ?? ""}
+        onChange={(e) =>
+          handleChange("type", e.target.value as Partenaire["type"])
+        }
+        disabled={loading}
+      >
+        <MenuItem value="">Sélectionner…</MenuItem>
+        {choices?.types?.map((t) => (
+          <MenuItem key={t.value} value={t.value}>
+            {t.label}
+          </MenuItem>
+        ))}
+      </TextField>
+    </Grid>
+
+{/* Centre par défaut */}
+<Grid item xs={12} md={6}>
+  <Stack direction="column" spacing={1}>
+    <Stack direction="row" spacing={1} alignItems="center">
+      <TextField
+        select
+        required
+        fullWidth
+        label="Centre par défaut"
+        value={
+          centreOptions && centreOptions.length > 0
+            ? String(form.default_centre_id ?? "")
+            : "" // 👈 évite le warning MUI tant que la liste n'est pas prête
+        }
+        onChange={(e) => handleDefaultCentreChange(e.target.value)}
+        disabled={loading || !centreOptions || centreOptions.length === 0}
+        error={!form.default_centre_id}
+        helperText={
+          !form.default_centre_id
+            ? "Sélection obligatoire avant enregistrement"
+            : undefined
+        }
+      >
+        <MenuItem value="">Aucun</MenuItem>
+        {centreOptions?.map((c) => (
+          <MenuItem key={c.value} value={String(c.value)}>
+            {c.label}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      <Button
+        variant="outlined"
+        onClick={() => setOpenCentreModal(true)}
+        disabled={loading}
+      >
+        Parcourir…
+      </Button>
+    </Stack>
+
+    {/* ✅ Nom du centre affiché après sélection */}
+    {form.default_centre_nom && (
+      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+        🏫 Centre sélectionné :{" "}
+        <Typography component="span" fontWeight="bold" color="text.primary">
+          {form.default_centre_nom}
         </Typography>
+      </Typography>
+    )}
+  </Stack>
+</Grid>
+
+    {/* Secteur d’activité */}
+    <Grid item xs={12}>
+      <TextField
+        fullWidth
+        label="Secteur d’activité"
+        value={form.secteur_activite || ""}
+        onChange={(e) => handleChange("secteur_activite", e.target.value)}
+        disabled={loading}
+        helperText="Ex. Numérique, BTP, Santé…"
+      />
+    </Grid>
+  </Grid>
+</Section>
+
+      {/* ─────────── Adresse ─────────── */}
+      <Section icon={<LocationOnIcon color="primary" />
+} title="Adresse">
         <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
+          <Grid item xs={12} md={2}>
             <TextField
+              label="N°"
+              value={form.street_number || ""}
+              onChange={(e) => handleChange("street_number", e.target.value)}
               fullWidth
-              label="Nom (raison sociale)"
-              value={form.nom || ""}
-              onChange={(e) => handleChange("nom", e.target.value)}
-              disabled={loading}
-              required
-              inputProps={{ maxLength: 255 }}
             />
           </Grid>
-
-          <Grid item xs={12} md={4}>
-            <TextField
-              select
-              fullWidth
-              label="Type"
-              value={form.type ?? ""}
-              onChange={(e) =>
-                handleChange("type", e.target.value ? (e.target.value as Partenaire["type"]) : undefined)
-              }
-              disabled={loading}
-            >
-              <MenuItem value="">Sélectionner…</MenuItem>
-              {choices?.types?.map((t) => (
-                <MenuItem key={t.value} value={t.value}>
-                  {t.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
-          </Grid>
-
-          {/* Centre */}
-          <Grid item xs={12} md={6}>
-            {centreOptions && centreOptions.length > 0 ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <TextField
-                  select
-                  fullWidth
-                  label="Centre par défaut"
-                  value={defaultCentreId === "" ? "" : String(defaultCentreId)}
-                  onChange={(e) => handleDefaultCentreChange(e.target.value)}
-                  disabled={loading}
-                >
-                  <MenuItem value="">Aucun</MenuItem>
-                  {centreOptions.map((c) => (
-                    <MenuItem key={c.value} value={c.value}>
-                      {c.label}
-                    </MenuItem>
-                  ))}
-                </TextField>
-                <Button
-                  variant="outlined"
-                  onClick={() => setOpenCentreModal(true)}
-                >
-                  Parcourir…
-                </Button>
-              </Stack>
-            ) : (
-              <Stack spacing={1}>
-                <Stack direction="row" spacing={1} alignItems="center">
-                  <TextField
-                    type="number"
-                    fullWidth
-                    label="Centre par défaut (ID)"
-                    value={defaultCentreId === "" ? "" : defaultCentreId}
-                    onChange={(e) => handleDefaultCentreChange(e.target.value)}
-                    disabled={loading}
-                  />
-                  <Button
-                    variant="outlined"
-                    onClick={() => setOpenCentreModal(true)}
-                  >
-                    Parcourir…
-                  </Button>
-                </Stack>
-                <Typography variant="caption" color="text.secondary">
-                  Astuce : utilisez « Parcourir » pour choisir un centre.
-                </Typography>
-              </Stack>
-            )}
-          </Grid>
-
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              label="Secteur d’activité"
-              value={form.secteur_activite || ""}
-              onChange={(e) =>
-                handleChange("secteur_activite", e.target.value)
-              }
-              disabled={loading}
-              inputProps={{ maxLength: 255 }}
-              helperText="Ex. Numérique, BTP, Santé…"
-            />
-          </Grid>
-        </Grid>
-      </Paper>
-
-      {/* Adresse */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Adresse
-        </Typography>
-        <Grid container spacing={2}>
           <Grid item xs={12} md={6}>
             <TextField
-              fullWidth
               label="Rue"
               value={form.street_name || ""}
               onChange={(e) => handleChange("street_name", e.target.value)}
-              disabled={loading}
-              inputProps={{ maxLength: 200 }}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <TextField
+              label="Complément"
+              value={form.street_complement || ""}
+              onChange={(e) => handleChange("street_complement", e.target.value)}
+              fullWidth
             />
           </Grid>
           <Grid item xs={12} md={2}>
             <TextField
-              fullWidth
               label="Code postal"
               value={form.zip_code || ""}
-              onChange={(e) =>
-                handleChange("zip_code", onlyDigits(e.target.value))
-              }
-              disabled={loading}
-              inputProps={{ maxLength: 5 }}
+              onChange={(e) => handleChange("zip_code", onlyDigits(e.target.value))}
+              fullWidth
             />
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
-              fullWidth
               label="Ville"
               value={form.city || ""}
               onChange={(e) => handleChange("city", e.target.value)}
-              disabled={loading}
-              inputProps={{ maxLength: 100 }}
+              fullWidth
             />
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
-              fullWidth
               label="Pays"
               value={form.country || ""}
               onChange={(e) => handleChange("country", e.target.value)}
-              disabled={loading}
-              inputProps={{ maxLength: 100 }}
+              fullWidth
             />
           </Grid>
+          
+          
         </Grid>
-      </Paper>
+      </Section>
 
-      {/* Contact */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Contact
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Nom du contact"
-              value={form.contact_nom || ""}
-              onChange={(e) => handleChange("contact_nom", e.target.value)}
-              disabled={loading}
-              inputProps={{ maxLength: 255 }}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Poste"
-              value={form.contact_poste || ""}
-              onChange={(e) => handleChange("contact_poste", e.target.value)}
-              disabled={loading}
-              inputProps={{ maxLength: 255 }}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Téléphone"
-              value={form.contact_telephone || ""}
-              onChange={(e) => handleChange("contact_telephone", e.target.value)}
-              disabled={loading}
-              inputProps={{ maxLength: 20 }}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type="email"
-              label="Email"
-              value={form.contact_email || ""}
+      {/* ─────────── Employeur ─────────── */}
+<Accordion
+  defaultExpanded={false}
+  disableGutters
+  sx={{
+    mb: 3,
+    borderRadius: 2,
+    boxShadow: 1,
+    "&::before": { display: "none" },
+    "&.Mui-expanded": { mt: 1, mb: 2 },
+  }}
+>
+  <AccordionSummary
+    expandIcon={<ExpandMoreIcon />}
+    sx={{
+      backgroundColor: "rgba(25, 118, 210, 0.08)",
+      borderBottom: "1px solid #ddd",
+      borderRadius: "8px 8px 0 0",
+      "& .MuiAccordionSummary-content": { alignItems: "center", gap: 1 },
+    }}
+  >
+    <WorkIcon color="primary" />
+    <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+      Informations employeur (Cerfa)
+    </Typography>
+  </AccordionSummary>
+
+  <AccordionDetails sx={{ p: 3, backgroundColor: "#fafafa" }}>
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={4}>
+        <TextField
+          label="SIRET"
+          value={form.siret || ""}
+          onChange={(e) => handleChange("siret", onlyDigits(e.target.value, 14))}
+          fullWidth
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          select
+          label="Type d’employeur"
+          value={form.type_employeur ?? ""}
+          onChange={(e) =>
+            handleChange("type_employeur", e.target.value as "prive" | "public")
+          }
+          fullWidth
+        >
+          <MenuItem value="">Non défini</MenuItem>
+          <MenuItem value="prive">Privé</MenuItem>
+          <MenuItem value="public">Public</MenuItem>
+        </TextField>
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          label="Employeur spécifique"
+          value={form.employeur_specifique || ""}
+          onChange={(e) => handleChange("employeur_specifique", e.target.value)}
+          fullWidth
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          label="Code APE"
+          value={form.code_ape || ""}
+          onChange={(e) => handleChange("code_ape", e.target.value.toUpperCase())}
+          fullWidth
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          type="number"
+          label="Effectif total"
+          value={form.effectif_total ?? ""}
+          onChange={(e) => handleChange("effectif_total", Number(e.target.value))}
+          fullWidth
+        />
+      </Grid>
+
+      <Grid item xs={12} md={4}>
+        <TextField
+          label="IDCC"
+          value={form.idcc || ""}
+          onChange={(e) => handleChange("idcc", e.target.value)}
+          fullWidth
+        />
+      </Grid>
+
+      <Grid item xs={12}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={form.assurance_chomage_speciale ?? false}
               onChange={(e) =>
-                handleChange("contact_email", e.target.value.trim().toLowerCase())
+                handleChange("assurance_chomage_speciale", e.target.checked)
               }
-              disabled={loading}
             />
-          </Grid>
-        </Grid>
-      </Paper>
+          }
+          label="Assurance chômage spéciale"
+        />
+      </Grid>
+    </Grid>
+  </AccordionDetails>
+</Accordion>
 
-      {/* Web */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Web & Réseaux
+{/* ─────────── Maîtres d’apprentissage ─────────── */}
+<Section icon={<GroupIcon color="primary" />} title="Maîtres d’apprentissage">
+  {[1, 2].map((n) => (
+    <Accordion
+      key={n}
+      defaultExpanded={false}
+      disableGutters
+      sx={{
+        mb: 2,
+        borderRadius: 2,
+        boxShadow: 1,
+        "&::before": { display: "none" },
+      }}
+    >
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        sx={{
+          backgroundColor: "rgba(25,118,210,0.08)",
+          borderBottom: "1px solid #ddd",
+          borderRadius: "8px 8px 0 0",
+          "& .MuiAccordionSummary-content": { alignItems: "center", gap: 1 },
+        }}
+      >
+        <Typography variant="subtitle1" fontWeight={600} color="primary">
+          👷‍♂️ Maître d’apprentissage n°{n}
         </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type="url"
-              label="Site web"
-              value={form.website || ""}
-              onChange={(e) => handleChange("website", e.target.value)}
-              disabled={loading}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type="url"
-              label="Réseau social"
-              value={form.social_network_url || ""}
-              onChange={(e) => handleChange("social_network_url", e.target.value)}
-              disabled={loading}
-            />
-          </Grid>
-        </Grid>
-      </Paper>
+      </AccordionSummary>
 
-      {/* Action commerciale */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Action
-        </Typography>
+      <AccordionDetails sx={{ backgroundColor: "#fafafa", p: 3 }}>
         <Grid container spacing={2}>
+          {[
+            ["Nom de naissance", `maitre${n}_nom_naissance`],
+            ["Prénom", `maitre${n}_prenom`],
+          ].map(([label, key]) => (
+            <Grid item xs={12} md={6} key={key}>
+              <TextField
+                label={label}
+                value={(form as any)[key] || ""}
+                onChange={(e) => handleChange(key as any, e.target.value)}
+                fullWidth
+              />
+            </Grid>
+          ))}
+
           <Grid item xs={12} md={4}>
             <TextField
-              select
-              fullWidth
-              label="Type d’action"
-              value={form.actions ?? ""}
+              type="date"
+              label="Date de naissance"
+              InputLabelProps={{ shrink: true }}
+              value={(form as any)[`maitre${n}_date_naissance`] || ""}
               onChange={(e) =>
-                handleChange("actions", e.target.value ? (e.target.value as Partenaire["actions"]) : null)
+                handleChange(`maitre${n}_date_naissance` as any, e.target.value)
               }
-              disabled={loading}
-            >
-              <MenuItem value="">Sélectionner…</MenuItem>
-              {choices?.actions?.map((a) => (
-                <MenuItem key={a.value} value={a.value}>
-                  {a.label}
-                </MenuItem>
-              ))}
-            </TextField>
-
+              fullWidth
+            />
           </Grid>
+
           <Grid item xs={12} md={8}>
             <TextField
-              fullWidth
-              multiline
-              minRows={3}
-              label={`Description de l’action (${count(
-                form.action_description
-              )}/1000)`}
-              value={form.action_description || ""}
+              type="email"
+              label="Courriel"
+              value={(form as any)[`maitre${n}_courriel`] || ""}
               onChange={(e) =>
-                handleChange("action_description", e.target.value)
+                handleChange(`maitre${n}_courriel` as any, e.target.value)
               }
-              disabled={loading}
-              inputProps={{ maxLength: 1000 }}
+              fullWidth
             />
           </Grid>
-        </Grid>
-      </Paper>
 
-      {/* Description */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Typography variant="subtitle1" gutterBottom>
-          Description
-        </Typography>
+          {[
+            ["Emploi occupé", `maitre${n}_emploi_occupe`],
+            ["Diplôme ou titre le plus élevé", `maitre${n}_diplome_titre`],
+            ["Niveau du diplôme ou titre", `maitre${n}_niveau_diplome`],
+          ].map(([label, key]) => (
+            <Grid item xs={12} md={4} key={key}>
+              <TextField
+                label={label}
+                value={(form as any)[key] || ""}
+                onChange={(e) => handleChange(key as any, e.target.value)}
+                fullWidth
+              />
+            </Grid>
+          ))}
+        </Grid>
+      </AccordionDetails>
+    </Accordion>
+  ))}
+</Section>
+
+{/* ─────────── Action commerciale ─────────── */}
+<Accordion
+  defaultExpanded={false}
+  disableGutters
+  sx={{
+    mb: 3,
+    borderRadius: 2,
+    boxShadow: 1,
+    "&::before": { display: "none" },
+  }}
+>
+  <AccordionSummary
+    expandIcon={<ExpandMoreIcon />}
+    sx={{
+      backgroundColor: "rgba(25,118,210,0.08)",
+      borderBottom: "1px solid #ddd",
+      borderRadius: "8px 8px 0 0",
+      "& .MuiAccordionSummary-content": { alignItems: "center", gap: 1 },
+    }}
+  >
+    <BusinessIcon color="primary" />
+    <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+      Action commerciale
+    </Typography>
+  </AccordionSummary>
+
+  <AccordionDetails sx={{ backgroundColor: "#fafafa", p: 3 }}>
+    <Grid container spacing={2}>
+      <Grid item xs={12} md={4}>
+        <TextField
+          select
+          fullWidth
+          label="Type d’action"
+          value={form.actions ?? ""}
+          onChange={(e) =>
+            handleChange("actions", e.target.value as Partenaire["actions"])
+          }
+        >
+          <MenuItem value="">Sélectionner…</MenuItem>
+          {choices?.actions?.map((a) => (
+            <MenuItem key={a.value} value={a.value}>
+              {a.label}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Grid>
+
+      <Grid item xs={12} md={8}>
         <TextField
           fullWidth
           multiline
-          minRows={4}
-          label={`Informations complémentaires (${count(
-            form.description
-          )}/2000)`}
-          value={form.description || ""}
-          onChange={(e) => handleChange("description", e.target.value)}
-          disabled={loading}
-          inputProps={{ maxLength: 2000 }}
+          minRows={3}
+          label={`Description (${count(form.action_description)}/1000)`}
+          value={form.action_description || ""}
+          onChange={(e) => handleChange("action_description", e.target.value)}
+          inputProps={{ maxLength: 1000 }}
         />
-      </Paper>
+      </Grid>
+    </Grid>
+  </AccordionDetails>
+</Accordion>
 
-      {/* Statut */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Stack
-          direction="row"
-          justifyContent="space-between"
-          alignItems="center"
-        >
+      {/* ─────────── Description générale ─────────── */}
+<Accordion
+  defaultExpanded={false}
+  disableGutters
+  sx={{
+    mb: 3,
+    borderRadius: 2,
+    boxShadow: 1,
+    "&::before": { display: "none" },
+  }}
+>
+  <AccordionSummary
+    expandIcon={<ExpandMoreIcon />}
+    sx={{
+      backgroundColor: "rgba(25,118,210,0.08)",
+      borderBottom: "1px solid #ddd",
+      borderRadius: "8px 8px 0 0",
+      "& .MuiAccordionSummary-content": { alignItems: "center", gap: 1 },
+    }}
+  >
+    <DescriptionIcon color="primary" />
+    <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+      Description générale
+    </Typography>
+  </AccordionSummary>
+
+  <AccordionDetails sx={{ backgroundColor: "#fafafa", p: 3 }}>
+    <TextField
+      fullWidth
+      multiline
+      minRows={4}
+      label={`Informations complémentaires (${count(form.description)}/2000)`}
+      value={form.description || ""}
+      onChange={(e) => handleChange("description", e.target.value)}
+      inputProps={{ maxLength: 2000 }}
+    />
+  </AccordionDetails>
+</Accordion>
+
+      {/* ─────────── Statut et site ─────────── */}
+      <Section icon={<LinkIcon color="primary" />} title="Statut et site">
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
           <FormControlLabel
             control={
               <Checkbox
                 checked={form.is_active ?? true}
-                onChange={(e) =>
-                  handleChange("is_active", e.target.checked)
-                }
-                disabled={loading}
+                onChange={(e) => handleChange("is_active", e.target.checked)}
               />
             }
             label="Partenaire actif"
@@ -441,23 +687,28 @@ export default function PartenaireForm({
             </Typography>
           )}
         </Stack>
-      </Paper>
+      </Section>
 
-      {/* Actions */}
-      <Stack direction="row" justifyContent="flex-end" spacing={2}>
+      {/* ─────────── Actions du formulaire ─────────── */}
+      <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ mt: 3 }}>
         <Button
           variant="outlined"
+          startIcon={<RestartAltIcon />}
           onClick={() => setForm(initialValues)}
           disabled={loading}
         >
           Réinitialiser
         </Button>
-        <Button type="submit" variant="contained" disabled={loading}>
+        <Button
+          type="submit"
+          variant="contained"
+          startIcon={<SaveIcon />}
+          disabled={loading}
+        >
           {loading ? "Enregistrement…" : "Enregistrer"}
         </Button>
       </Stack>
 
-      {/* Modal sélection centre */}
       <CentresSelectModal
         show={openCentreModal}
         onClose={() => setOpenCentreModal(false)}

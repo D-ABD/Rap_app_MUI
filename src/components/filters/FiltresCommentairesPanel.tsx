@@ -1,54 +1,58 @@
+// ======================================================
 // src/components/ui/FiltresCommentairesPanel.tsx
-import React, { useMemo } from "react";
-import { Box } from "@mui/material";
+// Filtres alignés avec CommentaireViewSet.filter_options enrichi
+// ======================================================
+
+import React, { useMemo, useCallback } from "react";
+import { Box, Button, FormControlLabel, Switch } from "@mui/material";
 import FilterTemplate, { type FieldConfig } from "./FilterTemplate";
-import type { FiltresValues } from "../../types/Filtres";
+import { CommentaireFiltresValues } from "../../types/commentaire";
 
 interface FiltresPanelProps {
   filtres?: {
     centres: { id: number; nom: string }[];
-    statuts: { id: number; nom: string }[];
+    statuts: { id: string | number; nom: string }[];
     type_offres: { id: number; nom: string }[];
+    formations?: { id: number; nom: string }[];
     formation_etats?: { value: string | number; label: string }[];
+    auteurs?: { id: number; nom: string }[];
   };
-  values: FiltresValues;
-  onChange: (values: FiltresValues) => void;
+  values: CommentaireFiltresValues;
+  onChange: (values: CommentaireFiltresValues) => void;
   onReset?: () => void;
-  onRefresh?: () => void;
+  onRefresh?: (extraParams?: Record<string, any>) => void;
 }
 
 /** util: supprime les doublons et formate en options {value,label} */
 function toOptionsUnique<
-  T extends { id?: number; value?: string | number; nom?: string; label?: string }
+  T extends { id?: number | string; value?: string | number; nom?: string; label?: string }
 >(arr: T[] = [], labelKey: "nom" | "label" = "nom") {
   const seen = new Set<string | number>();
-  return arr.reduce<Array<{ value: string | number; label: string }>>(
-    (acc, item) => {
-      const value = item.id ?? item.value;
-      const label =
-        (labelKey === "nom" ? item.nom : item.label) ?? "";
-      if (value == null || !label || seen.has(value)) return acc;
-      seen.add(value);
-      acc.push({ value, label });
-      return acc;
-    },
-    []
-  );
+  return arr.reduce<Array<{ value: string | number; label: string }>>((acc, item) => {
+    const value = item.id ?? item.value;
+    const label = (labelKey === "nom" ? item.nom : item.label) ?? "";
+    if (value == null || !label || seen.has(value)) return acc;
+    seen.add(value);
+    acc.push({ value, label });
+    return acc;
+  }, []);
 }
 
 /** insère un placeholder quand la liste d'options est vide */
-const withPlaceholder = (
-  opts: Array<{ value: string | number; label: string }>
-) => (opts.length ? opts : [{ value: "", label: "—" }]);
+const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
+  opts.length ? opts : [{ value: "", label: "—" }];
 
 /** reset par défaut si onReset non fourni */
-function defaultReset(values: FiltresValues): FiltresValues {
+function defaultReset(values: CommentaireFiltresValues): CommentaireFiltresValues {
   return {
     ...values,
     centre_id: undefined,
+    formation_id: undefined,
     statut_id: undefined,
     type_offre_id: undefined,
     formation_etat: undefined,
+    auteur_id: undefined,
+    include_archived: false,
   };
 }
 
@@ -59,42 +63,71 @@ export default React.memo(function FiltresCommentairesPanel({
   onReset,
   onRefresh,
 }: FiltresPanelProps) {
-  const fields = useMemo<Array<FieldConfig<FiltresValues>>>(() => {
-    if (!filtres) return []; // en attente des filtres
+  // ------------------------------------------------------
+  // 🔄 Gestion de la logique statut ↔ archivés
+  // ------------------------------------------------------
+const handleStatutChange = useCallback(
+  (newStatutId: string | number | undefined) => {
+    const statut = String(newStatutId || "").toLowerCase();
 
-    return [
+    // 🔁 Synchronise automatiquement include_archived
+    const include_archived =
+      statut === "archive" || statut === "archived" || statut === "all";
+
+    const newValues = { ...values, statut_id: newStatutId, include_archived };
+    onChange(newValues);
+    if (onRefresh) onRefresh(newValues);
+  },
+  [onChange, onRefresh, values]
+);
+
+const toggleArchived = useCallback(
+  (checked: boolean) => {
+    const newValues = { ...values, include_archived: checked };
+    // Si on coche “archivé”, change le select en conséquence
+    newValues.statut_id = checked ? "archive" : "actif";
+    onChange(newValues);
+    if (onRefresh) onRefresh(newValues);
+  },
+  [onChange, onRefresh, values]
+);
+
+  // ------------------------------------------------------
+  // 🧩 Définition dynamique des champs
+  // ------------------------------------------------------
+  const fields = useMemo<Array<FieldConfig<CommentaireFiltresValues>>>(() => {
+    if (!filtres) return [];
+
+    const baseFields = [
       {
         key: "centre_id" as const,
         label: "🏫 Centre",
         type: "select" as const,
-        options: withPlaceholder(
-          toOptionsUnique(filtres.centres, "nom").map((o) => ({
-            value: Number(o.value),
-            label: o.label,
-          }))
-        ),
+        options: withPlaceholder(toOptionsUnique(filtres.centres, "nom")),
+      },
+      {
+        key: "formation_id" as const,
+        label: "📘 Formation",
+        type: "select" as const,
+        options: withPlaceholder(toOptionsUnique(filtres.formations ?? [], "nom")),
       },
       {
         key: "statut_id" as const,
-        label: "📍 Statut",
+        label: "💬 Statut du commentaire",
         type: "select" as const,
-        options: withPlaceholder(
-          toOptionsUnique(filtres.statuts, "nom").map((o) => ({
-            value: Number(o.value),
-            label: o.label,
-          }))
-        ),
+        onChange: (val: CommentaireFiltresValues["statut_id"]) => handleStatutChange(val),
+        options: withPlaceholder([
+        { value: "actif", label: "Actif" },
+        { value: "archive", label: "Archivé" },
+        { value: "all", label: "Tous" },
+      ]),
+
       },
       {
         key: "type_offre_id" as const,
-        label: "📦 Type d'offre",
+        label: "📦 Type d’offre",
         type: "select" as const,
-        options: withPlaceholder(
-          toOptionsUnique(filtres.type_offres, "nom").map((o) => ({
-            value: Number(o.value),
-            label: o.label,
-          }))
-        ),
+        options: withPlaceholder(toOptionsUnique(filtres.type_offres, "nom")),
       },
       ...(filtres.formation_etats && filtres.formation_etats.length
         ? [
@@ -102,15 +135,28 @@ export default React.memo(function FiltresCommentairesPanel({
               key: "formation_etat" as const,
               label: "📚 État de formation",
               type: "select" as const,
-              options: withPlaceholder(
-                toOptionsUnique(filtres.formation_etats, "label")
-              ),
-            } as FieldConfig<FiltresValues>,
+              options: withPlaceholder(toOptionsUnique(filtres.formation_etats, "label")),
+            } as FieldConfig<CommentaireFiltresValues>,
+          ]
+        : []),
+      ...(filtres.auteurs && filtres.auteurs.length
+        ? [
+            {
+              key: "auteur_id" as const,
+              label: "✍️ Auteur",
+              type: "select" as const,
+              options: withPlaceholder(toOptionsUnique(filtres.auteurs, "nom")),
+            } as FieldConfig<CommentaireFiltresValues>,
           ]
         : []),
     ];
-  }, [filtres]);
 
+    return baseFields;
+  }, [filtres, handleStatutChange]);
+
+  // ------------------------------------------------------
+  // 🧭 Actions reset / refresh
+  // ------------------------------------------------------
   const actions = useMemo(
     () => ({
       onReset: onReset ? onReset : () => onChange(defaultReset(values)),
@@ -121,6 +167,9 @@ export default React.memo(function FiltresCommentairesPanel({
     [onReset, onRefresh, onChange, values]
   );
 
+  // ------------------------------------------------------
+  // 🧭 Affichage
+  // ------------------------------------------------------
   if (!filtres) {
     return (
       <Box
@@ -143,12 +192,28 @@ export default React.memo(function FiltresCommentairesPanel({
   }
 
   return (
-    <FilterTemplate<FiltresValues>
-      values={values}
-      onChange={onChange}
-      fields={fields}
-      actions={actions}
-      cols={4}
-    />
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <FilterTemplate<CommentaireFiltresValues>
+        values={values}
+        onChange={onChange}
+        fields={fields}
+        actions={actions}
+        cols={3}
+      />
+
+      {/* --- Filtres additionnels : Archivés --- */}
+      <Box
+        sx={{
+          mt: 1,
+          p: 1,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderTop: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+      </Box>
+    </Box>
   );
 });

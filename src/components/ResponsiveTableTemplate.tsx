@@ -18,9 +18,11 @@ import { ReactNode } from "react";
 
 export type TableColumn<T> = {
   key: keyof T | string;
-  label: string;
+  label: ReactNode; // 👈 accepte string | JSX
   sticky?: "left" | "right";
-  width?: number;
+  width?: number; // largeur minimale
+  flexGrow?: number; // 👈 optionnel, pour étendre une colonne
+  align?: "left" | "center" | "right"; // ✅ nouvelle propriété
   render?: (row: T) => ReactNode;
 };
 
@@ -29,10 +31,9 @@ interface Props<T> {
   data: T[];
   getRowId: (row: T) => string | number;
   actions?: (row: T) => ReactNode;
-  stickyOffsetLeft?: number;
-  stickyOffsetRight?: number;
   cardTitle?: (row: T) => string;
-  onRowClick?: (row: T) => void; // ✅ ajout
+  onRowClick?: (row: T) => void;
+  rowSx?: (row: T) => object; // ✅ style conditionnel par ligne
 }
 
 export default function ResponsiveTableTemplate<T>({
@@ -40,24 +41,26 @@ export default function ResponsiveTableTemplate<T>({
   data,
   getRowId,
   actions,
-  stickyOffsetLeft = 50,
-  stickyOffsetRight = 0,
   cardTitle,
-  onRowClick, // ✅ ajout
+  onRowClick,
+  rowSx,
 }: Props<T>) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
+  /* 🔹 Vue mobile => affichage en cartes */
   if (isMobile) {
-    // 🔹 Affichage mobile en cartes
     return (
       <Stack spacing={2} sx={{ p: 2 }}>
         {data.map((row) => (
           <Card
             key={getRowId(row)}
             variant="outlined"
-            onClick={() => onRowClick?.(row)} // ✅ support clic mobile
-            sx={{ cursor: onRowClick ? "pointer" : "default" }}
+            onClick={() => onRowClick?.(row)}
+            sx={{
+              cursor: onRowClick ? "pointer" : "default",
+              ...(rowSx ? rowSx(row) : {}),
+            }}
           >
             <CardContent>
               <Stack spacing={1}>
@@ -87,7 +90,7 @@ export default function ResponsiveTableTemplate<T>({
     );
   }
 
-  // 🔹 Affichage desktop en table
+  /* 🔹 Vue desktop => affichage en table */
   return (
     <TableContainer
       sx={{
@@ -99,19 +102,17 @@ export default function ResponsiveTableTemplate<T>({
       <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
-            {columns.map((col, idx) => (
+            {columns.map((col) => (
               <TableCell
                 key={String(col.key)}
+                align={col.align ?? "left"} // ✅ prise en compte du nouvel align
                 sx={{
                   position: col.sticky ? "sticky" : "static",
-                  left:
-                    col.sticky === "left" ? stickyOffsetLeft * idx : undefined,
-                  right:
-                    col.sticky === "right"
-                      ? stickyOffsetRight * idx
-                      : undefined,
-                  zIndex: col.sticky ? 3 : 1,
+                  left: col.sticky === "left" ? 0 : undefined,
+                  right: col.sticky === "right" ? 0 : undefined,
+                  zIndex: col.sticky ? theme.zIndex.appBar : 1,
                   minWidth: col.width,
+                  flexGrow: col.flexGrow ?? 0,
                   backgroundColor: theme.palette.background.paper,
                   fontWeight: "bold",
                 }}
@@ -119,7 +120,20 @@ export default function ResponsiveTableTemplate<T>({
                 {col.label}
               </TableCell>
             ))}
-            {actions && <TableCell>Actions</TableCell>}
+            {actions && (
+              <TableCell
+                align="center"
+                sx={{
+                  position: "sticky",
+                  right: 0,
+                  backgroundColor: theme.palette.background.paper,
+                  fontWeight: "bold",
+                  zIndex: theme.zIndex.appBar,
+                }}
+              >
+                Actions
+              </TableCell>
+            )}
           </TableRow>
         </TableHead>
 
@@ -128,23 +142,23 @@ export default function ResponsiveTableTemplate<T>({
             <TableRow
               hover
               key={getRowId(row)}
-              onClick={() => onRowClick?.(row)} // ✅ support clic desktop
-              sx={{ cursor: onRowClick ? "pointer" : "default" }}
+              onClick={() => onRowClick?.(row)}
+              sx={{
+                cursor: onRowClick ? "pointer" : "default",
+                ...(rowSx ? rowSx(row) : {}),
+              }}
             >
-              {columns.map((col, idx) => (
+              {columns.map((col) => (
                 <TableCell
                   key={String(col.key)}
+                  align={col.align ?? "left"} // ✅ ajout align ici aussi
                   sx={{
                     position: col.sticky ? "sticky" : "static",
-                    left:
-                      col.sticky === "left"
-                        ? stickyOffsetLeft * idx
-                        : undefined,
-                    right:
-                      col.sticky === "right"
-                        ? stickyOffsetRight * idx
-                        : undefined,
-                    zIndex: col.sticky ? 2 : 1,
+                    left: col.sticky === "left" ? 0 : undefined,
+                    right: col.sticky === "right" ? 0 : undefined,
+                    zIndex: col.sticky ? theme.zIndex.appBar - 1 : 1,
+                    minWidth: col.width,
+                    flexGrow: col.flexGrow ?? 0,
                     backgroundColor: theme.palette.background.paper,
                   }}
                 >
@@ -153,7 +167,19 @@ export default function ResponsiveTableTemplate<T>({
                     : String(row[col.key as keyof T] ?? "—")}
                 </TableCell>
               ))}
-              {actions && <TableCell>{actions(row)}</TableCell>}
+              {actions && (
+                <TableCell
+                  align="center"
+                  sx={{
+                    position: "sticky",
+                    right: 0,
+                    backgroundColor: theme.palette.background.paper,
+                    zIndex: theme.zIndex.appBar - 1,
+                  }}
+                >
+                  {actions(row)}
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
@@ -161,3 +187,4 @@ export default function ResponsiveTableTemplate<T>({
     </TableContainer>
   );
 }
+ 

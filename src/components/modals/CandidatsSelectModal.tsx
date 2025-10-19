@@ -44,6 +44,7 @@ export type CandidatPick = {
   nom: string;
   prenom: string;
   nom_complet: string;
+  nom_naissance?: string | null;   // ✅ ajoute ceci
   email: string | null;
   formation: FormationLite | null;
   formation_nom?: string | null;
@@ -57,6 +58,7 @@ export type CandidatPick = {
     is_active?: boolean;
   } | null;
 };
+
 
 type DRFPaginated<T> = { count: number; next: string | null; previous: string | null; results: T[] };
 type DRFEnvelope<T> = DRFPaginated<T> | { data: DRFPaginated<T> };
@@ -75,6 +77,7 @@ type CandidatApi = {
   nom: string | null;
   prenom: string | null;
   nom_complet?: string | null;
+  nom_naissance?: string | null;  
   email?: string | null;
   formation?: FormationField;
   formation_id?: number | null;
@@ -163,6 +166,7 @@ function normalizeCandidat(x: CandidatApi): CandidatPick {
     nom,
     prenom,
     nom_complet: nomComplet,
+    nom_naissance: x.nom_naissance ?? null,
     email: x.email ?? null,
     formation,
     formation_nom: x.formation_nom ?? null,

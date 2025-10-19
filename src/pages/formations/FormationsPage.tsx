@@ -21,7 +21,7 @@ import {
 } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
-import FormationTable from "./componentsFormations/FormationTable";
+import FormationTable from "./FormationTable";
 import FiltresFormationsPanel from "../../components/filters/FiltresFormationsPanel";
 import usePagination from "../../hooks/usePagination";
 import useFetch from "../../hooks/useFetch";
@@ -161,7 +161,6 @@ export default function FormationsPage() {
           </Button>
 
           <FormationExportButton
-            data={formations}
             selectedIds={selectedIds}
           />
 

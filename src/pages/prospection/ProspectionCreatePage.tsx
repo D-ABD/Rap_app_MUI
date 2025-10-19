@@ -145,7 +145,7 @@ export default function ProspectionCreatePage() {
       if (wantsComment && createdId) {
         navigate(`/prospection-commentaires/create/${createdId}`);
       } else {
-        navigate("/prospection");
+        navigate("/prospections");
       }
     } catch {
       toast.error("❌ Erreur lors de la création");

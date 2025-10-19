@@ -1,6 +1,4 @@
-// pages/ateliers/AteliersTRETable.tsx (full MUI)
 import {
-  Box,
   Table,
   TableBody,
   TableCell,
@@ -12,6 +10,7 @@ import {
   IconButton,
   Stack,
   Paper,
+  Chip,
 } from "@mui/material";
 import { useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +19,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
 
+/* ---------- Types ---------- */
 type Props = {
   items: AtelierTRE[];
   selectedIds: number[];
@@ -27,9 +27,11 @@ type Props = {
   onEdit?: (id: number) => void;
   onShow?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onRowClick?: (id: number) => void; // ✅ ajouté
   maxHeight?: string;
 };
 
+/* ---------- Helpers ---------- */
 const dtfDateTimeFR =
   typeof Intl !== "undefined"
     ? new Intl.DateTimeFormat("fr-FR", {
@@ -64,6 +66,7 @@ function candidatsPreview(a: AtelierTRE): string {
   return `${names}${more}`;
 }
 
+/* ---------- Component ---------- */
 export default function AteliersTreTable({
   items,
   selectedIds,
@@ -71,6 +74,7 @@ export default function AteliersTreTable({
   onEdit,
   onShow,
   onDelete,
+  onRowClick, // ✅
   maxHeight,
 }: Props) {
   const navigate = useNavigate();
@@ -126,36 +130,28 @@ export default function AteliersTreTable({
   }
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{ maxHeight: maxHeight ?? "65vh" }}
-    >
+    <TableContainer component={Paper} sx={{ maxHeight: maxHeight ?? "65vh" }}>
       <Table stickyHeader size="small" aria-label="Table des ateliers TRE">
-        <TableHead>
-          <TableRow>
-            <TableCell padding="checkbox">
-              <Checkbox
-                inputRef={headerCbRef}
-                indeterminate={someChecked}
-                checked={allChecked}
-                onChange={toggleAllThisPage}
-                inputProps={{
-                  "aria-label": allChecked
-                    ? "Tout désélectionner"
-                    : "Tout sélectionner la page",
-                }}
-              />
-            </TableCell>
-            <TableCell>Atelier</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Centre</TableCell>
-            <TableCell>Inscrits</TableCell>
-            <TableCell>Candidats (aperçu)</TableCell>
-            <TableCell>Créé par</TableCell>
-            <TableCell>Créé / MAJ</TableCell>
-            <TableCell>Actions</TableCell>
-          </TableRow>
-        </TableHead>
+<TableHead>
+  <TableRow>
+    <TableCell padding="checkbox">
+      <Checkbox
+        inputRef={headerCbRef}
+        indeterminate={someChecked}
+        checked={allChecked}
+        onChange={toggleAllThisPage}
+      />
+    </TableCell>
+    <TableCell>📌 Atelier</TableCell>
+    <TableCell>📅 Date</TableCell>
+    <TableCell>🏫 Centre</TableCell>
+    <TableCell>👥 Inscrits</TableCell>
+    <TableCell>✅ Présents</TableCell>
+    <TableCell>👤 Candidats</TableCell>
+    <TableCell>⚙️ Actions</TableCell>
+  </TableRow>
+</TableHead>
+
 
         <TableBody>
           {items.map((a) => {
@@ -163,62 +159,100 @@ export default function AteliersTreTable({
             const typeDisplay = a.type_atelier_display || a.type_atelier;
             const dateTxt = formatDateTimeFR(a.date_atelier);
             const centre = a.centre_detail?.label ?? "—";
-            const nb =
+            const nbInscrits =
               typeof a.nb_inscrits === "number"
                 ? a.nb_inscrits
                 : a.candidats?.length ?? 0;
+            const nbPresents = a.presence_counts?.present ?? 0; // 🆕
             const candPrev = candidatsPreview(a);
-            const createdBy = createdByLabel(a.created_by);
-            const createdAt = formatDateTimeFR(a.created_at ?? null);
-            const updatedAt = formatDateTimeFR(a.updated_at ?? null);
 
             return (
               <TableRow
                 key={a.id}
                 hover
-                role="checkbox"
-                tabIndex={-1}
-                onClick={() => goEdit(a.id)}
-                sx={{ cursor: "pointer" }}
+                role="button"
+                tabIndex={0}
+                title="Cliquer pour voir le détail"
+                onClick={() => onRowClick?.(a.id)} // ✅ ouvre modale au clic
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onRowClick?.(a.id);
+                  }
+                }}
+                sx={{
+                  cursor: "pointer",
+                  "&:nth-of-type(even)": { bgcolor: "grey.50" },
+                }}
               >
+                {/* Checkbox sélection */}
                 <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
                   <Checkbox
                     checked={isChecked}
                     onChange={(e) => toggleOne(a.id, e.target.checked)}
-                    inputProps={{
-                      "aria-label": `Sélectionner atelier #${a.id}`,
-                    }}
                   />
                 </TableCell>
+
+                {/* Atelier */}
                 <TableCell>
                   <Typography fontWeight={600}>{typeDisplay}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    #{a.id} · {a.type_atelier}
+                  <Typography variant="caption" color="text.secondary">
+                    {a.type_atelier}
                   </Typography>
                 </TableCell>
-                <TableCell>{dateTxt}</TableCell>
+
+                {/* Date */}
+                <TableCell>
+                  <Chip
+                    size="small"
+                    color="info"
+                    label={dateTxt}
+                    sx={{ fontSize: "0.75rem" }}
+                  />
+                </TableCell>
+
+                {/* Centre */}
                 <TableCell>{centre}</TableCell>
+
+                {/* Inscrits */}
                 <TableCell>
-                  <strong>{nb}</strong>
+                  <Chip
+                    size="small"
+                    color={nbInscrits > 0 ? "success" : "default"}
+                    label={`${nbInscrits} inscrits`}
+                  />
                 </TableCell>
-                <TableCell>{candPrev}</TableCell>
-                <TableCell>{createdBy}</TableCell>
+
+                {/* ✅ Présents */}
                 <TableCell>
-                  <Typography variant="body2">créé&nbsp;: {createdAt}</Typography>
-                  <Typography variant="body2">maj&nbsp;: {updatedAt}</Typography>
+                  <Chip
+                    size="small"
+                    color={nbPresents > 0 ? "primary" : "default"}
+                    label={`${nbPresents} présents`}
+                  />
                 </TableCell>
+
+                {/* Candidats */}
+                <TableCell>
+                  <Typography variant="body2" noWrap title={candPrev}>
+                    {candPrev}
+                  </Typography>
+                </TableCell>
+
+                {/* Actions */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1}>
                     <IconButton
                       aria-label="Voir"
                       size="small"
-                      onClick={() => goShow(a.id)}
+                      onClick={() => onRowClick?.(a.id)}
                     >
                       <VisibilityIcon fontSize="inherit" />
                     </IconButton>
                     <IconButton
                       aria-label="Éditer"
                       size="small"
+                      color="primary"
                       onClick={() => goEdit(a.id)}
                     >
                       <EditIcon fontSize="inherit" />

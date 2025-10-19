@@ -126,7 +126,7 @@ export default function ProspectionEditPage() {
       const updated = await update(data);
       setDetail(updated as ProspectionDetailDTO);
       toast.success("✅ Prospection mise à jour");
-      navigate("/prospection");
+      navigate("/prospections");
     } catch {
       toast.error("❌ Échec de la mise à jour");
     }
@@ -137,7 +137,7 @@ export default function ProspectionEditPage() {
     try {
       await remove();
       toast.success("🗑️ Prospection supprimée");
-      navigate("/prospection");
+      navigate("/prospections");
     } catch {
       toast.error("❌ Échec de la suppression");
     }
