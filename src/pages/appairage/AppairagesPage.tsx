@@ -63,23 +63,22 @@ export const AppairagesPage: React.FC = () => {
     }).length;
   }, [filters]);
 
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
   const { data: meta, loading: loadingMeta } = useAppairageMeta();
 
-  type EffectiveFilters = AppairageFiltresValues & { page: number; page_size: number };
+  type EffectiveFilters = AppairageFiltresValues & {
+    page: number;
+    page_size: number;
+  };
   const effectiveFilters: EffectiveFilters = useMemo(
     () => ({ ...filters, page, page_size: pageSize }),
     [filters, page, pageSize]
   );
 
-  const { data: pageData, loading, error } = useListAppairages(
-    effectiveFilters,
-    reloadKey
-  );
+  const { data: pageData, loading, error } = useListAppairages(effectiveFilters, reloadKey);
 
   const appairages: AppairageListItem[] = useMemo(
-    () => ((pageData as { results?: AppairageListItem[] } | null)?.results ?? []),
+    () => (pageData as { results?: AppairageListItem[] } | null)?.results ?? [],
     [pageData]
   );
 
@@ -92,9 +91,6 @@ export const AppairagesPage: React.FC = () => {
     const visible = new Set(appairages.map((a) => a.id));
     setSelectedIds((prev) => prev.filter((id) => visible.has(id)));
   }, [appairages]);
-
-  const clearSelection = () => setSelectedIds([]);
-  const selectAll = () => setSelectedIds(appairages.map((a) => a.id));
 
   const handleDelete = async () => {
     const idsToDelete = selectedId ? [selectedId] : selectedIds;
@@ -127,8 +123,7 @@ export const AppairagesPage: React.FC = () => {
     setShowConfirm(true);
   };
 
-  const handleHistoryClick = (id: number) =>
-    navigate(`/appairages/${id}/historiques`);
+  const handleHistoryClick = (id: number) => navigate(`/appairages/${id}/historiques`);
 
   const handleEdit = (id: number) => {
     setShowDetail(false);
@@ -201,9 +196,7 @@ export const AppairagesPage: React.FC = () => {
                 loading={loadingMeta}
               />
             ) : (
-              <Typography color="error">
-                ⚠️ Impossible de charger les filtres
-              </Typography>
+              <Typography color="error">⚠️ Impossible de charger les filtres</Typography>
             )}
           </>
         )
@@ -233,9 +226,7 @@ export const AppairagesPage: React.FC = () => {
       {loading ? (
         <CircularProgress />
       ) : error ? (
-        <Typography color="error">
-          Erreur lors du chargement des appairages.
-        </Typography>
+        <Typography color="error">Erreur lors du chargement des appairages.</Typography>
       ) : appairages.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
           <Box fontSize={48} mb={1}>
@@ -263,12 +254,7 @@ export const AppairagesPage: React.FC = () => {
       />
 
       {/* ───────────── Confirmation suppression ───────────── */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

@@ -12,16 +12,8 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PieChartIcon from "@mui/icons-material/PieChart";
-import ArchiveIcon from "@mui/icons-material/Archive"; // ← icône ajoutée
-
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import ArchiveIcon from "@mui/icons-material/Archive";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 import {
   Filters,
@@ -32,28 +24,18 @@ import {
   resolveGroupLabel,
 } from "../../../types/formationStats";
 
-/* Utils */
-function omit<T extends object, K extends keyof T>(
-  obj: T,
-  keys: K[]
-): Omit<T, K> {
+/* 🧮 Utils */
+function omit<T extends object, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
   const clone: T = { ...obj };
   for (const k of keys) delete clone[k];
   return clone;
 }
 
-// 🎨 couleurs fixes : Alt, Poei, Crif, Autre
+/* 🎨 Couleurs fixes */
 const COLORS = ["#1e88e5", "#43a047", "#fbc02d", "#8e24aa"];
 
-// ✅ Custom label bien centré
-const renderLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-}: any) => {
+/* 🏷️ Label custom */
+const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) / 2;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -80,19 +62,14 @@ export default function FormationOverviewWidget2({
   title?: string;
   filters?: Filters;
 }) {
-  const [localFilters, setLocalFilters] = React.useState<Filters>(
-    filters ?? {}
-  );
-
-  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
-    !!filters?.avec_archivees
-  );
+  const [localFilters, setLocalFilters] = React.useState<Filters>(filters ?? {});
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
 
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
-  // ⚙️ Hook principal avec le flag archivées
+  // ⚙️ Filtres effectifs
   const effectiveFilters = React.useMemo(
     () => ({ ...localFilters, avec_archivees: includeArchived }),
     [localFilters, includeArchived]
@@ -105,7 +82,7 @@ export default function FormationOverviewWidget2({
   const { refetch, isFetching } = useFormationOverview(effectiveFilters);
   const dicts = useFormationDictionaries().data;
 
-  // ✅ Données brutes (MP + CRIF)
+  /* ✅ Agrégation */
   const raw =
     typeOffreQuery.data?.results?.map((row: GroupRow) => ({
       name: resolveGroupLabel(row, "type_offre", dicts),
@@ -113,19 +90,12 @@ export default function FormationOverviewWidget2({
       crif: row.total_places_crif ?? 0,
     })) ?? [];
 
-  // ✅ Agrégation en 4 catégories : Alt, Poei, Crif, Autre
   const aggregated = raw.reduce(
     (acc, curr) => {
-      if (curr.name.toLowerCase().includes("alternance")) {
-        acc.Alt += curr.mp;
-      } else if (
-        curr.name.toLowerCase().includes("poei") ||
-        curr.name.toLowerCase().includes("poec")
-      ) {
-        acc.Poei += curr.mp;
-      } else {
-        acc.Autre += curr.mp;
-      }
+      const n = curr.name.toLowerCase();
+      if (n.includes("alternance")) acc.Alt += curr.mp;
+      else if (n.includes("poei") || n.includes("poec")) acc.Poei += curr.mp;
+      else acc.Autre += curr.mp;
       acc.Crif += curr.crif;
       return acc;
     },
@@ -150,6 +120,7 @@ export default function FormationOverviewWidget2({
         gap: 2,
         borderRadius: 2,
         height: "100%",
+        minHeight: 360, // ✅ stabilité d’affichage
       }}
     >
       {/* Header */}
@@ -167,8 +138,8 @@ export default function FormationOverviewWidget2({
           </Typography>
         </Box>
 
+        {/* Actions */}
         <Box display="flex" gap={1} flexWrap="wrap" alignItems="center">
-          {/* Bouton archivées */}
           <Button
             size="small"
             variant={includeArchived ? "contained" : "outlined"}
@@ -179,7 +150,6 @@ export default function FormationOverviewWidget2({
             {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
           </Button>
 
-          {/* Rafraîchir */}
           <Button
             size="small"
             variant="outlined"
@@ -198,7 +168,7 @@ export default function FormationOverviewWidget2({
         </Box>
       </Box>
 
-      {/* Filtres (centres, départements) */}
+      {/* Filtres */}
       <Box display="flex" gap={1} flexWrap="wrap" justifyContent="flex-end">
         <Select
           size="small"
@@ -255,16 +225,16 @@ export default function FormationOverviewWidget2({
         </Select>
       </Box>
 
-      {/* Camembert */}
-      {typeOffreQuery.isLoading ? (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress size={20} />
-        </Box>
-      ) : typeOffreQuery.error ? (
-        <Alert severity="error">{(typeOffreQuery.error as Error).message}</Alert>
-      ) : (
-        <Box sx={{ height: 240 }}>
-          <ResponsiveContainer width="100%" height="100%">
+      {/* Graphique */}
+      <Box sx={{ flex: 1, minHeight: 240 }}>
+        {typeOffreQuery.isLoading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={20} />
+          </Box>
+        ) : typeOffreQuery.error ? (
+          <Alert severity="error">{(typeOffreQuery.error as Error).message}</Alert>
+        ) : (
+          <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
                 data={chartData}
@@ -281,11 +251,7 @@ export default function FormationOverviewWidget2({
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip
-                formatter={(v, n) =>
-                  [`${v} places (${pct(v as number)}%)`, n as string]
-                }
-              />
+              <Tooltip formatter={(v, n) => [`${v} places (${pct(v as number)}%)`, n as string]} />
               <Legend
                 verticalAlign="bottom"
                 height={40}
@@ -300,8 +266,8 @@ export default function FormationOverviewWidget2({
               />
             </PieChart>
           </ResponsiveContainer>
-        </Box>
-      )}
+        )}
+      </Box>
     </Card>
   );
 }

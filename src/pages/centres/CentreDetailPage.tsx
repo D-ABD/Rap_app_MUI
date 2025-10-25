@@ -106,23 +106,13 @@ export default function CentreDetailPage({ centre: propCentre }: Props) {
       <Section title="🕓 Métadonnées">
         <DetailTable
           rows={[
-            [
-              "Créé le",
-              centre.created_at
-                ? new Date(centre.created_at).toLocaleString()
-                : null,
-            ],
+            ["Créé le", centre.created_at ? new Date(centre.created_at).toLocaleString() : null],
             [
               "Mis à jour le",
-              centre.updated_at
-                ? new Date(centre.updated_at).toLocaleString()
-                : null,
+              centre.updated_at ? new Date(centre.updated_at).toLocaleString() : null,
             ],
             ["Adresse complète", centre.full_address],
-            [
-              "Nombre de PrepaCompGlobal",
-              String(centre.nb_prepa_comp_global ?? "0"),
-            ],
+            ["Nombre de PrepaCompGlobal", String(centre.nb_prepa_comp_global ?? "0")],
           ]}
         />
       </Section>
@@ -135,11 +125,7 @@ export default function CentreDetailPage({ centre: propCentre }: Props) {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography
-        variant="subtitle1"
-        fontWeight="bold"
-        sx={{ color: "primary.main", mb: 1 }}
-      >
+      <Typography variant="subtitle1" fontWeight="bold" sx={{ color: "primary.main", mb: 1 }}>
         {title}
       </Typography>
       <Divider sx={{ mb: 1.5 }} />
@@ -179,10 +165,7 @@ function DetailTable({ rows }: { rows: (string | number | null | undefined)[][] 
                     {value}
                   </Typography>
                 ) : (
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "error.main", fontWeight: 600 }}
-                  >
+                  <Typography variant="body2" sx={{ color: "error.main", fontWeight: 600 }}>
                     NC
                   </Typography>
                 )}

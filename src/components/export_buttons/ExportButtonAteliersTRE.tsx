@@ -122,7 +122,6 @@ export default function ExportButtonAteliersTRE({ data, selectedIds }: Props) {
 
       setShowModal(false);
     } catch (e: unknown) {
-      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -139,9 +138,7 @@ export default function ExportButtonAteliersTRE({ data, selectedIds }: Props) {
         disabled={busy || total === 0}
         aria-label={`Exporter ${selectedCount || total} atelier(s)`}
         title={
-          total === 0
-            ? "Aucun atelier à exporter"
-            : `Exporter ${selectedCount || total} atelier(s)`
+          total === 0 ? "Aucun atelier à exporter" : `Exporter ${selectedCount || total} atelier(s)`
         }
       >
         {busy ? "⏳ " : "⬇️ "}
@@ -153,24 +150,18 @@ export default function ExportButtonAteliersTRE({ data, selectedIds }: Props) {
         <DialogContent dividers>
           <Box sx={{ display: "grid", gap: 1.5 }}>
             <Typography>
-              Le fichier sera exporté au format{" "}
-              <strong>Excel (.xlsx)</strong>.
+              Le fichier sera exporté au format <strong>Excel (.xlsx)</strong>.
             </Typography>
 
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Les filtres actifs (
-              <code>{typeof window !== "undefined" ? window.location.search : ""}</code>
-              ) seront appliqués automatiquement.
+              <code>{typeof window !== "undefined" ? window.location.search : ""}</code>) seront
+              appliqués automatiquement.
             </Typography>
           </Box>
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -179,12 +170,7 @@ export default function ExportButtonAteliersTRE({ data, selectedIds }: Props) {
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

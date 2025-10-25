@@ -1,6 +1,6 @@
 // src/api/listFetcher.ts
-import { http, toApiError } from './httpClient';
-import type { QueryParams } from './httpClient';
+import { http, toApiError } from "./httpClient";
+import type { QueryParams } from "./httpClient";
 
 /**
  * Nettoie les filtres : retire les valeurs vides, normalise les chaînes.
@@ -10,14 +10,13 @@ function pruneFilters(params?: QueryParams): QueryParams {
   const out: QueryParams = {};
   if (!params) return out;
 
-  const isFiniteNumber = (x: unknown): x is number =>
-    typeof x === 'number' && Number.isFinite(x);
+  const isFiniteNumber = (x: unknown): x is number => typeof x === "number" && Number.isFinite(x);
 
   const keepScalar = (x: unknown): boolean => {
     if (x === null || x === undefined) return false;
-    if (typeof x === 'string') return x.trim().length > 0;
-    if (typeof x === 'number') return isFiniteNumber(x);
-    if (typeof x === 'boolean') return true;
+    if (typeof x === "string") return x.trim().length > 0;
+    if (typeof x === "number") return isFiniteNumber(x);
+    if (typeof x === "boolean") return true;
     return false;
   };
 
@@ -25,18 +24,18 @@ function pruneFilters(params?: QueryParams): QueryParams {
     if (Array.isArray(v)) {
       const cleaned = (v as unknown[])
         .filter(keepScalar)
-        .map((x) => (typeof x === 'string' ? x.trim() : x));
+        .map((x) => (typeof x === "string" ? x.trim() : x));
       if (cleaned.length === 0) continue;
-      out[k] = cleaned as typeof out[string];
+      out[k] = cleaned as (typeof out)[string];
       continue;
     }
 
     if (!keepScalar(v)) continue;
 
     out[k] =
-      typeof v === 'string'
-        ? ((v as string).trim() as typeof out[string])
-        : (v as typeof out[string]);
+      typeof v === "string"
+        ? ((v as string).trim() as (typeof out)[string])
+        : (v as (typeof out)[string]);
   }
 
   return out;
@@ -50,9 +49,9 @@ function pruneFilters(params?: QueryParams): QueryParams {
  */
 function normalizeDrfPage<T>(raw: unknown): { count: number; results: T[] } {
   const pick = (o: unknown) => {
-    if (o && typeof o === 'object') {
+    if (o && typeof o === "object") {
       const obj = o as Record<string, unknown>;
-      if ('count' in obj && 'results' in obj) {
+      if ("count" in obj && "results" in obj) {
         return {
           count: Number((obj.count as unknown) ?? 0) || 0,
           results: Array.isArray(obj.results) ? (obj.results as T[]) : [],
@@ -65,7 +64,7 @@ function normalizeDrfPage<T>(raw: unknown): { count: number; results: T[] } {
   const direct = pick(raw);
   if (direct) return direct;
 
-  if (raw && typeof raw === 'object' && 'data' in (raw as Record<string, unknown>)) {
+  if (raw && typeof raw === "object" && "data" in (raw as Record<string, unknown>)) {
     const inner = (raw as Record<string, unknown>).data;
     const nested = pick(inner);
     if (nested) return nested;
@@ -100,7 +99,7 @@ export type ListResult<T> = {
 
 export type ListFetcher<T> = (q: ListQuery) => Promise<ListResult<T>>;
 
-/** 
+/**
  * Normalise l'endpoint pour éviter les doublons de préfixe API.
  * - Si l'endpoint commence par "/api/", on supprime ce préfixe (ex: "/api/candidats/" → "/candidats/").
  * - On force un "/" initial.
@@ -108,20 +107,20 @@ export type ListFetcher<T> = (q: ListQuery) => Promise<ListResult<T>>;
  * Ce nettoyage est *idempotent* et ne casse pas Appairages (qui passe "/appairages/").
  */
 function normalizeEndpoint(ep: string): string {
-  const trimmed = (ep ?? '').trim();
+  const trimmed = (ep ?? "").trim();
   if (/^https?:\/\//i.test(trimmed)) return trimmed; // URL absolue: ne rien toucher
 
   let out = trimmed;
-  if (!out.startsWith('/')) out = '/' + out;
+  if (!out.startsWith("/")) out = "/" + out;
 
   // retire un éventuel préfixe /api/ en double si le httpClient a déjà baseURL="/api/"
   if (/^\/api(\/|$)/i.test(out)) {
     // "/api/candidats/" -> "/candidats/"
-    out = out.replace(/^\/api(\/|$)/i, '/');
+    out = out.replace(/^\/api(\/|$)/i, "/");
   }
 
   // compact les "//" accidentels
-  out = out.replace(/\/{2,}/g, '/');
+  out = out.replace(/\/{2,}/g, "/");
 
   return out;
 }
@@ -132,9 +131,8 @@ function normalizeEndpoint(ep: string): string {
  */
 export function createDrfListFetcher<T>(endpoint: string): ListFetcher<T> {
   const normalizedEndpoint = normalizeEndpoint(endpoint);
-  if (endpoint !== normalizedEndpoint && process.env.NODE_ENV !== 'production') {
-    // Aide au debug en dev si quelqu'un passe "/api/..." par erreur
-    console.warn('[createDrfListFetcher] endpoint normalisé:', { from: endpoint, to: normalizedEndpoint });
+  if (endpoint !== normalizedEndpoint && import.meta.env.MODE !== "production") {
+    // Aide au debug en dev si quelqu’un passe "/api/..." par erreur
   }
 
   return async ({
@@ -147,8 +145,7 @@ export function createDrfListFetcher<T>(endpoint: string): ListFetcher<T> {
     signal,
   }: ListQuery) => {
     const cleaned = pruneFilters(filters);
-    const trimmedSearch =
-      typeof search === 'string' ? search.trim() : undefined;
+    const trimmedSearch = typeof search === "string" ? search.trim() : undefined;
 
     const params: QueryParams = {
       page,

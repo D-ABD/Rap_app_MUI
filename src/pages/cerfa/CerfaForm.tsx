@@ -93,8 +93,8 @@ export function CerfaForm({
               {selectedCandidat
                 ? `👤 ${selectedCandidat.nom_complet}`
                 : form.candidat
-                ? `👤 Candidat #${form.candidat}`
-                : "Sélectionner un candidat"}
+                  ? `👤 Candidat #${form.candidat}`
+                  : "Sélectionner un candidat"}
             </Button>
 
             <Button
@@ -105,8 +105,8 @@ export function CerfaForm({
               {selectedFormation
                 ? `🎓 ${selectedFormation.nom}`
                 : form.formation
-                ? `🎓 Formation #${form.formation}`
-                : "Sélectionner une formation"}
+                  ? `🎓 Formation #${form.formation}`
+                  : "Sélectionner une formation"}
             </Button>
 
             <Button
@@ -117,8 +117,8 @@ export function CerfaForm({
               {selectedPartenaire
                 ? `🏢 ${selectedPartenaire.nom}`
                 : form.employeur_nom
-                ? `🏢 ${form.employeur_nom}`
-                : "Sélectionner un partenaire"}
+                  ? `🏢 ${form.employeur_nom}`
+                  : "Sélectionner un partenaire"}
             </Button>
 
             <TextField
@@ -126,9 +126,7 @@ export function CerfaForm({
               type="date"
               InputLabelProps={{ shrink: true }}
               value={form.date_conclusion ?? ""}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, date_conclusion: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, date_conclusion: e.target.value }))}
               disabled={readOnly}
             />
           </Stack>
@@ -137,33 +135,27 @@ export function CerfaForm({
           <Button onClick={onClose} disabled={readOnly}>
             Annuler
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-            disabled={readOnly}
-          >
+          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={readOnly}>
             {readOnly ? "Enregistrement..." : "Enregistrer"}
           </Button>
         </DialogActions>
       </Dialog>
 
-{/* 🧩 Sélection Candidat */}
-<CandidatsSelectModal
-  show={showCandidatModal}
-  onClose={() => setShowCandidatModal(false)}
-  onSelect={(c) => {
-    setSelectedCandidat(c);
-    setForm((f) => ({
-      ...f,
-      candidat: c.id,
-      apprenti_nom_naissance: c.nom_naissance ?? c.nom, // ✅ fallback si nom_naissance vide
-      apprenti_prenom: c.prenom,
-    }));
-    setShowCandidatModal(false);
-  }}
-/>
- 
+      {/* 🧩 Sélection Candidat */}
+      <CandidatsSelectModal
+        show={showCandidatModal}
+        onClose={() => setShowCandidatModal(false)}
+        onSelect={(c) => {
+          setSelectedCandidat(c);
+          setForm((f) => ({
+            ...f,
+            candidat: c.id,
+            apprenti_nom_naissance: c.nom_naissance ?? c.nom, // ✅ fallback si nom_naissance vide
+            apprenti_prenom: c.prenom,
+          }));
+          setShowCandidatModal(false);
+        }}
+      />
 
       {/* 🧩 Sélection Formation */}
       <FormationSelectModal
@@ -178,19 +170,18 @@ export function CerfaForm({
 
       {/* 🧩 Sélection Partenaire */}
       <PartenaireSelectModal
-  show={showPartenaireModal}
-  onClose={() => setShowPartenaireModal(false)}
-  onSelect={(p) => {
-    setSelectedPartenaire(p);
-    setForm((f) => ({
-      ...f,
-      employeur: p.id,        // ✅ c’est cette clé que le backend attend
-      employeur_nom: p.nom,   // (facultatif : pour affichage local)
-    }));
-    setShowPartenaireModal(false);
-  }}
-/>
- 
+        show={showPartenaireModal}
+        onClose={() => setShowPartenaireModal(false)}
+        onSelect={(p) => {
+          setSelectedPartenaire(p);
+          setForm((f) => ({
+            ...f,
+            employeur: p.id, // ✅ c’est cette clé que le backend attend
+            employeur_nom: p.nom, // (facultatif : pour affichage local)
+          }));
+          setShowPartenaireModal(false);
+        }}
+      />
     </>
   );
 }

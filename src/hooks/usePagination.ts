@@ -1,5 +1,5 @@
 // src/hooks/usePagination.ts
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from "react";
 
 /**
  * 📚 usePagination (avancé)
@@ -40,7 +40,10 @@ export default function usePagination(
 
   const effectiveCount = externalCount !== undefined ? externalCount : internalCount;
 
-  const totalPages = useMemo(() => Math.ceil(effectiveCount / pageSize), [effectiveCount, pageSize]);
+  const totalPages = useMemo(
+    () => Math.ceil(effectiveCount / pageSize),
+    [effectiveCount, pageSize]
+  );
   const hasNext = page < totalPages;
   const hasPrev = page > 1;
 

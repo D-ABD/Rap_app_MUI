@@ -67,19 +67,11 @@ export default function UserTable({ users, selectedIds, onToggleSelect, onEdit }
                 <TableCell>{centreLabel}</TableCell>
                 <TableCell>{typeOffreLabel}</TableCell>
                 <TableCell>
-                  {user.date_joined
-                    ? new Date(user.date_joined).toLocaleDateString()
-                    : "—"}
+                  {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "—"}
                 </TableCell>
-                <TableCell>
-                  {user.is_active ? "✅ Actif" : "⛔️ Inactif"}
-                </TableCell>
+                <TableCell>{user.is_active ? "✅ Actif" : "⛔️ Inactif"}</TableCell>
                 <TableCell align="right">
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => onEdit(user.id)}
-                  >
+                  <Button variant="outlined" size="small" onClick={() => onEdit(user.id)}>
                     ✏️ Modifier
                   </Button>
                 </TableCell>

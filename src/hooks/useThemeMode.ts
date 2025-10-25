@@ -1,7 +1,7 @@
 // src/hooks/useThemeMode.ts
 
-import { useContext } from 'react';
-import { ThemeContext } from '../contexts/ThemeContext';
+import { useContext } from "react";
+import { ThemeContext } from "../contexts/ThemeContext";
 
 /**
  * 🎨 useThemeMode
@@ -20,7 +20,7 @@ export const useThemeMode = () => {
   const context = useContext(ThemeContext);
 
   if (!context) {
-    throw new Error('useThemeMode must be used in ThemeProvider');
+    throw new Error("useThemeMode must be used in ThemeProvider");
   }
 
   return context;

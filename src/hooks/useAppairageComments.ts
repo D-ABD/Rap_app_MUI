@@ -93,10 +93,7 @@ function buildListQuery(p: AppairageCommentListParams): QueryDict {
 /* -------------------------------------------------------------------------- */
 /* HOOKS - LISTE                                                              */
 /* -------------------------------------------------------------------------- */
-export function useListAppairageComments(
-  params: AppairageCommentListParams = {},
-  reloadKey = 0
-) {
+export function useListAppairageComments(params: AppairageCommentListParams = {}, reloadKey = 0) {
   const [data, setData] = useState<AppairageCommentDTO[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -112,11 +109,16 @@ export function useListAppairageComments(
     setError(null);
 
     api
-      .get<ApiEnvelope<AppairageCommentDTO>>(BASE, { params: query, cancelToken: source.token })
+      .get<ApiEnvelope<AppairageCommentDTO>>(BASE, {
+        params: query,
+        cancelToken: source.token,
+      })
       .then((res) => setData(extractArray<AppairageCommentDTO>(res.data)))
       .catch((err) => {
         if (!axios.isCancel(err)) {
-          setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
+          setError(
+            new Error(`HTTP ${axios.isAxiosError(err) ? (err.response?.status ?? "?") : "?"}`)
+          );
           setData(null);
         }
       })
@@ -155,11 +157,15 @@ export function useAppairageComment(id: number | string | null) {
     setError(null);
 
     api
-      .get<ApiEnvelope<AppairageCommentDTO>>(`${BASE}${id}/`, { cancelToken: source.token })
+      .get<ApiEnvelope<AppairageCommentDTO>>(`${BASE}${id}/`, {
+        cancelToken: source.token,
+      })
       .then((res) => setData(extractObject<AppairageCommentDTO>(res.data)))
       .catch((err) => {
         if (!axios.isCancel(err)) {
-          setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
+          setError(
+            new Error(`HTTP ${axios.isAxiosError(err) ? (err.response?.status ?? "?") : "?"}`)
+          );
           setData(null);
         }
       })
@@ -185,7 +191,7 @@ export function useCreateAppairageComment() {
       const res = await api.post<ApiEnvelope<AppairageCommentDTO>>(BASE, payload);
       return extractObject<AppairageCommentDTO>(res.data);
     } catch (err) {
-      setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
+      setError(new Error(`HTTP ${axios.isAxiosError(err) ? (err.response?.status ?? "?") : "?"}`));
       throw err;
     } finally {
       setLoading(false);
@@ -202,19 +208,24 @@ export function useUpdateAppairageComment(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const update = useCallback(async (payload: AppairageCommentUpdateInput) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.patch<ApiEnvelope<AppairageCommentDTO>>(`${BASE}${id}/`, payload);
-      return extractObject<AppairageCommentDTO>(res.data);
-    } catch (err) {
-      setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const update = useCallback(
+    async (payload: AppairageCommentUpdateInput) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.patch<ApiEnvelope<AppairageCommentDTO>>(`${BASE}${id}/`, payload);
+        return extractObject<AppairageCommentDTO>(res.data);
+      } catch (err) {
+        setError(
+          new Error(`HTTP ${axios.isAxiosError(err) ? (err.response?.status ?? "?") : "?"}`)
+        );
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { update, loading, error };
 }
@@ -232,7 +243,7 @@ export function useDeleteAppairageComment(id: number | string) {
     try {
       await api.delete<void>(`${BASE}${id}/`);
     } catch (err) {
-      setError(new Error(`HTTP ${axios.isAxiosError(err) ? err.response?.status ?? "?" : "?"}`));
+      setError(new Error(`HTTP ${axios.isAxiosError(err) ? (err.response?.status ?? "?") : "?"}`));
       throw err;
     } finally {
       setLoading(false);
@@ -254,9 +265,7 @@ export function useArchiveAppairageComment(id: number | string) {
       if (!id) return;
       try {
         setLoading(true);
-        const endpoint = isArchived
-          ? `${BASE}${id}/desarchiver/`
-          : `${BASE}${id}/archiver/`;
+        const endpoint = isArchived ? `${BASE}${id}/desarchiver/` : `${BASE}${id}/archiver/`;
         await api.post(endpoint);
         return isArchived ? "actif" : "archive";
       } catch (err) {

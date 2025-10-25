@@ -1,13 +1,6 @@
 // src/pages/appairage/AppairageDetailPage.tsx
 import { useNavigate, useParams, Link as RouterLink } from "react-router-dom";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Typography,
-  Paper,
-  Chip,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Typography, Paper, Chip } from "@mui/material";
 import { useAppairage } from "../../../hooks/useAppairage";
 import PageTemplate from "../../../components/PageTemplate";
 
@@ -61,11 +54,7 @@ export default function AppairageDetailPage() {
       backButton
       onBack={() => navigate(-1)}
       actions={
-        <Button
-          variant="outlined"
-          component={RouterLink}
-          to={`/appairages/${numericId}/edit`}
-        >
+        <Button variant="outlined" component={RouterLink} to={`/appairages/${numericId}/edit`}>
           Modifier
         </Button>
       }
@@ -79,9 +68,7 @@ export default function AppairageDetailPage() {
           Créé par <strong>{appairage.created_by_nom || "—"}</strong> le{" "}
           {new Date(appairage.created_at).toLocaleString("fr-FR")}
         </Typography>
-        {appairage.statut && (
-          <Chip label={appairage.statut} size="small" sx={{ mt: 1 }} />
-        )}
+        {appairage.statut && <Chip label={appairage.statut} size="small" sx={{ mt: 1 }} />}
       </Paper>
 
       {/* Partenaire */}
@@ -97,9 +84,7 @@ export default function AppairageDetailPage() {
         <Typography variant="subtitle1" gutterBottom>
           Formation
         </Typography>
-        <Typography variant="body2">
-          {appairage.formation_nom || "—"}
-        </Typography>
+        <Typography variant="body2">{appairage.formation_nom || "—"}</Typography>
         {appairage.formation_centre && (
           <Typography variant="caption" display="block" color="text.secondary">
             {appairage.formation_centre}

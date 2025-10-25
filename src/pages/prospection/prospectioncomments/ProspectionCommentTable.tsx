@@ -14,9 +14,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import BusinessIcon from "@mui/icons-material/Business";
 import PersonIcon from "@mui/icons-material/Person";
 
-import ResponsiveTableTemplate, {
-  TableColumn,
-} from "../../../components/ResponsiveTableTemplate";
+import ResponsiveTableTemplate, { TableColumn } from "../../../components/ResponsiveTableTemplate";
 import type { ProspectionCommentDTO } from "../../../types/prospectionComment";
 import { useState } from "react";
 
@@ -38,11 +36,7 @@ const dtfFR =
 
 const fmt = (iso: string) => {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleString("fr-FR");
 };
 
 export default function ProspectionCommentTable({
@@ -82,9 +76,7 @@ export default function ProspectionCommentTable({
       label: (
         <Checkbox
           size="small"
-          indeterminate={
-            selected.length > 0 && selected.length < rows.length
-          }
+          indeterminate={selected.length > 0 && selected.length < rows.length}
           checked={rows.length > 0 && selected.length === rows.length}
           onChange={toggleAll}
         />
@@ -137,7 +129,9 @@ export default function ProspectionCommentTable({
               fontWeight="bold"
               component={linkToProspection ? Link : "span"}
               to={linkToProspection ? linkToProspection(r.prospection) : undefined}
-              style={{ textDecoration: linkToProspection ? "underline" : "none" }}
+              style={{
+                textDecoration: linkToProspection ? "underline" : "none",
+              }}
               noWrap
             >
               {label}

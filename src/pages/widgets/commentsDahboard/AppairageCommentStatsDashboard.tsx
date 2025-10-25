@@ -20,7 +20,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import { Refresh as RefreshIcon, Link as LinkIcon } from "@mui/icons-material";
+import { Refresh as RefreshIcon } from "@mui/icons-material";
 import {
   AppairageCommentFilters,
   AppairageCommentItem,
@@ -34,13 +34,18 @@ export default function AppairageCommentStatsDashboard({
 }: {
   title?: string;
 }) {
-  const [filters, setFilters] = useState<AppairageCommentFilters>({ limit: 10 });
+  const [filters, setFilters] = useState<AppairageCommentFilters>({
+    limit: 10,
+  });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const { data, isLoading, error, refetch, isFetching } = useAppairageCommentLatest(filters);
 
-  const { data: centresGrouped } = useAppairageCommentGrouped("centre", { ...filters, centre: undefined });
+  const { data: centresGrouped } = useAppairageCommentGrouped("centre", {
+    ...filters,
+    centre: undefined,
+  });
   const { data: depsGrouped } = useAppairageCommentGrouped("departement", {
     ...filters,
     departement: undefined,
@@ -83,7 +88,13 @@ export default function AppairageCommentStatsDashboard({
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+      >
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
@@ -97,7 +108,12 @@ export default function AppairageCommentStatsDashboard({
         <Select
           size="small"
           value={filters.centre ? String(filters.centre) : ""}
-          onChange={(e) => setFilters((f) => ({ ...f, centre: e.target.value ? Number(e.target.value) : undefined }))}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              centre: e.target.value ? Number(e.target.value) : undefined,
+            }))
+          }
           displayEmpty
           sx={{ minWidth: 160 }}
         >
@@ -112,7 +128,12 @@ export default function AppairageCommentStatsDashboard({
         <Select
           size="small"
           value={filters.departement ?? ""}
-          onChange={(e) => setFilters((f) => ({ ...f, departement: e.target.value || undefined }))}
+          onChange={(e) =>
+            setFilters((f) => ({
+              ...f,
+              departement: e.target.value || undefined,
+            }))
+          }
           displayEmpty
           sx={{ minWidth: 120 }}
         >
@@ -168,7 +189,12 @@ export default function AppairageCommentStatsDashboard({
                         </Typography>
                       )}
                       {c.statut_snapshot && (
-                        <Chip size="small" variant="outlined" label={c.statut_snapshot} sx={{ mt: 0.5 }} />
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label={c.statut_snapshot}
+                          sx={{ mt: 0.5 }}
+                        />
                       )}
                     </TableCell>
 

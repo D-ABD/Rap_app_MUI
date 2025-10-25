@@ -2,14 +2,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography, Paper } from "@mui/material";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
 
@@ -21,7 +14,6 @@ import api from "../../api/axios";
 type Props = {
   formationId?: string;
   readonlyFormation?: boolean;
-  /** 🔹 Si fourni, le parent gère la création du commentaire */
   onSubmit?: (payload: { contenu: string }) => Promise<void> | void;
 };
 
@@ -43,11 +35,10 @@ export default function CommentaireForm({
   const [loading, setLoading] = useState(!!formationId);
   const [showModal, setShowModal] = useState(false);
 
-  const { values, errors, setErrors, setValues } =
-    useForm<CommentaireFormData>({
-      formation: formationId || "",
-      contenu: "",
-    });
+  const { values, errors, setErrors, setValues } = useForm<CommentaireFormData>({
+    formation: formationId || "",
+    contenu: "",
+  });
 
   // ✅ Initialise Quill (react-quilljs)
   const { quill, quillRef } = useQuill({
@@ -72,7 +63,7 @@ export default function CommentaireForm({
         }));
       });
     }
-  }, [quill]);
+  }, [quill, setValues]); // ✅ ajouté setValues ici
 
   /* ---------- Chargement auto du nom formation ---------- */
   useEffect(() => {
@@ -99,7 +90,6 @@ export default function CommentaireForm({
       formation: formationId ?? values.formation,
     };
 
-    // ✅ Cas 1 : utilisé dans une modale → délégué au parent
     if (onSubmit) {
       await onSubmit({ contenu: payload.contenu });
       setValues((prev) => ({ ...prev, contenu: "" }));
@@ -107,7 +97,6 @@ export default function CommentaireForm({
       return;
     }
 
-    // ✅ Cas 2 : utilisation autonome
     if (!payload.formation) {
       toast.error("Veuillez sélectionner une formation.");
       return;
@@ -122,9 +111,7 @@ export default function CommentaireForm({
         response?: { data?: Record<string, string[]> };
       };
       if (axiosError.response?.data) {
-        const formattedErrors: Partial<
-          Record<keyof CommentaireFormData, string>
-        > = {};
+        const formattedErrors: Partial<Record<keyof CommentaireFormData, string>> = {};
         for (const key in axiosError.response.data) {
           const val = axiosError.response.data[key];
           if (Array.isArray(val)) {
@@ -144,7 +131,6 @@ export default function CommentaireForm({
         <CircularProgress />
       ) : (
         <Box component="form" onSubmit={handleSubmit}>
-          {/* ✅ Affiche la formation si readonly */}
           {readonlyFormation && formationNom && (
             <Box
               sx={{
@@ -155,31 +141,25 @@ export default function CommentaireForm({
               }}
             >
               <Typography variant="body2">
-                📚 Commentaire pour la formation :{" "}
-                <strong>{formationNom}</strong>
+                📚 Commentaire pour la formation : <strong>{formationNom}</strong>
               </Typography>
             </Box>
           )}
 
-          {/* 🔍 Sélection manuelle uniquement si non readonly */}
           {!readonlyFormation && (
             <>
-              <Button
-                variant="outlined"
-                onClick={() => setShowModal(true)}
-                sx={{ mb: 2 }}
-              >
-                🔍{" "}
-                {formationNom
-                  ? "Changer de formation"
-                  : "Rechercher une formation"}
+              <Button variant="outlined" onClick={() => setShowModal(true)} sx={{ mb: 2 }}>
+                🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
               </Button>
 
               <FormationSelectModal
                 show={showModal}
                 onClose={() => setShowModal(false)}
                 onSelect={(pick) => {
-                  setValues((prev) => ({ ...prev, formation: String(pick.id) }));
+                  setValues((prev) => ({
+                    ...prev,
+                    formation: String(pick.id),
+                  }));
                   setFormationNom(pick.nom ?? "");
                   setShowModal(false);
                 }}
@@ -187,7 +167,6 @@ export default function CommentaireForm({
             </>
           )}
 
-          {/* 📝 Contenu du commentaire */}
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" gutterBottom>
               Contenu
@@ -200,7 +179,6 @@ export default function CommentaireForm({
             )}
           </Box>
 
-          {/* 🔘 Boutons */}
           <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
             <Button type="submit" variant="contained" color="success">
               💾 Enregistrer

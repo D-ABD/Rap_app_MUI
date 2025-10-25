@@ -24,12 +24,7 @@ export default function NotFoundPage() {
       <Typography variant="body1" sx={{ mb: 3 }}>
         Vérifiez l’URL ou retournez à l’accueil.
       </Typography>
-      <Button
-        variant="contained"
-        color="primary"
-        component={Link}
-        to="/"
-      >
+      <Button variant="contained" color="primary" component={Link} to="/">
         Retour à l’accueil
       </Button>
     </Box>

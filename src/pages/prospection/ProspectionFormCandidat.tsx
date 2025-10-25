@@ -11,7 +11,6 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Typography,
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 
@@ -55,8 +54,7 @@ export default function ProspectionFormCandidat({
     partenaire: initialValues?.partenaire ?? null,
     partenaire_nom: initialValues?.partenaire_nom ?? null,
     formation: fixedFormationId ?? initialValues?.formation ?? null,
-    date_prospection:
-      initialValues?.date_prospection?.slice(0, 10) ?? todayStr,
+    date_prospection: initialValues?.date_prospection?.slice(0, 10) ?? todayStr,
     type_prospection: initialValues?.type_prospection ?? "nouveau_prospect",
     motif: initialValues?.motif ?? "autre",
     statut: initialValues?.statut ?? "a_faire",
@@ -83,12 +81,7 @@ export default function ProspectionFormCandidat({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     setForm((prev) => {
-      const nextVal =
-        value === ""
-          ? undefined
-          : type === "number"
-          ? Number(value)
-          : value;
+      const nextVal = value === "" ? undefined : type === "number" ? Number(value) : value;
       const next = { ...prev, [name]: nextVal } as ProspectionFormDraft;
 
       if (name === "relance_prevue") {
@@ -110,8 +103,7 @@ export default function ProspectionFormCandidat({
     setForm((prev) => {
       const next = { ...prev, [name]: value } as ProspectionFormDraft;
       if (name === "moyen_contact") {
-        next.moyen_contact =
-          value === "" ? null : (value as ProspectionMoyenContact);
+        next.moyen_contact = value === "" ? null : (value as ProspectionMoyenContact);
       }
       return next;
     });
@@ -147,9 +139,7 @@ export default function ProspectionFormCandidat({
       statut: form.statut!,
       objectif: form.objectif!,
       owner: form.owner ?? null,
-      ...(form.moyen_contact !== undefined
-        ? { moyen_contact: form.moyen_contact ?? null }
-        : {}),
+      ...(form.moyen_contact !== undefined ? { moyen_contact: form.moyen_contact ?? null } : {}),
       ...(form.relance_prevue ? { relance_prevue: form.relance_prevue } : {}),
     };
 
@@ -164,13 +154,7 @@ export default function ProspectionFormCandidat({
   if (error) return <p>Erreur lors du chargement des choix.</p>;
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      display="flex"
-      flexDirection="column"
-      gap={2}
-    >
+    <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
       {/* Partenaire */}
       <Box>
         <TextField
@@ -179,8 +163,8 @@ export default function ProspectionFormCandidat({
             form.partenaire_nom
               ? form.partenaire_nom
               : form.partenaire
-              ? `ID #${form.partenaire}`
-              : "—"
+                ? `ID #${form.partenaire}`
+                : "—"
           }
           InputProps={{ readOnly: true }}
           fullWidth
@@ -188,14 +172,8 @@ export default function ProspectionFormCandidat({
         />
         {mode === "create" && (
           <>
-            <Button
-              type="button"
-              onClick={() => setShowPartenaireModal(true)}
-              variant="outlined"
-            >
-              {form.partenaire
-                ? "Modifier le partenaire"
-                : "Sélectionner un partenaire"}
+            <Button type="button" onClick={() => setShowPartenaireModal(true)} variant="outlined">
+              {form.partenaire ? "Modifier le partenaire" : "Sélectionner un partenaire"}
             </Button>
             <PartenaireSelectModal
               show={showPartenaireModal}
@@ -217,10 +195,7 @@ export default function ProspectionFormCandidat({
       {(form.formation_nom || fixedFormationId != null) && (
         <TextField
           label="Formation"
-          value={
-            form.formation_nom ??
-            (fixedFormationId != null ? `ID #${fixedFormationId}` : "—")
-          }
+          value={form.formation_nom ?? (fixedFormationId != null ? `ID #${fixedFormationId}` : "—")}
           InputProps={{ readOnly: true }}
           fullWidth
           margin="dense"
@@ -276,11 +251,7 @@ export default function ProspectionFormCandidat({
       {/* Motif */}
       <FormControl required>
         <InputLabel>Motif</InputLabel>
-        <Select
-          name="motif"
-          value={form.motif || ""}
-          onChange={handleSelectChange}
-        >
+        <Select name="motif" value={form.motif || ""} onChange={handleSelectChange}>
           {choices!.motif.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
@@ -292,11 +263,7 @@ export default function ProspectionFormCandidat({
       {/* Statut */}
       <FormControl required>
         <InputLabel>Statut</InputLabel>
-        <Select
-          name="statut"
-          value={form.statut || ""}
-          onChange={handleSelectChange}
-        >
+        <Select name="statut" value={form.statut || ""} onChange={handleSelectChange}>
           {choices!.statut.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
@@ -320,11 +287,7 @@ export default function ProspectionFormCandidat({
       {/* Objectif */}
       <FormControl required>
         <InputLabel>Objectif</InputLabel>
-        <Select
-          name="objectif"
-          value={form.objectif || ""}
-          onChange={handleSelectChange}
-        >
+        <Select name="objectif" value={form.objectif || ""} onChange={handleSelectChange}>
           {choices!.objectif.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
@@ -336,11 +299,7 @@ export default function ProspectionFormCandidat({
       {/* Moyen de contact */}
       <FormControl>
         <InputLabel>Moyen de contact</InputLabel>
-        <Select
-          name="moyen_contact"
-          value={form.moyen_contact ?? ""}
-          onChange={handleSelectChange}
-        >
+        <Select name="moyen_contact" value={form.moyen_contact ?? ""} onChange={handleSelectChange}>
           <MenuItem value="">—</MenuItem>
           {(choices?.moyen_contact ?? []).map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
@@ -352,11 +311,7 @@ export default function ProspectionFormCandidat({
 
       {/* Submit */}
       <Button type="submit" variant="contained" disabled={loading}>
-        {loading
-          ? mode === "create"
-            ? "⏳ Création…"
-            : "⏳ Mise à jour…"
-          : "✅ Enregistrer"}
+        {loading ? (mode === "create" ? "⏳ Création…" : "⏳ Mise à jour…") : "✅ Enregistrer"}
       </Button>
     </Box>
   );

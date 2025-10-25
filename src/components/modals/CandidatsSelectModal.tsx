@@ -44,7 +44,7 @@ export type CandidatPick = {
   nom: string;
   prenom: string;
   nom_complet: string;
-  nom_naissance?: string | null;   // ✅ ajoute ceci
+  nom_naissance?: string | null;
   email: string | null;
   formation: FormationLite | null;
   formation_nom?: string | null;
@@ -59,8 +59,12 @@ export type CandidatPick = {
   } | null;
 };
 
-
-type DRFPaginated<T> = { count: number; next: string | null; previous: string | null; results: T[] };
+type DRFPaginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
 type DRFEnvelope<T> = DRFPaginated<T> | { data: DRFPaginated<T> };
 
 type ApiEnvelope<T> = { data: T } | T;
@@ -77,7 +81,7 @@ type CandidatApi = {
   nom: string | null;
   prenom: string | null;
   nom_complet?: string | null;
-  nom_naissance?: string | null;  
+  nom_naissance?: string | null;
   email?: string | null;
   formation?: FormationField;
   formation_id?: number | null;
@@ -127,7 +131,11 @@ const _nn = (v?: string | null): string => (v ?? "").trim();
 function asPaginated<T>(data: DRFEnvelope<T>): DRFPaginated<T> {
   return "results" in data ? data : data.data;
 }
-function toFormationLite(field?: FormationField, fallbackId?: number | null, fallbackNom?: string | null): FormationLite | null {
+function toFormationLite(
+  field?: FormationField,
+  fallbackId?: number | null,
+  fallbackNom?: string | null
+): FormationLite | null {
   if (!field && !fallbackId) return null;
   if (typeof field === "number") return { id: field, nom: fallbackNom ?? null };
   if (field && typeof field === "object") return { id: field.id, nom: field.nom ?? null };
@@ -144,12 +152,17 @@ function extractUserId(x: CandidatApi): number | null {
 }
 function extractRole(x: CandidatApi): RoleCode | null {
   const cu = x.compte_utilisateur;
-  if (cu && typeof cu === "object") return ((cu as Partial<CompteUtilisateurLite>).role ?? null) as RoleCode | null;
+  if (cu && typeof cu === "object")
+    return ((cu as Partial<CompteUtilisateurLite>).role ?? null) as RoleCode | null;
   return null;
 }
 function extractActive(x: CandidatApi): boolean | undefined {
   const cu = x.compte_utilisateur;
-  if (cu && typeof cu === "object" && typeof (cu as Partial<CompteUtilisateurLite>).is_active === "boolean")
+  if (
+    cu &&
+    typeof cu === "object" &&
+    typeof (cu as Partial<CompteUtilisateurLite>).is_active === "boolean"
+  )
     return (cu as Partial<CompteUtilisateurLite>).is_active;
   return undefined;
 }
@@ -200,39 +213,40 @@ export default function CandidatsSelectModal({
   const [telephone, setTelephone] = useState("");
   const [creating, setCreating] = useState(false);
 
-useEffect(() => {
-  if (!show) return;
-  let cancelled = false;
+  useEffect(() => {
+    if (!show) return;
+    let cancelled = false;
 
-  const fetchPage = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params: Record<string, unknown> = { page_size: 50, lite: 1 }; // 👈 ajout du lite
-      if (_nn(search)) {
-        params.search = search;
-        params.texte = search;
-        params.q = search;
+    const fetchPage = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params: Record<string, unknown> = { page_size: 50, lite: 1 };
+        if (_nn(search)) {
+          params.search = search;
+          params.texte = search;
+          params.q = search;
+        }
+        const res = await api.get<DRFEnvelope<CandidatApi>>("/candidats/", { params });
+        const page = asPaginated<CandidatApi>(res.data);
+        const normalized = page.results.map(normalizeCandidat);
+        if (!cancelled) setItems(normalized);
+      } catch (_err: unknown) {
+        if (import.meta.env.MODE !== "production") {
+          // eslint-disable-next-line no-console
+          console.error("Erreur lors du chargement des candidats :", _err);
+        }
+        if (!cancelled) setError("Erreur lors du chargement des candidats.");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      const res = await api.get<DRFEnvelope<CandidatApi>>("/candidats/", { params });
-      const page = asPaginated<CandidatApi>(res.data);
-      const normalized = page.results.map(normalizeCandidat);
-      if (!cancelled) setItems(normalized);
-    } catch (err: unknown) {
-      if (import.meta.env.MODE !== "production") {
-        console.error("Erreur chargement candidats :", err);
-      }
-      if (!cancelled) setError("Erreur lors du chargement des candidats.");
-    } finally {
-      if (!cancelled) setLoading(false);
-    }
-  };
+    };
 
-  fetchPage();
-  return () => {
-    cancelled = true;
-  };
-}, [search, show]);
+    fetchPage();
+    return () => {
+      cancelled = true;
+    };
+  }, [search, show]);
 
   const filtered = useMemo<CandidatPick[]>(() => {
     let list = items;
@@ -244,7 +258,9 @@ useEffect(() => {
     }
     if (onlyActive) {
       list = list.filter((c) =>
-        typeof c.compte_utilisateur?.is_active === "boolean" ? !!c.compte_utilisateur.is_active : true
+        typeof c.compte_utilisateur?.is_active === "boolean"
+          ? !!c.compte_utilisateur.is_active
+          : true
       );
     }
     if (requireLinkedUser) {
@@ -253,7 +269,8 @@ useEffect(() => {
     const s = _nn(search).toLowerCase();
     if (s) {
       list = list.filter((c) => {
-        const full = `${c.nom_complet} ${c.email ?? ""} ${c.formation_nom ?? ""} ${c.centre_nom ?? ""}`.toLowerCase();
+        const full =
+          `${c.nom_complet} ${c.email ?? ""} ${c.formation_nom ?? ""} ${c.centre_nom ?? ""}`.toLowerCase();
         return full.includes(s);
       });
     }
@@ -299,9 +316,10 @@ useEffect(() => {
       toast.success("✅ Candidat créé et sélectionné");
       onSelect(pick);
       onClose();
-    } catch (err) {
+    } catch (_err) {
       if (import.meta.env.MODE !== "production") {
-        console.error("Création candidat échouée :", err);
+        // eslint-disable-next-line no-console
+        console.error("Erreur lors de la création du candidat :", _err);
       }
       toast.error("❌ Échec de la création du candidat");
     } finally {

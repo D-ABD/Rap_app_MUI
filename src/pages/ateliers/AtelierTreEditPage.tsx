@@ -16,8 +16,7 @@ import PageTemplate from "../../components/PageTemplate";
 import AtelierTREForm from "./AteliersTREForm";
 
 // Helpers
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null;
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
 
@@ -28,9 +27,7 @@ function extractApiMessage(data: unknown): string | null {
   if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage;
 
   const maybeErrors = (data as { errors?: unknown }).errors;
-  const errorsObj = isRecord(maybeErrors)
-    ? (maybeErrors as Record<string, unknown>)
-    : data;
+  const errorsObj = isRecord(maybeErrors) ? (maybeErrors as Record<string, unknown>) : data;
 
   const parts: string[] = [];
   for (const [field, val] of Object.entries(errorsObj)) {
@@ -68,11 +65,8 @@ export default function AtelierTREEditPage() {
       navigate("/ateliers-tre");
     } catch (e) {
       const axiosErr = e as AxiosError<unknown>;
-      const parsed = axiosErr.response?.data
-        ? extractApiMessage(axiosErr.response.data)
-        : null;
+      const parsed = axiosErr.response?.data ? extractApiMessage(axiosErr.response.data) : null;
       toast.error(parsed ?? axiosErr.message ?? "Erreur lors de la mise à jour");
-      console.error("Update atelier failed:", e);
     } finally {
       setSubmitting(false);
     }

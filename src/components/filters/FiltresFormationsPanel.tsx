@@ -1,17 +1,8 @@
 import React, { useMemo, useCallback } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, Typography } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import FilterTemplate, { type FieldConfig } from "./FilterTemplate";
-import type {
-  FiltresFormationsData,
-  FiltresFormationsValues,
-} from "../../types/formation";
+import type { FiltresFormationsData, FiltresFormationsValues } from "../../types/formation";
 
 type Props = {
   filtres: FiltresFormationsData | null;
@@ -34,9 +25,8 @@ function toOptionsUnique<T extends { id: number; nom: string }>(arr: T[] = []) {
 }
 
 // 🔹 placeholder si liste vide
-const withPlaceholder = (
-  opts: Array<{ value: string | number; label: string }>
-) => (opts.length ? opts : [{ value: "", label: "—" }]);
+const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
+  opts.length ? opts : [{ value: "", label: "—" }];
 
 // 🔹 reset par défaut
 function buildReset(values: FiltresFormationsValues): FiltresFormationsValues {
@@ -60,18 +50,14 @@ export default function FiltresFormationsPanel({
   onRefresh,
 }: Props) {
   // 🔍 Gestion locale de la recherche texte
-  const onLocalSearchChange = useCallback<
-    React.ChangeEventHandler<HTMLInputElement>
-  >(
+  const onLocalSearchChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (e) => {
       onChange({ ...values, texte: e.target.value, page: 1 });
     },
     [onChange, values]
   );
 
-  const onSearchKeyDown = useCallback<
-    React.KeyboardEventHandler<HTMLInputElement>
-  >(
+  const onSearchKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
     (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -178,17 +164,10 @@ export default function FiltresFormationsPanel({
         mb={1.5}
         flexWrap={{ xs: "wrap", md: "nowrap" }}
       >
-        <label
-          htmlFor="formations-search-input"
-          style={visuallyHidden as React.CSSProperties}
-        >
+        <label htmlFor="formations-search-input" style={visuallyHidden as React.CSSProperties}>
           Rechercher des formations
         </label>
-        <Typography
-          component="span"
-          id="formations-search-help"
-          sx={visuallyHidden}
-        >
+        <Typography component="span" id="formations-search-help" sx={visuallyHidden}>
           Tapez votre recherche. Appuyez sur Échap pour effacer.
         </Typography>
 
@@ -207,10 +186,7 @@ export default function FiltresFormationsPanel({
         />
 
         {values.texte && (
-          <Button
-            variant="outlined"
-            onClick={() => onChange({ ...values, texte: "", page: 1 })}
-          >
+          <Button variant="outlined" onClick={() => onChange({ ...values, texte: "", page: 1 })}>
             ✕
           </Button>
         )}

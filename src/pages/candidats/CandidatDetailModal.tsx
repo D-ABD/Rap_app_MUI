@@ -16,20 +16,14 @@ import EditIcon from "@mui/icons-material/Edit";
 import type { Candidat } from "../../types/candidat";
 
 /* ---------- Helpers ---------- */
-const dtfFR =
-  typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
+const dtfFR = typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 const nn = (s?: string | null) => (s ?? "").toString().trim() || "—";
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Props ---------- */
 interface Props {
@@ -114,7 +108,10 @@ export default function CandidatDetailModal({
                   <Field label="Nom formation" value={nn(f?.nom)} />
                   <Field label="Centre" value={nn(f?.centre?.nom)} />
                   <Field label="Dates" value={`${fmt(f?.date_debut)} → ${fmt(f?.date_fin)}`} />
-                  <Field label="Type d’offre" value={nn(f?.type_offre?.nom ?? f?.type_offre?.libelle)} />
+                  <Field
+                    label="Type d’offre"
+                    value={nn(f?.type_offre?.nom ?? f?.type_offre?.libelle)}
+                  />
                 </Section>
               </Grid>
 
@@ -186,10 +183,7 @@ export default function CandidatDetailModal({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}>
         {title}
       </Typography>
       <Divider sx={{ mb: 1 }} />
@@ -205,13 +199,11 @@ function Field({ label, value }: { label: string; value?: string | number | null
     value === null ||
     value === undefined ||
     value === "—" ||
-    (typeof value === "string" && !value.trim())
-      ? (
-        <span style={{ color: "red", fontStyle: "italic", opacity: 0.85 }}>
-          — NC
-        </span>
-      )
-      : value;
+    (typeof value === "string" && !value.trim()) ? (
+      <span style={{ color: "red", fontStyle: "italic", opacity: 0.85 }}>— NC</span>
+    ) : (
+      value
+    );
 
   return (
     <Grid item xs={12} sm={6}>

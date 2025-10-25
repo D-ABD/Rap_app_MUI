@@ -1,7 +1,7 @@
 // src/styled.d.ts
-import 'styled-components';
+import "styled-components";
 
-declare module 'styled-components' {
+declare module "styled-components" {
   export interface DefaultTheme {
     colors: {
       background: string;
@@ -20,7 +20,7 @@ declare module 'styled-components' {
       white: string;
       black: string;
       gray: string;
-      primaryFocus?: string; 
+      primaryFocus?: string;
 
       // 🌈 couleurs sémantiques
       textPrimary: string;
@@ -90,9 +90,9 @@ declare module 'styled-components' {
   }
 }
 // src/styled.d.ts
-import 'styled-components';
+import "styled-components";
 
-declare module 'styled-components' {
+declare module "styled-components" {
   export interface DefaultTheme {
     colors: {
       background: string;
@@ -111,7 +111,7 @@ declare module 'styled-components' {
       white: string;
       black: string;
       gray: string;
-      primaryFocus?: string; 
+      primaryFocus?: string;
 
       // 🌈 couleurs sémantiques
       textPrimary: string;

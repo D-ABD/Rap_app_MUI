@@ -33,7 +33,6 @@ export interface Document {
   };
 }
 
-
 // Données envoyées à l'API pour créer ou modifier un document
 export interface DocumentFormData {
   nom_fichier: string;
@@ -73,8 +72,6 @@ export interface DocumentFormInitialValues {
     couleur: string;
   };
 }
-
-
 
 export interface TypeDocumentChoice {
   value: string;

@@ -1,10 +1,9 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardHeader,
   CardContent,
   Grid,
-  TextField,
   Select,
   MenuItem,
   FormControl,
@@ -12,8 +11,8 @@ import {
   Checkbox,
   FormControlLabel,
   Divider,
-} from '@mui/material';
-import type { CandidatFormData, CandidatMeta, CVStatutValue } from '../../../types/candidat';
+} from "@mui/material";
+import type { CandidatFormData, CandidatMeta, CVStatutValue } from "../../../types/candidat";
 
 interface Props {
   form: CandidatFormData;
@@ -22,9 +21,9 @@ interface Props {
 }
 
 export default function SectionIndicateurs({ form, setForm, meta }: Props) {
-  const handleCheckbox = (key: keyof CandidatFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm(f => ({ ...f, [key]: e.target.checked }));
+  const handleCheckbox =
+    (key: keyof CandidatFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((f) => ({ ...f, [key]: e.target.checked }));
 
   return (
     <Card variant="outlined">
@@ -36,14 +35,17 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
             <FormControl fullWidth>
               <FormLabel>Statut</FormLabel>
               <Select
-                value={form.statut ?? ''}
-                onChange={e =>
-                  setForm(f => ({ ...f, statut: e.target.value || undefined }))
+                value={form.statut ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    statut: e.target.value || undefined,
+                  }))
                 }
                 displayEmpty
               >
                 <MenuItem value="">—</MenuItem>
-                {(meta?.statut_choices ?? []).map(opt => (
+                {(meta?.statut_choices ?? []).map((opt) => (
                   <MenuItem key={String(opt.value)} value={String(opt.value)}>
                     {opt.label}
                   </MenuItem>
@@ -57,9 +59,9 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
             <FormControl fullWidth>
               <FormLabel>CV statut</FormLabel>
               <Select
-                value={form.cv_statut ?? ''}
-                onChange={e =>
-                  setForm(f => ({
+                value={form.cv_statut ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
                     ...f,
                     cv_statut: (e.target.value || undefined) as CVStatutValue | undefined,
                   }))
@@ -67,7 +69,7 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
                 displayEmpty
               >
                 <MenuItem value="">—</MenuItem>
-                {(meta?.cv_statut_choices ?? []).map(opt => (
+                {(meta?.cv_statut_choices ?? []).map((opt) => (
                   <MenuItem key={String(opt.value)} value={String(opt.value)}>
                     {opt.label}
                   </MenuItem>
@@ -81,14 +83,17 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
             <FormControl fullWidth>
               <FormLabel>Type de contrat</FormLabel>
               <Select
-                value={form.type_contrat ?? ''}
-                onChange={e =>
-                  setForm(f => ({ ...f, type_contrat: e.target.value || undefined }))
+                value={form.type_contrat ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    type_contrat: e.target.value || undefined,
+                  }))
                 }
                 displayEmpty
               >
                 <MenuItem value="">—</MenuItem>
-                {(meta?.type_contrat_choices ?? []).map(opt => (
+                {(meta?.type_contrat_choices ?? []).map((opt) => (
                   <MenuItem key={String(opt.value)} value={String(opt.value)}>
                     {opt.label}
                   </MenuItem>
@@ -102,14 +107,17 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
             <FormControl fullWidth>
               <FormLabel>Disponibilité</FormLabel>
               <Select
-                value={form.disponibilite ?? ''}
-                onChange={e =>
-                  setForm(f => ({ ...f, disponibilite: e.target.value || undefined }))
+                value={form.disponibilite ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    disponibilite: e.target.value || undefined,
+                  }))
                 }
                 displayEmpty
               >
                 <MenuItem value="">—</MenuItem>
-                {(meta?.disponibilite_choices ?? []).map(opt => (
+                {(meta?.disponibilite_choices ?? []).map((opt) => (
                   <MenuItem key={String(opt.value)} value={String(opt.value)}>
                     {opt.label}
                   </MenuItem>
@@ -123,20 +131,20 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
 
         {/* Communication / expérience / CSP */}
         <Grid container spacing={2}>
-          {(['communication', 'experience', 'csp'] as const).map(key => (
+          {(["communication", "experience", "csp"] as const).map((key) => (
             <Grid item xs={12} md={4} key={key}>
               <FormControl fullWidth>
                 <FormLabel>
-                  {key === 'communication'
-                    ? 'Communication'
-                    : key === 'experience'
-                    ? 'Expérience'
-                    : 'CSP'}
+                  {key === "communication"
+                    ? "Communication"
+                    : key === "experience"
+                      ? "Expérience"
+                      : "CSP"}
                 </FormLabel>
                 <Select
-                  value={(form[key] as number | undefined) ?? ''}
-                  onChange={e =>
-                    setForm(f => ({
+                  value={(form[key] as number | undefined) ?? ""}
+                  onChange={(e) =>
+                    setForm((f) => ({
                       ...f,
                       [key]: e.target.value ? Number(e.target.value) : undefined,
                     }))
@@ -144,7 +152,7 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
                   displayEmpty
                 >
                   <MenuItem value="">—</MenuItem>
-                  {(meta?.niveau_choices ?? []).map(opt => (
+                  {(meta?.niveau_choices ?? []).map((opt) => (
                     <MenuItem key={String(opt.value)} value={String(opt.value)}>
                       {opt.label}
                     </MenuItem>
@@ -160,11 +168,11 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
         {/* Cases à cocher */}
         <Grid container spacing={2}>
           {[
-            ['entretien_done', 'Entretien réalisé'],
-            ['test_is_ok', 'Test validé'],
-            ['admissible', 'Admissible'],
-            ['inscrit_gespers', 'Inscrit GESPERS'],
-            ['courrier_rentree', 'Courrier de rentrée envoyé'],
+            ["entretien_done", "Entretien réalisé"],
+            ["test_is_ok", "Test validé"],
+            ["admissible", "Admissible"],
+            ["inscrit_gespers", "Inscrit GESPERS"],
+            ["courrier_rentree", "Courrier de rentrée envoyé"],
           ].map(([key, label]) => (
             <Grid item xs={12} md={3} key={key}>
               <FormControlLabel

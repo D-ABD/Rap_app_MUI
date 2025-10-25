@@ -2,18 +2,18 @@
 
 // 🎭 Rôles possibles
 export type CustomUserRole =
-  | 'superadmin'
-  | 'admin'
-  | 'staff'
-  | 'staff_read'
-  | 'stagiaire'
-  | 'candidat'
-  | 'candidatuser' // ← seulement si backend le renvoie
-  | 'test';        // ← seulement si backend le renvoie
+  | "superadmin"
+  | "admin"
+  | "staff"
+  | "staff_read"
+  | "stagiaire"
+  | "candidat"
+  | "candidatuser" // ← seulement si backend le renvoie
+  | "test"; // ← seulement si backend le renvoie
 
 // ✅ Interface principale utilisée dans tout le frontend
 export interface User {
-    consent_rgpd?: boolean;
+  consent_rgpd?: boolean;
   consent_date?: string | null;
   id: number;
   email: string;
@@ -30,7 +30,7 @@ export interface User {
   date_joined?: string;
   full_name?: string;
   is_staff?: boolean;
-  is_staff_read?: boolean;   // ✅ corrige la casse pour coller à l’API
+  is_staff_read?: boolean; // ✅ corrige la casse pour coller à l’API
   is_superuser?: boolean;
   is_admin?: boolean;
   last_login?: string;
@@ -60,17 +60,13 @@ export interface User {
   // ✅ Ajoutés ici, pas dedans
   centre?: { id: number; nom: string } | null;
   centres?: { id: number; nom: string }[];
-      type_offre?: {
-      id: number;
-      nom: string;
-      libelle: string;
-      couleur: string;
-    };
-
-
+  type_offre?: {
+    id: number;
+    nom: string;
+    libelle: string;
+    couleur: string;
+  };
 }
-    
-
 
 // ✏️ Données de formulaire pour création/édition
 export interface UserFormData {

@@ -15,7 +15,5 @@ export const registerLogoutCallback = (cb: () => void) => {
 export const triggerGlobalLogout = () => {
   if (logoutCallback) {
     logoutCallback();
-  } else {
-    console.warn("🔁 Aucune callback logout enregistrée.");
   }
 };

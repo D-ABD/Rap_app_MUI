@@ -27,11 +27,11 @@ export interface FormationInfo {
   centre?: { id: number; nom: string } | null;
   type_offre?: TypeOffreInfo | null;
   date_debut?: string | null; // ✅ exposé par le backend
-  date_fin?: string | null;   // ✅ exposé par le backend
+  date_fin?: string | null; // ✅ exposé par le backend
 }
 
 /** Valeurs autorisées pour le statut de CV (aligne strictement avec le backend). */
-export type CVStatutValue = 'oui' | 'en_cours' | 'a_modifier';
+export type CVStatutValue = "oui" | "en_cours" | "a_modifier";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Appairage (lite) – dernier appairage du candidat
@@ -49,16 +49,16 @@ export interface CommentaireAppairage {
 
 export interface AppairageLite {
   id: number;
-  partenaire: number;                 // id FK
-  partenaire_nom: string | null;      // libellé partenaire
-  date_appairage: string;             // ISO
-  statut: string;                     // value (ex: "accepte")
-  statut_display: string;             // label (ex: "Accepté")
+  partenaire: number; // id FK
+  partenaire_nom: string | null; // libellé partenaire
+  date_appairage: string; // ISO
+  statut: string; // value (ex: "accepte")
+  statut_display: string; // label (ex: "Accepté")
   retour_partenaire?: string | null;
-  date_retour?: string | null;        // ISO
-  created_at: string;                 // ISO
-  updated_at: string;                 // ISO
-  created_by_nom: string | null;      // libellé créateur
+  date_retour?: string | null; // ISO
+  created_at: string; // ISO
+  updated_at: string; // ISO
+  created_by_nom: string | null; // libellé créateur
 
   /** 🔹 Dernier commentaire (string simple, rétro-compatibilité) */
   commentaire: string | null;
@@ -100,20 +100,20 @@ export interface Candidat {
   rqth: boolean;
   permis_b: boolean;
 
-    // ───── Adresse détaillée ─────
+  // ───── Adresse détaillée ─────
   street_number?: string | null;
   street_name?: string | null;
   street_complement?: string | null;
   code_postal?: string | null;
   ville?: string | null;
 
-    // ───── Formation demandée─────
+  // ───── Formation demandée─────
   formation?: number | null;
   formation_info?: FormationInfo | null;
   centre_id?: number | null;
   centre_nom?: string | null;
 
-    // ───── Infos pour contrats ─────
+  // ───── Infos pour contrats ─────
   situation_avant_contrat?: string | null;
   dernier_diplome_prepare?: string | null;
   diplome_plus_eleve_obtenu?: string | null;
@@ -135,11 +135,6 @@ export interface Candidat {
   representant_zip_code?: string | null;
   representant_city?: string | null;
 
-
-
-
- 
-
   // ───── Statuts ─────
   statut: string;
   cv_statut?: CVStatutValue | null;
@@ -157,7 +152,7 @@ export interface Candidat {
   experience?: number | null;
   csp?: number | null;
   date_rentree?: string | null; // ISO
- 
+
   // ───── Placement / appairage ─────
   responsable_placement?: number | null;
   responsable_placement_nom?: string | null;
@@ -192,7 +187,6 @@ export interface Candidat {
   age?: number | null; // calculé côté backend
   vu_par?: number | null;
   vu_par_nom?: string | null;
-
 }
 
 export interface CandidatListResponse {
@@ -206,28 +200,28 @@ export interface CandidatListResponse {
 export type CandidatFormData = Partial<
   Omit<
     Candidat,
-    | 'id'
-    | 'nom_complet'
-    | 'age'
-    | 'nb_appairages'
-    | 'nb_prospections'
-    | 'role_utilisateur'
-    | 'ateliers_resume'
-    | 'peut_modifier'
-    | 'created_at'
-    | 'updated_at'
-    | 'created_by'
-    | 'updated_by'
-    | 'formation_info'
-    | 'date_inscription'
-    | 'last_appairage'
-    | 'responsable_placement_nom'
-    | 'entreprise_placement_nom'
-    | 'entreprise_validee_nom'
-    | 'vu_par_nom'
-    | 'resultat_placement_display'
-    | 'cv_statut_display'
-    | 'ateliers_counts'  // ✅ à ajouter (champ calculé)
+    | "id"
+    | "nom_complet"
+    | "age"
+    | "nb_appairages"
+    | "nb_prospections"
+    | "role_utilisateur"
+    | "ateliers_resume"
+    | "peut_modifier"
+    | "created_at"
+    | "updated_at"
+    | "created_by"
+    | "updated_by"
+    | "formation_info"
+    | "date_inscription"
+    | "last_appairage"
+    | "responsable_placement_nom"
+    | "entreprise_placement_nom"
+    | "entreprise_validee_nom"
+    | "vu_par_nom"
+    | "resultat_placement_display"
+    | "cv_statut_display"
+    | "ateliers_counts" // ✅ à ajouter (champ calculé)
   >
 >;
 
@@ -250,7 +244,6 @@ export interface CandidatMeta {
   situation_actuelle_choices?: Choice[];
 }
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Filtres + params de liste (UI)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -268,12 +261,12 @@ export interface CandidatFiltresValues {
   contrat_signe?: string;
   responsable_placement?: number;
 
-  rqth?: boolean | 'true' | 'false';
-  permis_b?: boolean | 'true' | 'false';
-  admissible?: boolean | 'true' | 'false';
-  has_osia?: boolean | 'true' | 'false';
-  entretien_done?: boolean | 'true' | 'false';
-  test_is_ok?: boolean | 'true' | 'false';
+  rqth?: boolean | "true" | "false";
+  permis_b?: boolean | "true" | "false";
+  admissible?: boolean | "true" | "false";
+  has_osia?: boolean | "true" | "false";
+  entretien_done?: boolean | "true" | "false";
+  test_is_ok?: boolean | "true" | "false";
 
   date_min?: string; // ISO (>= date_inscription)
   date_max?: string; // ISO (<= date_inscription)

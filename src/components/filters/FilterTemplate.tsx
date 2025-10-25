@@ -128,17 +128,11 @@ export default function FilterTemplate<T extends object>({
                     label={f.label}
                     placeholder={f.placeholder}
                     disabled={disabled}
-                    value={
-                      f.format
-                        ? f.format(val as T[keyof T])
-                        : toInputValue(val)
-                    }
+                    value={f.format ? f.format(val as T[keyof T]) : toInputValue(val)}
                     onChange={(e) =>
                       onChange({
                         ...(values as T),
-                        [f.key]: f.parse
-                          ? f.parse(e.target.value)
-                          : e.target.value,
+                        [f.key]: f.parse ? f.parse(e.target.value) : e.target.value,
                       } as T)
                     }
                   />
@@ -176,9 +170,7 @@ export default function FilterTemplate<T extends object>({
                     onChange={(e) =>
                       onChange({
                         ...(values as T),
-                        [f.key]: f.parse
-                          ? f.parse(e.target.value)
-                          : e.target.value,
+                        [f.key]: f.parse ? f.parse(e.target.value) : e.target.value,
                       } as T)
                     }
                   />

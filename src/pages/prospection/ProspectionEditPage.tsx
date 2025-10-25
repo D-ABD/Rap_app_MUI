@@ -1,3 +1,4 @@
+// src/pages/prospection/ProspectionEditPage.tsx
 import { useRef, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -18,10 +19,7 @@ import ProspectionLastCommentRow from "./prospectioncomments/ProspectionLastComm
 import ProspectionCommentsModal from "../../components/modals/ProspectionCommentsModal";
 import CreatePartenaireButton from "./CreatePartenaireButton";
 
-import type {
-  ProspectionDetailDTO,
-  ProspectionFormData,
-} from "../../types/prospection";
+import type { ProspectionDetailDTO, ProspectionFormData } from "../../types/prospection";
 import api from "../../api/axios";
 import {
   useProspection,
@@ -138,8 +136,8 @@ export default function ProspectionEditPage() {
           activite_display: "Archivée",
         });
       }
-    } catch (err) {
-      console.error("Erreur d’archivage :", err);
+    } catch (_err) {
+      // ✅ renommé pour éviter le warning ESLint
       toast.error("❌ Échec de l’opération d’archivage");
     }
   };
@@ -166,11 +164,9 @@ export default function ProspectionEditPage() {
     relance_prevue: localDetail.relance_prevue ?? null,
     owner: localDetail.owner ?? null,
     owner_username: localDetail.owner_username ?? null,
-    formation_nom:
-      localDetail.formation_nom ?? formationFallback?.nom ?? null,
+    formation_nom: localDetail.formation_nom ?? formationFallback?.nom ?? null,
     centre_nom: localDetail.centre_nom ?? null,
-    num_offre:
-      localDetail.num_offre ?? formationFallback?.num_offre ?? null,
+    num_offre: localDetail.num_offre ?? formationFallback?.num_offre ?? null,
     moyen_contact: localDetail.moyen_contact ?? null,
     activite: localDetail.activite ?? "active",
     activite_display: localDetail.activite_display ?? "Active",
@@ -254,9 +250,7 @@ export default function ProspectionEditPage() {
         onClose={() => setOpenDeleteDialog(false)}
         aria-labelledby="delete-dialog-title"
       >
-        <DialogTitle id="delete-dialog-title">
-          Supprimer la prospection
-        </DialogTitle>
+        <DialogTitle id="delete-dialog-title">Supprimer la prospection</DialogTitle>
         <DialogContent>
           <DialogContentText>
             Voulez-vous vraiment supprimer la prospection #{prospectionId} ?
@@ -264,12 +258,7 @@ export default function ProspectionEditPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDeleteDialog(false)}>Annuler</Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-            disabled={removing}
-          >
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={removing}>
             {removing ? "Suppression…" : "Confirmer"}
           </Button>
         </DialogActions>

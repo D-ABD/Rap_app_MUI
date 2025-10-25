@@ -1,13 +1,5 @@
 import { ReactNode } from "react";
-import {
-  Box,
-  Stack,
-  Typography,
-  Button,
-  IconButton,
-  Collapse,
-  Tooltip,
-} from "@mui/material";
+import { Box, Stack, Typography, Button, IconButton, Collapse, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import PageWrapper from "./PageWrapper";
@@ -64,8 +56,6 @@ export default function PageTemplate({
       onBack();
     } else if (window.history.length > 1) {
       window.history.back();
-    } else {
-      console.warn("[PageTemplate] Aucun onBack fourni, history.back() indisponible");
     }
   };
 
@@ -102,24 +92,14 @@ export default function PageTemplate({
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
             {title ? (
               <Tooltip title={title} disableInteractive>
-                <Typography
-                  variant="h5"
-                  component="h1"
-                  noWrap
-                  sx={{ fontWeight: 600 }}
-                >
+                <Typography variant="h5" component="h1" noWrap sx={{ fontWeight: 600 }}>
                   {title}
                 </Typography>
               </Tooltip>
             ) : null}
 
             {subtitle && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                noWrap
-                sx={{ maxWidth: "100%" }}
-              >
+              <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: "100%" }}>
                 {subtitle}
               </Typography>
             )}

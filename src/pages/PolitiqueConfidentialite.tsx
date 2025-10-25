@@ -29,8 +29,8 @@ export default function PolitiqueConfidentialite() {
         </Typography>
 
         <Typography variant="body1" color="text.secondary" paragraph textAlign="center">
-          Cette politique explique comment nous collectons, utilisons et protégeons vos
-          données personnelles dans le cadre de l’utilisation de notre application.
+          Cette politique explique comment nous collectons, utilisons et protégeons vos données
+          personnelles dans le cadre de l’utilisation de notre application.
         </Typography>
 
         <Divider sx={{ my: 3 }} />
@@ -39,11 +39,11 @@ export default function PolitiqueConfidentialite() {
           1. Données collectées
         </Typography>
         <Typography variant="body2" paragraph>
-          Nous collectons uniquement les informations nécessaires à la création et à la
-          gestion de votre compte utilisateur : prénom, nom, adresse e-mail, mot de passe
-          et, le cas échéant, numéro de téléphone. Des données supplémentaires peuvent être
-          enregistrées dans le cadre de votre activité sur la plateforme (par exemple :
-          formations suivies, prospections ou partenaires associés).
+          Nous collectons uniquement les informations nécessaires à la création et à la gestion de
+          votre compte utilisateur : prénom, nom, adresse e-mail, mot de passe et, le cas échéant,
+          numéro de téléphone. Des données supplémentaires peuvent être enregistrées dans le cadre
+          de votre activité sur la plateforme (par exemple : formations suivies, prospections ou
+          partenaires associés).
         </Typography>
 
         <Typography variant="h6" gutterBottom>
@@ -64,19 +64,19 @@ export default function PolitiqueConfidentialite() {
         </Typography>
         <Typography variant="body2" paragraph>
           Vos données sont conservées tant que votre compte est actif. En cas d’inactivité
-          prolongée, elles pourront être archivées ou supprimées après un délai maximum de
-          24 mois. Vous pouvez demander la suppression de votre compte à tout moment via
-          l’espace personnel ou le formulaire de contact.
+          prolongée, elles pourront être archivées ou supprimées après un délai maximum de 24 mois.
+          Vous pouvez demander la suppression de votre compte à tout moment via l’espace personnel
+          ou le formulaire de contact.
         </Typography>
 
         <Typography variant="h6" gutterBottom>
           4. Partage et confidentialité
         </Typography>
         <Typography variant="body2" paragraph>
-          Nous ne partageons pas vos données personnelles avec des tiers sans votre
-          consentement explicite, sauf en cas d’obligation légale. Les accès sont limités
-          aux personnels habilités et aux prestataires techniques nécessaires au
-          fonctionnement du service (hébergement, messagerie, statistiques internes).
+          Nous ne partageons pas vos données personnelles avec des tiers sans votre consentement
+          explicite, sauf en cas d’obligation légale. Les accès sont limités aux personnels
+          habilités et aux prestataires techniques nécessaires au fonctionnement du service
+          (hébergement, messagerie, statistiques internes).
         </Typography>
 
         <Typography variant="h6" gutterBottom>
@@ -84,24 +84,28 @@ export default function PolitiqueConfidentialite() {
         </Typography>
         <Typography variant="body2" paragraph>
           Nous mettons en œuvre des mesures techniques et organisationnelles appropriées
-          (chiffrement, journalisation des accès, connexions sécurisées HTTPS) afin de
-          protéger vos données contre toute perte, utilisation abusive ou accès non autorisé.
+          (chiffrement, journalisation des accès, connexions sécurisées HTTPS) afin de protéger vos
+          données contre toute perte, utilisation abusive ou accès non autorisé.
         </Typography>
 
         <Typography variant="h6" gutterBottom>
           6. Vos droits
         </Typography>
         <Typography variant="body2" paragraph>
-          Conformément au RGPD, vous disposez d’un droit d’accès, de rectification,
-          d’opposition, de portabilité et de suppression de vos données. Pour exercer ces
-          droits, vous pouvez nous contacter via la page de contact ou depuis votre espace
-          personnel.
+          Conformément au RGPD, vous disposez d’un droit d’accès, de rectification, d’opposition, de
+          portabilité et de suppression de vos données. Pour exercer ces droits, vous pouvez nous
+          contacter via la page de contact ou depuis votre espace personnel.
         </Typography>
 
         <Typography
           variant="body2"
           paragraph
-          sx={{ mt: 4, fontStyle: "italic", textAlign: "right", color: "text.secondary" }}
+          sx={{
+            mt: 4,
+            fontStyle: "italic",
+            textAlign: "right",
+            color: "text.secondary",
+          }}
         >
           Dernière mise à jour : {new Date().toLocaleDateString("fr-FR")}
         </Typography>

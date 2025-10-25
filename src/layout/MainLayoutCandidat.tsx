@@ -35,7 +35,6 @@ import GroupIcon from "@mui/icons-material/Group";
 import { Link, useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { ThemeContext } from "../contexts/ThemeContext";
-import { useSidebarItems } from "./SidebarItems"; // ✅ version dynamique
 import logo from "../assets/logo.png";
 import Footer from "./footer";
 
@@ -48,7 +47,6 @@ export default function MainLayoutCandidat() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
-  const sidebarItems = useSidebarItems(); // ✅ ici on récupère la version adaptée candidat
 
   // ✅ Contexte thème
   const themeContext = useContext(ThemeContext);
@@ -81,9 +79,7 @@ export default function MainLayoutCandidat() {
           zIndex: (theme) => theme.zIndex.drawer + 1,
           backdropFilter: "blur(8px)",
           background: (theme) =>
-            theme.palette.mode === "light"
-              ? "rgba(25, 118, 210, 0.9)"
-              : "rgba(18,18,18,0.9)",
+            theme.palette.mode === "light" ? "rgba(25, 118, 210, 0.9)" : "rgba(18,18,18,0.9)",
         }}
       >
         <Toolbar sx={{ px: { xs: 1, sm: 2 }, minHeight: 56 }}>
@@ -150,9 +146,7 @@ export default function MainLayoutCandidat() {
                 PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
               >
                 <MenuItem disabled>{user?.username || user?.email}</MenuItem>
-                {user?.role && (
-                  <MenuItem disabled>🎭 Rôle : {user.role}</MenuItem>
-                )}
+                {user?.role && <MenuItem disabled>🎭 Rôle : {user.role}</MenuItem>}
                 <MenuItem component={Link} to="/mon-profil" onClick={() => setAnchorUser(null)}>
                   <AccountCircle fontSize="small" /> &nbsp;Mon profil
                 </MenuItem>
@@ -194,7 +188,9 @@ export default function MainLayoutCandidat() {
             onClick={toggleDrawer}
             selected={isActive("/dashboard")}
           >
-            <ListItemIcon><DashboardIcon color="primary" /></ListItemIcon>
+            <ListItemIcon>
+              <DashboardIcon color="primary" />
+            </ListItemIcon>
             <ListItemText primary="Dashboard" />
           </ListItemButton>
 
@@ -204,7 +200,9 @@ export default function MainLayoutCandidat() {
             onClick={toggleDrawer}
             selected={isActive("/prospections/candidat")}
           >
-            <ListItemIcon><AssignmentIcon color="info" /></ListItemIcon>
+            <ListItemIcon>
+              <AssignmentIcon color="info" />
+            </ListItemIcon>
             <ListItemText primary="Prospections" />
           </ListItemButton>
 
@@ -214,7 +212,9 @@ export default function MainLayoutCandidat() {
             onClick={toggleDrawer}
             selected={isActive("/prospection-commentaires")}
           >
-            <ListItemIcon><CommentIcon color="secondary" /></ListItemIcon>
+            <ListItemIcon>
+              <CommentIcon color="secondary" />
+            </ListItemIcon>
             <ListItemText primary="Commentaires" />
           </ListItemButton>
 
@@ -224,7 +224,9 @@ export default function MainLayoutCandidat() {
             onClick={toggleDrawer}
             selected={isActive("/partenaires/candidat")}
           >
-            <ListItemIcon><GroupIcon color="success" /></ListItemIcon>
+            <ListItemIcon>
+              <GroupIcon color="success" />
+            </ListItemIcon>
             <ListItemText primary="Partenaires" />
           </ListItemButton>
 
@@ -234,7 +236,9 @@ export default function MainLayoutCandidat() {
             onClick={toggleDrawer}
             selected={isActive("/about")}
           >
-            <ListItemIcon><InfoIcon color="action" /></ListItemIcon>
+            <ListItemIcon>
+              <InfoIcon color="action" />
+            </ListItemIcon>
             <ListItemText primary="À propos" />
           </ListItemButton>
         </List>
@@ -247,8 +251,7 @@ export default function MainLayoutCandidat() {
           flex: 1,
           p: { xs: 2, sm: 3 },
           mt: { xs: 7, sm: 8 },
-          backgroundColor: (theme) =>
-            theme.palette.mode === "light" ? "#f9f9f9" : "#121212",
+          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#f9f9f9" : "#121212"),
           transition: "background-color 0.3s ease",
         }}
       >
@@ -262,8 +265,7 @@ export default function MainLayoutCandidat() {
           py: 2,
           textAlign: "center",
           borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          backgroundColor: (theme) =>
-            theme.palette.mode === "light" ? "#fafafa" : "#1a1a1a",
+          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#fafafa" : "#1a1a1a"),
         }}
       >
         <Typography variant="caption" color="text.secondary">

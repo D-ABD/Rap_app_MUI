@@ -70,11 +70,8 @@ export default function ExportButtonProspectionComment({
 
       const filenameHeader = res.headers["content-disposition"];
       const fallbackName =
-        format === "xlsx"
-          ? "prospection_commentaires.xlsx"
-          : "prospection_commentaires.pdf";
-      const filename =
-        filenameHeader?.split("filename=")[1]?.replace(/"/g, "") || fallbackName;
+        format === "xlsx" ? "prospection_commentaires.xlsx" : "prospection_commentaires.pdf";
+      const filename = filenameHeader?.split("filename=")[1]?.replace(/"/g, "") || fallbackName;
 
       const blob = new Blob([res.data], {
         type:
@@ -95,13 +92,10 @@ export default function ExportButtonProspectionComment({
       toast.success(
         `${format.toUpperCase()} prêt · ${
           selectedIds.length > 0 ? selectedIds.length : total
-        } commentaire(s) exporté(s)${
-          includeArchived ? " (avec archivés)" : ""
-        }.`
+        } commentaire(s) exporté(s)${includeArchived ? " (avec archivés)" : ""}.`
       );
       setShowModal(false);
-    } catch (e) {
-      console.error("❌ Erreur export :", e);
+    } catch (_e) {
       toast.error("Erreur lors de l’export.");
     } finally {
       setBusy(false);
@@ -159,12 +153,7 @@ export default function ExportButtonProspectionComment({
           </Box>
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -174,12 +163,7 @@ export default function ExportButtonProspectionComment({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter en {format.toUpperCase()}
           </Button>
         </DialogActions>

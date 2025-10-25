@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Accordion,
@@ -6,33 +6,28 @@ import {
   AccordionDetails,
   Typography,
   Alert,
-  Card,
-  CardHeader,
-  CardContent,
-  TextField,
-  Button,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Candidat, CandidatFormData, CandidatMeta } from '../../types/candidat';
-import { User } from '../../types/User';
-import FormationSelectModal, { FormationPick } from '../../components/modals/FormationSelectModal';
-import UsersSelectModal, { UserPick } from '../../components/modals/UsersSelectModal';
+} from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Candidat, CandidatFormData, CandidatMeta } from "../../types/candidat";
+import { User } from "../../types/User";
+import FormationSelectModal, { FormationPick } from "../../components/modals/FormationSelectModal";
+import UsersSelectModal, { UserPick } from "../../components/modals/UsersSelectModal";
 
 // Sections
-import { mapFormationInfo } from './FormSections/utils';
-import SectionIdentite from './FormSections/SectionIdentite';
-import SectionAdresse from './FormSections/SectionAdresse';
-import SectionFormation from './FormSections/SectionFormation';
-import SectionInfosContrat from './FormSections/SectionInfosContrat';
-import SectionIndicateurs from './FormSections/SectionInSuvi';
-import SectionRepresentant from './FormSections/SectionRepresentant';
-import SectionNotes from './FormSections/SectionNotes';
-import ActionsBar from './FormSections/ActionsBar';
-import SectionAssignations from './FormSections/SectionAssignations';
+import { mapFormationInfo } from "./FormSections/utils";
+import SectionIdentite from "./FormSections/SectionIdentite";
+import SectionAdresse from "./FormSections/SectionAdresse";
+import SectionFormation from "./FormSections/SectionFormation";
+import SectionInfosContrat from "./FormSections/SectionInfosContrat";
+import SectionIndicateurs from "./FormSections/SectionInSuvi";
+import SectionRepresentant from "./FormSections/SectionRepresentant";
+import SectionNotes from "./FormSections/SectionNotes";
+import ActionsBar from "./FormSections/ActionsBar";
+import SectionAssignations from "./FormSections/SectionAssignations";
 
 type Props = {
   initialValues?: CandidatFormData;
-  initialFormationInfo?: Candidat['formation_info'] | null;
+  initialFormationInfo?: Candidat["formation_info"] | null;
   meta?: CandidatMeta | null;
   currentUser?: User | null;
   canEditFormation?: boolean;
@@ -59,9 +54,9 @@ export default function CandidatForm({
     mapFormationInfo(initialFormationInfo)
   );
 
-  const [openSection, setOpenSection] = useState<string | false>('identite');
+  const [openSection, setOpenSection] = useState<string | false>("identite");
   const toggleSection = (section: string) =>
-    setOpenSection(prev => (prev === section ? false : section));
+    setOpenSection((prev) => (prev === section ? false : section));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,11 +65,10 @@ export default function CandidatForm({
     try {
       await onSubmit(form);
     } catch (err: any) {
-      console.error('Erreur lors de la soumission :', err);
-      if (err.response?.status === 400 && typeof err.response.data === 'object') {
+      if (err.response?.status === 400 && typeof err.response.data === "object") {
         setErrors(err.response.data);
         if (err.response.data.non_field_errors) {
-          setGlobalError(err.response.data.non_field_errors.join(', '));
+          setGlobalError(err.response.data.non_field_errors.join(", "));
         }
       } else {
         setGlobalError("Une erreur inattendue est survenue.");
@@ -83,13 +77,13 @@ export default function CandidatForm({
   };
 
   const handleSelectFormation = (pick: FormationPick) => {
-    setForm(f => ({ ...f, formation: pick.id }));
+    setForm((f) => ({ ...f, formation: pick.id }));
     setFormationInfo(pick);
     setShowFormationModal(false);
   };
 
   const handleSelectUser = (pick: UserPick) => {
-    setForm(f => ({ ...f, vu_par: pick.id }));
+    setForm((f) => ({ ...f, vu_par: pick.id }));
     setShowUsersModal(false);
   };
 
@@ -97,8 +91,8 @@ export default function CandidatForm({
     <Box component="form" onSubmit={handleSubmit} display="grid" gap={2}>
       {/* ✅ Message d’aide global permanent */}
       <Alert severity="info" sx={{ mb: 1 }}>
-        Les champs marqués d’un * sont obligatoires.  
-        Remplissez au minimum les sections <b>Identité</b>, <b>Adresse</b> et <b>Formation</b>.
+        Les champs marqués d’un * sont obligatoires. Remplissez au minimum les sections{" "}
+        <b>Identité</b>, <b>Adresse</b> et <b>Formation</b>.
       </Alert>
 
       {/* ✅ Erreur globale en haut */}
@@ -106,12 +100,14 @@ export default function CandidatForm({
 
       {/* Section Identité */}
       <Accordion
-        expanded={openSection === 'identite'}
-        onChange={() => toggleSection('identite')}
-        sx={{ borderLeft: errors.nom || errors.prenom ? '3px solid red' : undefined }}
+        expanded={openSection === "identite"}
+        onChange={() => toggleSection("identite")}
+        sx={{
+          borderLeft: errors.nom || errors.prenom ? "3px solid red" : undefined,
+        }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600} color={errors.nom || errors.prenom ? 'error' : undefined}>
+          <Typography fontWeight={600} color={errors.nom || errors.prenom ? "error" : undefined}>
             Identité
           </Typography>
         </AccordionSummary>
@@ -122,17 +118,17 @@ export default function CandidatForm({
 
       {/* Section Adresse */}
       <Accordion
-        expanded={openSection === 'adresse'}
-        onChange={() => toggleSection('adresse')}
+        expanded={openSection === "adresse"}
+        onChange={() => toggleSection("adresse")}
         sx={{
           borderLeft:
-            errors.ville || errors.code_postal || errors.street_name ? '3px solid red' : undefined,
+            errors.ville || errors.code_postal || errors.street_name ? "3px solid red" : undefined,
         }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography
             fontWeight={600}
-            color={errors.ville || errors.code_postal || errors.street_name ? 'error' : undefined}
+            color={errors.ville || errors.code_postal || errors.street_name ? "error" : undefined}
           >
             Adresse
           </Typography>
@@ -154,10 +150,7 @@ export default function CandidatForm({
       </Accordion>
 
       {/* Section Formation */}
-      <Accordion
-        expanded={openSection === 'formation'}
-        onChange={() => toggleSection('formation')}
-      >
+      <Accordion expanded={openSection === "formation"} onChange={() => toggleSection("formation")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Formation</Typography>
         </AccordionSummary>
@@ -172,13 +165,14 @@ export default function CandidatForm({
           />
           {/* ✅ Aide explicative persistante */}
           <Typography variant="body2" color="text.secondary" mt={1}>
-            ℹ️ Sélectionnez une formation pour remplir automatiquement le centre, le numéro d’offre, et le type d’offre.
+            ℹ️ Sélectionnez une formation pour remplir automatiquement le centre, le numéro d’offre,
+            et le type d’offre.
           </Typography>
         </AccordionDetails>
       </Accordion>
 
       {/* Section Suivi */}
-      <Accordion expanded={openSection === 'suivi'} onChange={() => toggleSection('suivi')}>
+      <Accordion expanded={openSection === "suivi"} onChange={() => toggleSection("suivi")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Suivi administratif</Typography>
         </AccordionSummary>
@@ -188,7 +182,10 @@ export default function CandidatForm({
       </Accordion>
 
       {/* Section Infos Contrat */}
-      <Accordion expanded={openSection === 'infosContrat'} onChange={() => toggleSection('infosContrat')}>
+      <Accordion
+        expanded={openSection === "infosContrat"}
+        onChange={() => toggleSection("infosContrat")}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Informations complémentaires / CERFA</Typography>
         </AccordionSummary>
@@ -198,7 +195,10 @@ export default function CandidatForm({
       </Accordion>
 
       {/* Section Représentant */}
-      <Accordion expanded={openSection === 'representant'} onChange={() => toggleSection('representant')}>
+      <Accordion
+        expanded={openSection === "representant"}
+        onChange={() => toggleSection("representant")}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Représentant légal (si mineur)</Typography>
         </AccordionSummary>
@@ -208,7 +208,10 @@ export default function CandidatForm({
       </Accordion>
 
       {/* Section Assignations */}
-      <Accordion expanded={openSection === 'assignations'} onChange={() => toggleSection('assignations')}>
+      <Accordion
+        expanded={openSection === "assignations"}
+        onChange={() => toggleSection("assignations")}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Assignations / visibilité</Typography>
         </AccordionSummary>
@@ -221,13 +224,14 @@ export default function CandidatForm({
           />
           {/* ✅ Aide persistante et claire */}
           <Typography variant="body2" color="text.secondary" mt={1}>
-            ℹ️ Recherche par nom ou email. Seuls les rôles <b>staff</b>, <b>admin</b> et <b>superadmin</b> sont proposés.
+            ℹ️ Recherche par nom ou email. Seuls les rôles <b>staff</b>, <b>admin</b> et{" "}
+            <b>superadmin</b> sont proposés.
           </Typography>
         </AccordionDetails>
       </Accordion>
 
       {/* Section Notes */}
-      <Accordion expanded={openSection === 'notes'} onChange={() => toggleSection('notes')}>
+      <Accordion expanded={openSection === "notes"} onChange={() => toggleSection("notes")}>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Notes internes</Typography>
         </AccordionSummary>
@@ -247,7 +251,7 @@ export default function CandidatForm({
       <UsersSelectModal
         show={showUsersModal}
         onClose={() => setShowUsersModal(false)}
-        allowedRoles={['staff', 'admin', 'superadmin']}
+        allowedRoles={["staff", "admin", "superadmin"]}
         onSelect={handleSelectUser}
       />
     </Box>

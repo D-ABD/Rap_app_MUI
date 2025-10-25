@@ -50,8 +50,7 @@ export default function TypeOffresPage() {
   const [choicesMap, setChoicesMap] = useState<Record<string, TypeOffreChoice>>({});
   const [reloadKey, setReloadKey] = useState(0);
 
-  const { page, setPage, count, setCount, totalPages, pageSize, setPageSize } =
-    usePagination();
+  const { page, setPage, count, setCount, totalPages, pageSize, setPageSize } = usePagination();
 
   const navigate = useNavigate();
   const theme = useTheme();
@@ -83,13 +82,10 @@ export default function TypeOffresPage() {
         const api = await import("../../api/axios");
         const res = await api.default.get("/typeoffres/choices/");
         const rawChoices = res.data.data as TypeOffreChoice[];
-        const mapped = rawChoices.reduce<Record<string, TypeOffreChoice>>(
-          (acc, item) => {
-            acc[item.value] = item;
-            return acc;
-          },
-          {}
-        );
+        const mapped = rawChoices.reduce<Record<string, TypeOffreChoice>>((acc, item) => {
+          acc[item.value] = item;
+          return acc;
+        }, {});
         setChoicesMap(mapped);
       } catch {
         toast.error("Erreur lors du chargement des types disponibles");
@@ -99,9 +95,7 @@ export default function TypeOffresPage() {
   }, []);
 
   const toggleSelect = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const clearSelection = () => setSelectedIds([]);
@@ -133,11 +127,7 @@ export default function TypeOffresPage() {
       refreshButton
       onRefresh={() => setReloadKey((k) => k + 1)}
       actions={
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          flexWrap="wrap"
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
           <Select
             size="small"
             value={pageSize}
@@ -163,11 +153,7 @@ export default function TypeOffresPage() {
 
           {selectedIds.length > 0 && (
             <>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button variant="contained" color="error" onClick={() => setShowConfirm(true)}>
                 🗑️ Supprimer ({selectedIds.length})
               </Button>
               <Button variant="outlined" onClick={selectAll}>
@@ -231,8 +217,7 @@ export default function TypeOffresPage() {
             const label = type.is_personnalise
               ? type.autre
               : choicesMap[type.nom]?.label || type.nom_display;
-            const color =
-              type.couleur || choicesMap[type.nom]?.default_color || "#6c757d";
+            const color = type.couleur || choicesMap[type.nom]?.default_color || "#6c757d";
 
             return (
               <Paper
@@ -289,12 +274,7 @@ export default function TypeOffresPage() {
       )}
 
       {/* Confirmation dialog */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

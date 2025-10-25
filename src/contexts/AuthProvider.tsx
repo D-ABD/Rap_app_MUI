@@ -1,5 +1,5 @@
 // src/contexts/AuthProvider.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { AuthContext } from "./AuthContext";
 import { login as loginAPI, getUserProfile } from "../api/auth";
@@ -15,8 +15,7 @@ function normalizeUser(userData: User): User {
   return {
     ...userData,
     is_admin:
-      userData.is_admin ??
-      ["admin", "superadmin"].includes(userData.role?.toLowerCase() || ""),
+      userData.is_admin ?? ["admin", "superadmin"].includes(userData.role?.toLowerCase() || ""),
     is_staff: userData.is_staff ?? userData.role?.toLowerCase() === "staff",
     is_superuser: userData.is_superuser ?? userData.role?.toLowerCase() === "superadmin",
   };
@@ -49,21 +48,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     navigate(lastPage, { replace: true });
   };
 
-  // 🚪 Déconnexion
-  const logout = (redirect = true, expired = false) => {
-    clearTokens();
-    setUser(null);
+  // 🚪 Déconnexion — version stabilisée avec useCallback
+  const logout = useCallback(
+    (redirect = true, expired = false) => {
+      clearTokens();
+      setUser(null);
 
-    if (expired) {
-      toast.error("⚠️ Session expirée, veuillez vous reconnecter.");
-    } else {
-      toast.info("Déconnexion réussie");
-    }
+      if (expired) {
+        toast.error("⚠️ Session expirée, veuillez vous reconnecter.");
+      } else {
+        toast.info("Déconnexion réussie");
+      }
 
-    if (redirect) {
-      navigate("/login", { replace: true });
-    }
-  };
+      if (redirect) {
+        navigate("/login", { replace: true });
+      }
+    },
+    [navigate]
+  );
 
   // 🔁 Restaure la session au chargement
   useEffect(() => {
@@ -84,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     restoreSession();
-  }, []);
+  }, [logout]); // ✅ ajouté proprement
 
   // ⏳ Splash screen pendant restauration session
   if (isLoading) {
@@ -96,20 +98,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           alignItems: "center",
           justifyContent: "center",
           height: "100vh",
-          backgroundColor: (theme) =>
-            theme.palette.mode === "light" ? "#f9f9f9" : "#121212",
+          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#f9f9f9" : "#121212"),
         }}
       >
-        <img
-          src={logo}
-          alt="Logo"
-          style={{ height: 80, marginBottom: 20 }}
-        />
+        <img src={logo} alt="Logo" style={{ height: 80, marginBottom: 20 }} />
         <CircularProgress size={60} />
-        <Typography
-          variant="h6"
-          sx={{ mt: 2, color: "text.secondary", fontWeight: 500 }}
-        >
+        <Typography variant="h6" sx={{ mt: 2, color: "text.secondary", fontWeight: 500 }}>
           Chargement...
         </Typography>
       </Box>

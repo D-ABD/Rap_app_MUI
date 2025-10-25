@@ -1,11 +1,4 @@
-import {
-  Checkbox,
-  Typography,
-  Button,
-  Box,
-  Chip,
-  Link,
-} from "@mui/material";
+import { Checkbox, Typography, Button, Box, Chip, Link } from "@mui/material";
 import { Theme } from "@mui/material/styles";
 import ResponsiveTableTemplate, {
   type TableColumn,
@@ -51,17 +44,12 @@ interface Props {
   onDeleteClick: (id: number) => void;
 }
 
-const dtfFR =
-  typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
+const dtfFR = typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
 
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 // 🎨 Couleurs de statuts
@@ -148,7 +136,6 @@ export default function ProspectionTable({
                 label={row.statut_display}
               />
             )}
-           
           </Box>
           <Typography variant="subtitle2" fontWeight={600} noWrap>
             {row.type_prospection_display || "—"}
@@ -178,9 +165,7 @@ export default function ProspectionTable({
       render: (row) => (
         <Chip
           size="small"
-          label={
-            row.activite === "archivee" ? "Archivée" : "Active"
-          }
+          label={row.activite === "archivee" ? "Archivée" : "Active"}
           color={row.activite === "archivee" ? "default" : "success"}
           sx={{
             fontStyle: row.activite === "archivee" ? "italic" : "normal",
@@ -280,8 +265,7 @@ export default function ProspectionTable({
       render: (row) => {
         const last = row.last_comment ?? row.commentaire;
         const lastAt = row.last_comment_at;
-        const count =
-          typeof row.comments_count === "number" ? row.comments_count : null;
+        const count = typeof row.comments_count === "number" ? row.comments_count : null;
 
         return last ? (
           <Box
@@ -306,8 +290,7 @@ export default function ProspectionTable({
             </Typography>
             {(lastAt || (count && count > 1)) && (
               <Typography variant="caption" color="text.secondary" noWrap>
-                {lastAt && `le ${fmt(lastAt)}`}{" "}
-                {count && count > 1 && `• ${count} comm.`}
+                {lastAt && `le ${fmt(lastAt)}`} {count && count > 1 && `• ${count} comm.`}
               </Typography>
             )}
           </Box>
@@ -356,9 +339,7 @@ export default function ProspectionTable({
       )}
       onRowClick={(p) => onRowClick(p.id)}
       rowSx={(row) =>
-        row.activite === "archivee"
-          ? { backgroundColor: "#f6f6f6", opacity: 0.85 }
-          : {}
+        row.activite === "archivee" ? { backgroundColor: "#f6f6f6", opacity: 0.85 } : {}
       }
     />
   );

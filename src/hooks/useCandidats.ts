@@ -1,6 +1,6 @@
 // hooks/useCandidats.ts
-import { useEffect, useRef, useState } from 'react';
-import api from '../api/axios';
+import { useEffect, useRef, useState } from "react";
+import api from "../api/axios";
 import type {
   Candidat,
   CandidatFiltresOptions,
@@ -9,19 +9,19 @@ import type {
   CandidatListResponse,
   CandidatMeta,
   CVStatutValue,
-} from '../types/candidat';
+} from "../types/candidat";
 
 // --------- Helpers (typés) ----------
-const API_BASE = ''; // si ton axios a baseURL="/api", laisse vide. Sinon: '/api'
+const API_BASE = ""; // si ton axios a baseURL="/api", laisse vide. Sinon: '/api'
 
 type ApiEnvelope<T> = { success?: boolean; message?: string; data: T };
 
 function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function isApiEnvelope<T>(v: unknown): v is ApiEnvelope<T> {
-  return isObject(v) && 'data' in v;
+  return isObject(v) && "data" in v;
 }
 
 /** Dé-sérialise T ou {success,message,data:T} */
@@ -34,7 +34,7 @@ export function jsonKey(v: unknown): string {
   try {
     return JSON.stringify(v ?? {});
   } catch {
-    return '[[unserializable]]';
+    return "[[unserializable]]";
   }
 }
 
@@ -52,8 +52,8 @@ function normalizeHeaders(headers: unknown): Record<string, string> {
   if (!isObject(headers)) return {};
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(headers)) {
-    if (Array.isArray(v)) out[k] = v.join(', ');
-    else if (typeof v === 'string') out[k] = v;
+    if (Array.isArray(v)) out[k] = v.join(", ");
+    else if (typeof v === "string") out[k] = v;
     else if (v != null) out[k] = String(v);
   }
   return out;
@@ -62,13 +62,13 @@ function normalizeHeaders(headers: unknown): Record<string, string> {
 function blobDownload(blob: Blob, fallbackName: string, rawHeaders?: unknown) {
   const headers = normalizeHeaders(rawHeaders);
   let filename = fallbackName;
-  const cd = headers['content-disposition'] || headers['Content-Disposition'];
+  const cd = headers["content-disposition"] || headers["Content-Disposition"];
   if (cd) {
     const m = /filename="?([^"]+)"?/i.exec(cd);
     if (m?.[1]) filename = m[1];
   }
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   document.body.appendChild(a);
@@ -141,28 +141,29 @@ function isChoiceArray(val: unknown): val is Choice[] {
   return (
     Array.isArray(val) &&
     val.every((item) => {
-      if (typeof item !== 'object' || item === null) return false;
+      if (typeof item !== "object" || item === null) return false;
       const rec = item as Record<string, unknown>;
-      const label = rec['label'];
-      const value = rec['value'];
-      return (
-        typeof label === 'string' &&
-        (typeof value === 'string' || typeof value === 'number')
-      );
+      const label = rec["label"];
+      const value = rec["value"];
+      return typeof label === "string" && (typeof value === "string" || typeof value === "number");
     })
   );
 }
 
-const CV_VALUES = new Set<CVStatutValue>(['oui', 'en_cours', 'a_modifier']);
+const CV_VALUES = new Set<CVStatutValue>(["oui", "en_cours", "a_modifier"]);
 function isCvChoiceArray(val: unknown): val is CvChoice[] {
   return (
     Array.isArray(val) &&
     val.every((item) => {
-      if (typeof item !== 'object' || item === null) return false;
+      if (typeof item !== "object" || item === null) return false;
       const rec = item as Record<string, unknown>;
-      const label = rec['label'];
-      const value = rec['value'];
-      return typeof label === 'string' && typeof value === 'string' && CV_VALUES.has(value as CVStatutValue);
+      const label = rec["label"];
+      const value = rec["value"];
+      return (
+        typeof label === "string" &&
+        typeof value === "string" &&
+        CV_VALUES.has(value as CVStatutValue)
+      );
     })
   );
 }
@@ -194,22 +195,25 @@ function pickCvArr(
 function normalizeMetaLike(
   raw: unknown
 ): CandidatMeta & { centre_choices?: Choice[]; formation_choices?: Choice[] } {
-  const r: MetaRaw = (typeof raw === 'object' && raw !== null ? raw : {}) as MetaRaw;
+  const r: MetaRaw = (typeof raw === "object" && raw !== null ? raw : {}) as MetaRaw;
 
   return {
-    statut_choices:             pickArr(r, 'statut_choices', 'statutChoices'),
-    cv_statut_choices:          pickCvArr(r, 'cv_statut_choices', 'cvStatutChoices'),
-    type_contrat_choices:       pickArr(r, 'type_contrat_choices', 'typeContratChoices'),
-    disponibilite_choices:      pickArr(r, 'disponibilite_choices', 'disponibiliteChoices'),
-    resultat_placement_choices: pickArr(r, 'resultat_placement_choices', 'resultatPlacementChoices'),
-    contrat_signe_choices:      pickArr(r, 'contrat_signe_choices', 'contratSigneChoices'),
-    niveau_choices:             pickArr(r, 'niveau_choices', 'niveauChoices'),
+    statut_choices: pickArr(r, "statut_choices", "statutChoices"),
+    cv_statut_choices: pickCvArr(r, "cv_statut_choices", "cvStatutChoices"),
+    type_contrat_choices: pickArr(r, "type_contrat_choices", "typeContratChoices"),
+    disponibilite_choices: pickArr(r, "disponibilite_choices", "disponibiliteChoices"),
+    resultat_placement_choices: pickArr(
+      r,
+      "resultat_placement_choices",
+      "resultatPlacementChoices"
+    ),
+    contrat_signe_choices: pickArr(r, "contrat_signe_choices", "contratSigneChoices"),
+    niveau_choices: pickArr(r, "niveau_choices", "niveauChoices"),
     // ✅ champs backend supplémentaires utilisés par le front
-    centre_choices:             pickArr(r, 'centre_choices', 'centreChoices'),
-    formation_choices:          pickArr(r, 'formation_choices', 'formationChoices'),
+    centre_choices: pickArr(r, "centre_choices", "centreChoices"),
+    formation_choices: pickArr(r, "formation_choices", "formationChoices"),
   };
 }
-
 
 // ===================================================
 // 🔍 Liste paginée des candidats
@@ -228,7 +232,9 @@ export function useCandidats(params: CandidatFiltresValues = {}) {
       setError(null);
       try {
         const parsedParams = parseKey<CandidatFiltresValues>(paramsKey, {});
-        const res = await api.get(`${API_BASE}/candidats/`, { params: parsedParams });
+        const res = await api.get(`${API_BASE}/candidats/`, {
+          params: parsedParams,
+        });
         const payload = unwrap<CandidatListResponse>(res.data as unknown);
         if (!alive) return;
         setData(payload);
@@ -304,7 +310,6 @@ export function useCreateCandidat() {
       // ✅ Laisse passer l’erreur 400 (validation DRF) pour gestion dans <CandidatForm />
       if (e?.response?.status === 400) throw e;
       // ⚠️ Autres erreurs : on journalise quand même
-      console.error("[useCreateCandidat] Erreur API :", e);
       throw e;
     } finally {
       setLoading(false);
@@ -330,7 +335,6 @@ export function useUpdateCandidat(id: number) {
     } catch (e: any) {
       setError(e);
       if (e?.response?.status === 400) throw e; // ✅ Laisse les 400 être gérées par <CandidatForm />
-      console.error("[useUpdateCandidat] Erreur API :", e);
       throw e;
     } finally {
       setLoading(false);
@@ -393,7 +397,6 @@ export function useCandidatMeta() {
   return { data, loading, error };
 }
 
-
 // ===================================================
 // 📄 Export CSV/PDF des candidats (déclenche download)
 // ===================================================
@@ -401,9 +404,9 @@ export function useCandidatExportCSV() {
   const exporter = async (params: CandidatFiltresValues = {}) => {
     const res = await api.get(`${API_BASE}/candidats/export-csv/`, {
       params,
-      responseType: 'blob',
+      responseType: "blob",
     });
-    blobDownload(res.data as Blob, 'candidats.csv', res.headers);
+    blobDownload(res.data as Blob, "candidats.csv", res.headers);
   };
   return { exporter };
 }
@@ -412,9 +415,9 @@ export function useCandidatExportPDF() {
   const exporter = async (params: CandidatFiltresValues = {}) => {
     const res = await api.get(`${API_BASE}/candidats/export-pdf/`, {
       params,
-      responseType: 'blob',
+      responseType: "blob",
     });
-    blobDownload(res.data as Blob, 'candidats.pdf', res.headers);
+    blobDownload(res.data as Blob, "candidats.pdf", res.headers);
   };
   return { exporter };
 }
@@ -457,9 +460,13 @@ export function useCandidatFiltres() {
       setLoading(true);
       setError(null);
       try {
-        const DEV = process.env.NODE_ENV !== 'production';
+        const DEV = import.meta.env.DEV;
 
-        if (DEV) ('[useCandidatFiltres] fetching meta, formations, users…');
+        if (DEV) {
+          // eslint-disable-next-line no-console
+          console.debug("[useCandidatFiltres] fetching meta, formations, users…");
+        }
+
         const [metaRes, formationsRes, usersRes] = await Promise.all([
           api.get(`${API_BASE}/candidats/meta/`),
           api.get(`${API_BASE}/formations/liste-simple/`),
@@ -477,15 +484,18 @@ export function useCandidatFiltres() {
         // ─────────────────────────────────────────────
         let centre: Array<{ value: number; label: string }> = [];
 
-        const centresFromMeta: Choice[] = isChoiceArray(meta.centre_choices) ? meta.centre_choices : [];
+        const centresFromMeta: Choice[] = isChoiceArray(meta.centre_choices)
+          ? meta.centre_choices
+          : [];
         if (centresFromMeta.length) {
-          if (DEV) ('[useCandidatFiltres] centres depuis meta.centre_choices →', centresFromMeta.length);
           centre = centresFromMeta
-            .map((c) => ({ value: typeof c.value === 'number' ? c.value : Number(c.value), label: c.label }))
+            .map((c) => ({
+              value: typeof c.value === "number" ? c.value : Number(c.value),
+              label: c.label,
+            }))
             .filter((c) => Number.isFinite(c.value) && c.label.trim().length > 0)
             .sort((a, b) => a.label.localeCompare(b.label));
         } else {
-          if (DEV) console.warn('[useCandidatFiltres] aucun centre dans meta — tentative via formations');
           centre = Array.from(
             formations.reduce<Map<number, string>>((acc, f) => {
               if (f.centre?.id && f.centre.nom) acc.set(f.centre.id, f.centre.nom);
@@ -496,34 +506,46 @@ export function useCandidatFiltres() {
             .sort((a, b) => a.label.localeCompare(b.label));
 
           if (!centre.length) {
-            if (DEV) console.warn('[useCandidatFiltres] aucun centre déduit — fallback GET /centres/');
             try {
               if (fallbackTriggeredRef.current) {
-                if (DEV) ('[useCandidatFiltres] fallback déjà déclenché (StrictMode)');
+                if (DEV) {
+                  // eslint-disable-next-line no-console
+                  console.debug("[useCandidatFiltres] fallback déjà déclenché (StrictMode)");
+                }
               } else {
                 fallbackTriggeredRef.current = true;
-                const centresRes = await api.get(`${API_BASE}/centres/`, { params: { page_size: 1000 } });
+                const centresRes = await api.get(`${API_BASE}/centres/`, {
+                  params: { page_size: 1000 },
+                });
                 const centresList = toArray<{ id: number; nom: string }>(unwrap(centresRes.data));
                 centre = centresList
                   .map((c) => ({ value: c.id, label: c.nom }))
                   .sort((a, b) => a.label.localeCompare(b.label));
-                if (DEV) ('[useCandidatFiltres] centres via fallback →', centre.length);
               }
             } catch (err) {
-              if (DEV) console.error('[useCandidatFiltres] erreur fallback /centres/', err);
+              if (DEV) {
+                // eslint-disable-next-line no-console
+                console.debug("[useCandidatFiltres] erreur fallback /centres/", err);
+              }
             }
           }
         }
 
         // 🎓 Formations (affichage "Nom — N°offre (Centre)")
         const formation = formations.map((f) => {
-          const main = [f.nom ?? undefined, f.num_offre ?? undefined].filter(Boolean).join(' — ');
-          const suffix = f.centre?.nom ? ` (${f.centre.nom})` : '';
-          return { value: f.id, label: main ? `${main}${suffix}` : `#${f.id}${suffix}` };
+          const main = [f.nom ?? undefined, f.num_offre ?? undefined].filter(Boolean).join(" — ");
+          const suffix = f.centre?.nom ? ` (${f.centre.nom})` : "";
+          return {
+            value: f.id,
+            label: main ? `${main}${suffix}` : `#${f.id}${suffix}`,
+          };
         });
 
         // 👤 Responsables (users simples)
-        const responsable_placement = usersSimple.map((u) => ({ value: u.id, label: u.nom }));
+        const responsable_placement = usersSimple.map((u) => ({
+          value: u.id,
+          label: u.nom,
+        }));
 
         // Assemblage des options
         const full: CandidatFiltresOptions = {
@@ -548,8 +570,9 @@ export function useCandidatFiltres() {
         if (!alive) return;
         setOptions(full);
       } catch (e) {
-        if (process.env.NODE_ENV !== 'production') {
-          console.error('[useCandidatFiltres] error →', e);
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.debug("[useCandidatFiltres] erreur lors du chargement des filtres :", e);
         }
         if (!alive) return;
         setError(e as Error);
@@ -564,21 +587,3 @@ export function useCandidatFiltres() {
 
   return { options, loading, error };
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,13 +1,11 @@
+// src/pages/partenaires/PartenairesCandidatCreatePage.tsx
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
+import axios from "axios";
 import { Box, Typography, CircularProgress } from "@mui/material";
 
-import {
-  useCreatePartenaire,
-  usePartenaireChoices,
-} from "../../hooks/usePartenaires";
-import { useAuth } from "../../hooks/useAuth"; // 👈 pour récupérer user.centre
+import { useCreatePartenaire, usePartenaireChoices } from "../../hooks/usePartenaires";
+import { useAuth } from "../../hooks/useAuth";
 import type { Partenaire, PartenaireChoicesResponse } from "../../types/partenaire";
 import PostCreateChoiceModal from "../../components/modals/PostCreateChoiceModal";
 import PageTemplate from "../../components/PageTemplate";
@@ -27,24 +25,29 @@ function preparePayload(values: Partial<Partenaire>): Partial<Partenaire> {
   return payload;
 }
 
+/* 🔧 Fonction de log safe pour le DEV uniquement */
+function _logDevError(...args: unknown[]) {
+  if (import.meta.env.DEV) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  }
+}
+
 /* ---------- Page ---------- */
 export default function PartenaireCandidatCreatePage() {
   const { create, loading, error } = useCreatePartenaire();
   const { data: rawChoices } = usePartenaireChoices();
-  const { user } = useAuth(); // ✅ pour détecter le centre du candidat
+  const { user } = useAuth();
 
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [lastCreated, setLastCreated] = useState<{ id: number; nom: string } | null>(null);
 
-  // ✅ choix stables et typés
   const choices: PartenaireChoicesResponse = useMemo(
     () => rawChoices ?? { types: [], actions: [] },
     [rawChoices]
   );
 
-  // ✅ préremplir le centre pour le candidat connecté
   const initialValues = useMemo(() => {
-    
     if (user?.centre) {
       return {
         is_active: true,
@@ -55,66 +58,59 @@ export default function PartenaireCandidatCreatePage() {
     return { is_active: true, country: "France" };
   }, [user]);
 
-  // ✅ fonction stable
-const handleSubmit = useCallback(
-  async (values: Partial<Partenaire>) => {
-    try {
-      ("🧩 Utilisateur courant :", user);
-("🏫 Centre détecté côté front :", user?.centre);
+  const handleSubmit = useCallback(
+    async (values: Partial<Partenaire>) => {
+      try {
+        if (!user?.centre?.id) {
+          toast.error(
+            "❌ Votre compte n’est rattaché à aucun centre. Contactez un administrateur."
+          );
+          return;
+        }
 
-      // ✅ Vérifie que le user a bien un centre associé
-      if (!user?.centre?.id) {
-        toast.error("❌ Votre compte n’est rattaché à aucun centre. Contactez un administrateur.");
-        return;
-      }
+        const payload = preparePayload(values);
+        payload.default_centre_id = user.centre.id;
 
-      // ✅ Prépare le payload et force l’association au centre du candidat
-      const payload = preparePayload(values);
-      payload.default_centre_id = user.centre.id; // ← clé manquante !
-      ("📦 Payload envoyé :", payload);
+        const created = await create(payload);
 
-      const created = await create(payload);
+        if (created.was_reused) {
+          toast.warning(`⚠️ Le partenaire « ${created.nom} » existait déjà et a été réutilisé.`);
+        } else {
+          toast.success(`✅ Partenaire « ${created.nom} » créé`);
+        }
 
-      if (created.was_reused) {
-        toast.warning(`⚠️ Le partenaire « ${created.nom} » existait déjà et a été réutilisé.`);
-      } else {
-        toast.success(`✅ Partenaire « ${created.nom} » créé`);
-      }
+        setLastCreated({ id: created.id, nom: created.nom });
+        setChoiceOpen(true);
+      } catch (e: unknown) {
+        let message = "❌ Erreur lors de la création du partenaire.";
 
-      setLastCreated({ id: created.id, nom: created.nom });
-      setChoiceOpen(true);
-    } catch (e: unknown) {
-      let message = "❌ Erreur lors de la création du partenaire.";
+        if (axios.isAxiosError(e)) {
+          const detail = e.response?.data?.detail;
+          const nonField = e.response?.data?.non_field_errors;
 
-      if (isAxiosError(e)) {
-        const detail = e.response?.data?.detail;
-        const nonField = e.response?.data?.non_field_errors;
-
-        if (typeof detail === "string") {
-          if (detail.toLowerCase().includes("centre")) {
-            message = `❌ ${detail} — contactez votre centre ou un administrateur.`;
-          } else if (detail.toLowerCase().includes("périmètre")) {
-            message = `❌ ${detail} — partenaire hors de votre périmètre.`;
-          } else {
-            message = `❌ ${detail}`;
+          if (typeof detail === "string") {
+            if (detail.toLowerCase().includes("centre")) {
+              message = `❌ ${detail} — contactez votre centre ou un administrateur.`;
+            } else if (detail.toLowerCase().includes("périmètre")) {
+              message = `❌ ${detail} — partenaire hors de votre périmètre.`;
+            } else {
+              message = `❌ ${detail}`;
+            }
+          } else if (Array.isArray(nonField) && nonField.length > 0) {
+            const joined = nonField.filter((x): x is string => typeof x === "string").join(", ");
+            if (joined) message = `❌ ${joined}`;
           }
-        } else if (Array.isArray(nonField) && nonField.length > 0) {
-          const joined = nonField.filter((x): x is string => typeof x === "string").join(", ");
-          if (joined) message = `❌ ${joined}`;
+
+          _logDevError("[PartenaireCandidatCreatePage] Erreur Axios :", e);
+        } else {
+          _logDevError("[PartenaireCandidatCreatePage] Erreur inconnue :", e);
         }
 
-        if (import.meta.env.MODE !== "production") {
-          console.error("Erreur API création partenaire (candidat) :", e.response?.data ?? e);
-        }
-      } else if (import.meta.env.MODE !== "production") {
-        console.error("Erreur inattendue :", e);
+        toast.error(message);
       }
-
-      toast.error(message);
-    }
-  },
-  [create, user]
-);
+    },
+    [create, user]
+  );
 
   return (
     <PageTemplate title="🤝 Créer un nouveau partenaire (Candidat)" backButton>
@@ -122,7 +118,7 @@ const handleSubmit = useCallback(
 
       <Box>
         <PartenaireCandidatForm
-          initialValues={initialValues} // ✅ centre déjà rempli
+          initialValues={initialValues}
           onSubmit={handleSubmit}
           loading={loading}
           choices={choices}

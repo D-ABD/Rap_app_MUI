@@ -21,8 +21,8 @@ export type AtelierTypeKey = keyof typeof ATELIER_TYPE_LABELS;
 export type AtelierTREFilters = {
   date_from?: string;
   date_to?: string;
-  centre?: string | number;   // côté UI on envoie un number, mais on laisse string pour tolérance
-  departement?: string;       // ex: "06", "75" (on garde les zéros à gauche)
+  centre?: string | number; // côté UI on envoie un number, mais on laisse string pour tolérance
+  departement?: string; // ex: "06", "75" (on garde les zéros à gauche)
   type_atelier?: AtelierTypeKey | string; // on accepte aussi une valeur inconnue éventuelle
 };
 
@@ -57,12 +57,12 @@ export type AtelierTREGroupRow = {
   group_label?: string | null;
 
   centre_id?: number | null;
-  "centre__nom"?: string | null;
+  centre__nom?: string | null;
 
   // Nouveau champ aligné avec l’API (annotation departement)
   departement?: string | null;
   // Compat rétro si jamais un ancien code renvoie encore ce champ :
-  "centre__departement"?: string | null;
+  centre__departement?: string | null;
 
   type_atelier?: AtelierTypeKey | string | null;
 

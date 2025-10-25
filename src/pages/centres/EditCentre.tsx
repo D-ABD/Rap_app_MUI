@@ -59,9 +59,13 @@ export default function EditCentre() {
   }
 
   return (
-    <PageTemplate title={`🏫 Modifier le centre : ${initialValues.nom}`} backButton onBack={() => navigate(-1)}>
+    <PageTemplate
+      title={`🏫 Modifier le centre : ${initialValues.nom}`}
+      backButton
+      onBack={() => navigate(-1)}
+    >
       {/* ───────── Détails ───────── */}
-            <Stack direction="row" justifyContent="center" mb={4}>
+      <Stack direction="row" justifyContent="center" mb={4}>
         <Button
           variant="contained"
           color="primary"
@@ -74,8 +78,6 @@ export default function EditCentre() {
       <Box mb={3}>
         <CentreDetailPage centre={initialValues} />
       </Box>
-
-
 
       {/* ───────── Formulaire ───────── */}
       <div ref={formRef}>

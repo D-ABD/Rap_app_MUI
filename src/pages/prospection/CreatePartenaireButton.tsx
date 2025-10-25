@@ -32,12 +32,7 @@ export default function CreatePartenaireButton({
   const href = `${to}?returnTo=${encodeURIComponent(back)}`;
 
   return (
-    <Button
-      onClick={() => navigate(href)}
-      variant={variant}
-      color={color}
-      size={size}
-    >
+    <Button onClick={() => navigate(href)} variant={variant} color={color} size={size}>
       {label}
     </Button>
   );

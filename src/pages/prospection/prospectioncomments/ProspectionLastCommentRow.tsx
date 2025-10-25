@@ -1,12 +1,5 @@
 import { useMemo } from "react";
-import {
-  Box,
-  Stack,
-  Typography,
-  Button,
-  Skeleton,
-  Paper,
-} from "@mui/material";
+import { Box, Stack, Typography, Button, Skeleton, Paper } from "@mui/material";
 import { useListProspectionComments } from "../../../hooks/useProspectionComments";
 import type { ProspectionCommentDTO } from "../../../types/prospectionComment";
 
@@ -18,17 +11,6 @@ type Props = {
   lastComment?: string | null;
   /** Permet au parent d’afficher le compteur de commentaires sans recharger */
   commentsCount?: number;
-};
-
-const formatDate = (iso?: string) => {
-  if (!iso) return "";
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? ""
-    : new Intl.DateTimeFormat("fr-FR", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(d);
 };
 
 export default function ProspectionLastCommentRow({
@@ -47,8 +29,8 @@ export default function ProspectionLastCommentRow({
   const rows: ProspectionCommentDTO[] = Array.isArray(data?.results)
     ? (data.results as ProspectionCommentDTO[])
     : Array.isArray(data)
-    ? data
-    : [];
+      ? data
+      : [];
 
   const lastFromAPI: ProspectionCommentDTO | undefined = rows[0];
   const effectiveLastBody = lastComment ?? lastFromAPI?.body ?? null;

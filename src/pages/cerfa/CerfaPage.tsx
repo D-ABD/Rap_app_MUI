@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  useMediaQuery,
   useTheme,
 } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
@@ -32,12 +31,11 @@ import { CerfaForm } from "./CerfaForm";
 import CerfaDetailModal from "./CerfaDetailModal";
 
 export default function CerfaPage() {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const _theme = useTheme(); // eslint-disable-line @typescript-eslint/no-unused-vars
 
   const [filters, setFilters] = useState({ search: "" });
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -84,24 +82,20 @@ export default function CerfaPage() {
       setSelectedIds([]);
       setSelectedId(null);
       setReloadKey((k) => k + 1);
-    } catch (err) {
-      console.error(err);
+    } catch (_err) {
       toast.error("Erreur lors de la suppression.");
     }
   };
 
   // ✅ Création CERFA avec affichage des champs manquants
   const handleCreateCerfa = async (data: CerfaContratCreate) => {
-    ("📦 Données envoyées au backend:", data);
-
     try {
       await createCerfa(data);
       toast.success("✅ Contrat CERFA créé avec succès !");
       setShowForm(false);
       setReloadKey((k) => k + 1);
-    } catch (err: any) {
-      console.error("❌ Erreur backend:", err);
-      const errorData = err?.response?.data;
+    } catch (_err: any) {
+      const errorData = _err?.response?.data;
       let message = "❌ Erreur lors de la création du CERFA";
 
       if (typeof errorData === "string") {
@@ -124,8 +118,12 @@ export default function CerfaPage() {
       toast.error(message);
 
       if (import.meta.env.MODE !== "production" && errorData) {
+        toast.info("📨 Détails complets de l’erreur backend affichés en console (mode dev)");
+        // eslint-disable-next-line no-console
         console.group("📨 Détails complets de l’erreur backend");
-        (errorData);
+        // eslint-disable-next-line no-console
+        console.log(errorData);
+        // eslint-disable-next-line no-console
         console.groupEnd();
       }
     }
@@ -144,11 +142,7 @@ export default function CerfaPage() {
               setPage(1);
             }}
           />
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setShowForm(true)}
-          >
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowForm(true)}>
             Nouveau CERFA
           </Button>
           {selectedIds.length > 0 && (
@@ -191,9 +185,7 @@ export default function CerfaPage() {
           selectedIds={selectedIds}
           onToggleSelect={(id) =>
             setSelectedIds((prev) =>
-              prev.includes(id)
-                ? prev.filter((i) => i !== id)
-                : [...prev, id]
+              prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
             )
           }
           onRowClick={handleRowClick}
@@ -245,8 +237,8 @@ export default function CerfaPage() {
                   setShowForm(false);
                   setSelectedContrat(null);
                   setReloadKey((k) => k + 1);
-                } catch (err: any) {
-                  const errorData = err?.response?.data;
+                } catch (_err: any) {
+                  const errorData = _err?.response?.data;
                   toast.error(`⚠️ Erreur de mise à jour : ${JSON.stringify(errorData)}`);
                 }
               }
@@ -285,4 +277,3 @@ export default function CerfaPage() {
     </PageTemplate>
   );
 }
- 

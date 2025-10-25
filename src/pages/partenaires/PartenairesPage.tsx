@@ -52,17 +52,15 @@ const defaultFilters: PartenaireFilters = {
   has_prospections: "",
 };
 
-function isPaginatedPartenaires(
-  d: unknown
-): d is { results: Partenaire[]; count: number } {
+function isPaginatedPartenaires(d: unknown): d is { results: Partenaire[]; count: number } {
   if (typeof d !== "object" || d === null) return false;
   const obj = d as Record<string, unknown>;
   return Array.isArray(obj.results) && typeof obj.count === "number";
 }
 
-function dedupeByValueLabel<T extends { value?: string | number | null; label?: string | number | null }>(
-  arr: T[] = []
-): T[] {
+function dedupeByValueLabel<
+  T extends { value?: string | number | null; label?: string | number | null },
+>(arr: T[] = []): T[] {
   const seen = new Set<string>();
   return arr.filter((o) => {
     const k = `${String(o.value ?? "")}::${String(o.label ?? "")}`;
@@ -94,8 +92,7 @@ export default function PartenairesPage() {
   const { data: partenaireChoices } = usePartenaireChoices();
   const { data: filterOptions, loading: filtersLoading } = usePartenaireFilters();
 
-  const isStaff =
-    Boolean(user?.is_staff) || Boolean(user?.is_superuser) || user?.role === "admin";
+  const isStaff = Boolean(user?.is_staff) || Boolean(user?.is_superuser) || user?.role === "admin";
 
   const [filters, setFilters] = useState<PartenaireFilters>(defaultFilters);
 
@@ -123,8 +120,7 @@ export default function PartenairesPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   const queryParams = useMemo(() => {
     const base: Record<string, string | number> = {
@@ -344,9 +340,7 @@ export default function PartenairesPage() {
             selectedIds={selectedIds}
             onToggleSelect={(id) =>
               setSelectedIds((prev) =>
-                prev.includes(id)
-                  ? prev.filter((i) => i !== id)
-                  : [...prev, id]
+                prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
               )
             }
             onRowClick={handleRowClick}
@@ -365,12 +359,7 @@ export default function PartenairesPage() {
         onEdit={handleEdit}
       />
 
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

@@ -1,7 +1,7 @@
-import { FormationPick } from '../../../components/modals/FormationSelectModal';
-import type { Candidat } from '../../../types/candidat';
+import { FormationPick } from "../../../components/modals/FormationSelectModal";
+import type { Candidat } from "../../../types/candidat";
 
-export const mapFormationInfo = (fi?: Candidat['formation_info'] | null): FormationPick | null => {
+export const mapFormationInfo = (fi?: Candidat["formation_info"] | null): FormationPick | null => {
   if (!fi) return null;
   return {
     id: fi.id,
@@ -20,4 +20,4 @@ export const mapFormationInfo = (fi?: Candidat['formation_info'] | null): Format
 };
 
 export const formatFormation = (p: FormationPick) =>
-  `${p.nom ?? '—'} — ${p.centre?.nom ?? '—'} · ${p.num_offre ?? '—'}`;
+  `${p.nom ?? "—"} — ${p.centre?.nom ?? "—"} · ${p.num_offre ?? "—"}`;

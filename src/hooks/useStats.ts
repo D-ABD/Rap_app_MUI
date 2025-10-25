@@ -20,10 +20,7 @@ function normalizeStatsResponse(raw: any): StatsResponse {
   };
 }
 
-export function useStats(
-  endpoint: string,
-  params: Record<string, any> = {}
-) {
+export function useStats(endpoint: string, params: Record<string, any> = {}) {
   return useQuery<StatsResponse>({
     queryKey: [endpoint, params],
     queryFn: async () => {

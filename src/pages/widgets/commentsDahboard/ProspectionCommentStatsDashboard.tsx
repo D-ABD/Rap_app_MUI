@@ -19,12 +19,7 @@ import {
   IconButton,
   Divider,
 } from "@mui/material";
-import {
-  Refresh as RefreshIcon,
-  Business as Building2Icon,
-  Person as UserIcon,
-  CalendarToday as CalendarIcon,
-} from "@mui/icons-material";
+import { Refresh as RefreshIcon, Person as UserIcon } from "@mui/icons-material";
 import {
   ProspectionCommentFilters,
   ProspectionCommentItem,
@@ -59,13 +54,21 @@ export default function ProspectionCommentStatsDashboard({
 }: {
   title?: string;
 }) {
-  const [filters, setFilters] = useState<ProspectionCommentFilters>({ limit: 10 });
+  const [filters, setFilters] = useState<ProspectionCommentFilters>({
+    limit: 10,
+  });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const { data, isLoading, error, refetch, isFetching } = useProspectionCommentLatest(filters);
-  const { data: centresGrouped } = useProspectionCommentGrouped("centre", { ...filters, centre: undefined });
-  const { data: depsGrouped } = useProspectionCommentGrouped("departement", { ...filters, departement: undefined });
+  const { data: centresGrouped } = useProspectionCommentGrouped("centre", {
+    ...filters,
+    centre: undefined,
+  });
+  const { data: depsGrouped } = useProspectionCommentGrouped("departement", {
+    ...filters,
+    departement: undefined,
+  });
 
   const centreOptions = useMemo(() => {
     const rows = centresGrouped?.results ?? [];
@@ -103,7 +106,13 @@ export default function ProspectionCommentStatsDashboard({
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+      >
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>

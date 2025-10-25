@@ -6,10 +6,19 @@ export interface Choice {
 
 // Aligné sur models.TextChoices
 export type TypeAtelier =
-  | "atelier_1" | "atelier_2" | "atelier_3" | "atelier_4"
-  | "atelier_5" | "atelier_6" | "atelier_7" | "autre";
+  | "atelier_1"
+  | "atelier_2"
+  | "atelier_3"
+  | "atelier_4"
+  | "atelier_5"
+  | "atelier_6"
+  | "atelier_7"
+  | "autre";
 
-export interface BasicUserRef { id: number; full_name?: string; }
+export interface BasicUserRef {
+  id: number;
+  full_name?: string;
+}
 
 export interface BaseMeta {
   created_by?: number | BasicUserRef | null;

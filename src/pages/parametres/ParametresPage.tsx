@@ -1,27 +1,32 @@
 import { Link as RouterLink } from "react-router-dom";
-import {
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
-  Typography,
-  Button,
-  Stack,
-} from "@mui/material";
+import { Grid, Card, CardContent, CardActions, Typography, Button, Stack } from "@mui/material";
 import PageTemplate from "../../components/PageTemplate";
 
 const ParametresPage = () => {
   const cards = [
-    { title: "Centres", text: "Gérer les centres de formation.", link: "/centres" },
-    { title: "Types d'offres", text: "Gérer les types d’offres de formation.", link: "/typeoffres" },
-    { title: "Statuts", text: "Configurer les statuts des formations.", link: "/statuts" },
+    {
+      title: "Centres",
+      text: "Gérer les centres de formation.",
+      link: "/centres",
+    },
+    {
+      title: "Types d'offres",
+      text: "Gérer les types d’offres de formation.",
+      link: "/typeoffres",
+    },
+    {
+      title: "Statuts",
+      text: "Configurer les statuts des formations.",
+      link: "/statuts",
+    },
     {
       title: "Administration",
       text: "Accès à l'interface d’administration Django.",
       link:
-        process.env.NODE_ENV === "production"
+        import.meta.env.MODE === "production"
           ? "https://mon-domaine.com/admin/"
           : "http://localhost:8000/admin/",
+
       external: true,
     },
   ];
@@ -65,12 +70,7 @@ const ParametresPage = () => {
                     Accéder
                   </Button>
                 ) : (
-                  <Button
-                    component={RouterLink}
-                    to={c.link}
-                    size="small"
-                    color="primary"
-                  >
+                  <Button component={RouterLink} to={c.link} size="small" color="primary">
                     Accéder
                   </Button>
                 )}

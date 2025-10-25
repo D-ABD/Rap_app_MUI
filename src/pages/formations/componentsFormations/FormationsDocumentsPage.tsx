@@ -1,5 +1,5 @@
 // src/pages/formations/componentsFormations/FormationsDocumentsPage.tsx
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {
   Box,
@@ -14,7 +14,6 @@ import FormationSection from "./FormationSection";
 import api from "../../../api/axios";
 import type { Formation } from "../../../types/formation";
 import type { Document } from "../../../types/document";
-import DocumentPreview from "../../Documents/DocumentPreview";
 
 export default function FormationsDocumentsPage() {
   const { formationId } = useParams();
@@ -85,9 +84,7 @@ export default function FormationsDocumentsPage() {
 
       <FormationSection title={`📁 Documents (${documents.length})`} defaultExpanded>
         {documents.length === 0 && (
-          <Typography color="text.secondary">
-            ⚠️ Aucun document pour cette formation.
-          </Typography>
+          <Typography color="text.secondary">⚠️ Aucun document pour cette formation.</Typography>
         )}
 
         {documents.map((doc, index) => (
@@ -103,28 +100,13 @@ export default function FormationsDocumentsPage() {
                 alignItems="center"
                 spacing={2}
                 sx={{ mt: 1 }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  🗂️ {doc.type_document_display} — 📦 {doc.taille_readable}
-                </Typography>
-                <DocumentPreview url={doc.download_url} nom={doc.nom_fichier} />
-                <Link to={`/documents/edit/${doc.id}?formation_id=${doc.formation}`}>
-                  <MuiButton variant="outlined" size="small">
-                    🛠 Modifier
-                  </MuiButton>
-                </Link>
-              </Stack>
+              ></Stack>
             </Box>
             {index < documents.length - 1 && <Divider />}
           </Box>
         ))}
 
-        <Stack
-          direction="row"
-          justifyContent="center"
-          spacing={2}
-          sx={{ mt: 3, flexWrap: "wrap" }}
-        >
+        <Stack direction="row" justifyContent="center" spacing={2} sx={{ mt: 3, flexWrap: "wrap" }}>
           <MuiButton
             variant="contained"
             color="success"

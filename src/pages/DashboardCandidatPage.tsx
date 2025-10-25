@@ -22,12 +22,7 @@ const DashboardCandidatPage = () => {
           Voici votre tableau de bord personnel.
         </Typography>
 
-        <Button
-          variant="contained"
-          component={RouterLink}
-          to="/mon-profil"
-          sx={{ mt: 2 }}
-        >
+        <Button variant="contained" component={RouterLink} to="/mon-profil" sx={{ mt: 2 }}>
           Voir / Modifier mon profil
         </Button>
       </Box>
@@ -43,7 +38,7 @@ const DashboardCandidatPage = () => {
         <Grid item xs={12} sm={6}>
           <ProspectionConversionKpi title="Tx transformation Prospections" />
         </Grid>
-          <ProspectionCommentStatsDashboard />
+        <ProspectionCommentStatsDashboard />
       </Grid>
     </PageWrapper>
   );

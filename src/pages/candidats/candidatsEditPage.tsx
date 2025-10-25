@@ -3,13 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { CircularProgress, Typography, Box } from "@mui/material";
 
-import {
-  useCandidat,
-  useCandidatMeta,
-  useUpdateCandidat,
-} from "../../hooks/useCandidats";
+import { useCandidat, useCandidatMeta, useUpdateCandidat } from "../../hooks/useCandidats";
 import { useMe } from "../../hooks/useUsers";
-import { useFormationsOptions } from "../../hooks/useFormations";
 
 import type { Candidat, CandidatFormData } from "../../types/candidat";
 import PageTemplate from "../../components/PageTemplate";
@@ -21,13 +16,11 @@ export default function CandidatEditPage() {
   const navigate = useNavigate();
 
   const { data: meta, loading: loadingMeta } = useCandidatMeta();
-  const { options: formationOptions } = useFormationsOptions();
   const { user: me } = useMe();
   const { data, loading: loadingItem } = useCandidat(candidatId);
   const { update, loading: saving } = useUpdateCandidat(candidatId);
 
-  const canEditFormation =
-    !!me && ["admin", "superadmin", "staff"].includes(me.role);
+  const canEditFormation = !!me && ["admin", "superadmin", "staff"].includes(me.role);
 
   /**
    * 🧩 handleSubmit
@@ -44,7 +37,6 @@ export default function CandidatEditPage() {
       // ❌ Erreurs inattendues (pas du 400 de validation)
       if (status && status !== 400) {
         toast.error("Erreur serveur ou réseau lors de la mise à jour.");
-        console.error("Update candidat failed:", error);
       }
       throw error;
     }
@@ -53,12 +45,7 @@ export default function CandidatEditPage() {
   // ── Loading / Erreurs ────────────────────────────────
   if (loadingMeta || loadingItem) {
     return (
-      <PageTemplate
-        title="Modifier le candidat"
-        backButton
-        onBack={() => navigate(-1)}
-        centered
-      >
+      <PageTemplate title="Modifier le candidat" backButton onBack={() => navigate(-1)} centered>
         <CircularProgress />
         <Typography sx={{ mt: 2 }}>⏳ Chargement…</Typography>
       </PageTemplate>
@@ -67,11 +54,7 @@ export default function CandidatEditPage() {
 
   if (!data) {
     return (
-      <PageTemplate
-        title="Modifier le candidat"
-        backButton
-        onBack={() => navigate(-1)}
-      >
+      <PageTemplate title="Modifier le candidat" backButton onBack={() => navigate(-1)}>
         <Typography color="error">❌ Candidat introuvable.</Typography>
       </PageTemplate>
     );
@@ -84,8 +67,6 @@ export default function CandidatEditPage() {
       backButton
       onBack={() => navigate(-1)}
     >
-
-
       {/* Formulaire d’édition — section cible du scroll */}
       <Box id="edit-section" sx={{ scrollMarginTop: "80px" }}>
         <Typography variant="h6" gutterBottom>

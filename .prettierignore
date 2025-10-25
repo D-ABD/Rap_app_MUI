@@ -1,0 +1,40 @@
+# --- Dossiers de build / dépendances ---
+node_modules
+dist
+dist-ssr
+build
+coverage
+
+# --- Fichiers de logs et caches ---
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Configs système / éditeur ---
+.DS_Store
+.idea
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# --- Environnements ---
+.env
+.env.local
+.env.*.local
+
+# --- Types / Générés automatiquement ---
+*.d.ts
+
+# --- Sorties Vite / Temp ---
+*.local
+*.cache
+*.tmp
+
+# --- Exemples, copies, archives ---
+**/copy*.ts
+**/copy*.tsx
+**/old/
+**/__tests__/
+**/__mocks__/

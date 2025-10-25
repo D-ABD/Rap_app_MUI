@@ -2,12 +2,15 @@ import axios, { AxiosError } from "axios";
 import { triggerGlobalLogout } from "./globalLogout";
 import { getTokens, storeTokens, clearTokens } from "./tokenStorage";
 
+// 🌍 Utiliser la variable d'environnement (définie dans .env.local ou .env.production)
+const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
+
 const api = axios.create({
-  baseURL: "http://localhost:8000/api",
+  baseURL: `${API_BASE_URL}/api`,
   withCredentials: true,
 });
 
-// 🔑 Ajouter automatiquement l’`access` token
+// 🔑 Ajouter automatiquement le token d’accès
 api.interceptors.request.use((config) => {
   const { access } = getTokens();
   if (access) {
@@ -16,17 +19,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 🚨 Rafraîchir automatiquement le token expiré
+// 🚨 Rafraîchissement automatique du token expiré
 let isRefreshing = false;
 let failedQueue: any[] = [];
 
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+    if (error) prom.reject(error);
+    else prom.resolve(token);
   });
   failedQueue = [];
 };
@@ -45,12 +45,11 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // Attente pendant le refresh
-        return new Promise(function (resolve, reject) {
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers["Authorization"] = "Bearer " + token;
+            originalRequest.headers["Authorization"] = `Bearer ${token}`;
             return api(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -60,12 +59,12 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res = await axios.post("http://localhost:8000/api/token/refresh/", { refresh });
+        const res = await axios.post(`${API_BASE_URL}/api/token/refresh/`, { refresh });
         const newAccess = res.data.access;
-        storeTokens(newAccess, refresh); // on garde le refresh
-        api.defaults.headers.common["Authorization"] = "Bearer " + newAccess;
+        storeTokens(newAccess, refresh);
+        api.defaults.headers.common["Authorization"] = `Bearer ${newAccess}`;
         processQueue(null, newAccess);
-        return api(originalRequest); // rejoue la requête initiale
+        return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
         clearTokens();
@@ -81,4 +80,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-   

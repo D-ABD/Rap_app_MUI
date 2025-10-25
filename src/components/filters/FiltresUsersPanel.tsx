@@ -1,13 +1,13 @@
 // src/components/users/FiltresUsersPanel.tsx
-import React, { useMemo, useCallback } from 'react';
-import styled from 'styled-components';
-import FilterTemplate, { type FieldConfig } from './FilterTemplate';
+import React, { useMemo, useCallback } from "react";
+import styled from "styled-components";
+import FilterTemplate, { type FieldConfig } from "./FilterTemplate";
 
 type Option = { value: string | number; label: string };
 
 // 🔹 Propriétés du panneau
 export interface FiltresUsersPanelProps<
-  T extends Record<string, string | number | boolean | undefined>
+  T extends Record<string, string | number | boolean | undefined>,
 > {
   values: T;
   options: Partial<Record<keyof T, Option[]>>;
@@ -18,12 +18,12 @@ export interface FiltresUsersPanelProps<
   labels?: Partial<Record<keyof T, string>>;
 }
 
-const LoadingBox = styled.div.attrs({ role: 'status', 'aria-live': 'polite' })`
+const LoadingBox = styled.div.attrs({ role: "status", "aria-live": "polite" })`
   padding: 0.75rem 1rem;
-  border: 1px dashed ${({ theme }) => theme?.colors?.border ?? '#e5e7eb'};
-  border-radius: ${({ theme }) => theme?.borderRadius?.m ?? '10px'};
+  border: 1px dashed ${({ theme }) => theme?.colors?.border ?? "#e5e7eb"};
+  border-radius: ${({ theme }) => theme?.borderRadius?.m ?? "10px"};
   color: #6b7280;
-  background: ${({ theme }) => theme?.colors?.backgroundLight ?? '#f9fafb'};
+  background: ${({ theme }) => theme?.colors?.backgroundLight ?? "#f9fafb"};
   margin-bottom: 1rem;
   text-align: center;
 `;
@@ -40,15 +40,15 @@ function uniqueById<T extends { value: string | number }>(arr: T[] = []): T[] {
 
 // 🔹 Placeholder quand la liste est vide
 const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
-  opts.length ? opts : [{ value: '', label: '—' }];
+  opts.length ? opts : [{ value: "", label: "—" }];
 
 function humanizeKey(k: string): string {
-  const s = k.replace(/_/g, ' ');
+  const s = k.replace(/_/g, " ");
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 export default function FiltresUsersPanel<
-  T extends Record<string, string | number | boolean | undefined>
+  T extends Record<string, string | number | boolean | undefined>,
 >({
   values,
   options,
@@ -59,10 +59,7 @@ export default function FiltresUsersPanel<
   labels,
 }: FiltresUsersPanelProps<T>) {
   // 🔹 Normalise les entrées options
-  const entries = useMemo(
-    () => Object.entries(options ?? {}) as [keyof T, Option[]][],
-    [options]
-  );
+  const entries = useMemo(() => Object.entries(options ?? {}) as [keyof T, Option[]][], [options]);
 
   // 🔹 Reset par défaut
   const defaultReset = useCallback(() => {
@@ -78,7 +75,7 @@ export default function FiltresUsersPanel<
     return entries.map(([key, opts]) => ({
       key: key as keyof T,
       label: (labels?.[key] as string) ?? humanizeKey(String(key)),
-      type: 'select' as const,
+      type: "select" as const,
       disabled: loading,
       options: withPlaceholder(uniqueById(opts)),
     }));
@@ -88,8 +85,8 @@ export default function FiltresUsersPanel<
     () => ({
       onReset: onReset ?? defaultReset,
       onRefresh,
-      resetLabel: 'Réinitialiser',
-      refreshLabel: 'Rafraîchir',
+      resetLabel: "Réinitialiser",
+      refreshLabel: "Rafraîchir",
     }),
     [onReset, onRefresh, defaultReset]
   );

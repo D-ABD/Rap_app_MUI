@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import api from '../api/axios';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import api from "../api/axios";
 
 import type {
   Prospection,
@@ -15,9 +15,9 @@ import type {
   ProspectionTypeProspection,
   ProspectionMoyenContact,
   Choice,
-} from '../types/prospection';
-import type { ProspectionChoicesResponse } from '../types/prospection';
-import axios from 'axios';
+} from "../types/prospection";
+import type { ProspectionChoicesResponse } from "../types/prospection";
+import axios from "axios";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🔹 useProspections — liste paginée + filtres
@@ -36,14 +36,13 @@ export function useProspections(params: ProspectionFiltresValues = {}, reloadKey
     setError(null);
 
     api
-      .get<ApiResponse<PaginatedResults<Prospection>>>('/prospections/', {
+      .get<ApiResponse<PaginatedResults<Prospection>>>("/prospections/", {
         params: parsedParams,
       })
       .then((res) => {
         setPageData(res.data.data);
       })
       .catch((err) => {
-        console.error('[useProspections] ❌ Erreur API :', err);
         setError(err);
       })
       .finally(() => setLoading(false));
@@ -60,7 +59,6 @@ export function useProspections(params: ProspectionFiltresValues = {}, reloadKey
     refetch: fetchData,
   };
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 🔹 useProspection — détail
@@ -81,8 +79,8 @@ export function useProspection(id: number | string | null) {
     setError(null);
     api
       .get<ApiResponse<Prospection>>(`prospections/${id}/`)
-      .then(res => setData(res.data.data))
-      .catch(err => setError(err))
+      .then((res) => setData(res.data.data))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -100,7 +98,7 @@ export function useCreateProspection() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.post<ApiResponse<Prospection>>('prospections/', payload);
+      const res = await api.post<ApiResponse<Prospection>>("prospections/", payload);
       return res.data.data;
     } catch (err) {
       setError(err as Error);
@@ -120,36 +118,31 @@ export function useUpdateProspection(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const update = useCallback(async (payload: ProspectionFormData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const cleanPayload = Object.fromEntries(
-        Object.entries(payload).filter(([, v]) => v !== null)
-      );
+  const update = useCallback(
+    async (payload: ProspectionFormData) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const cleanPayload = Object.fromEntries(
+          Object.entries(payload).filter(([, v]) => v !== null)
+        );
 
-      const res = await api.patch<ApiResponse<Prospection>>(
-        `prospections/${id}/`,
-        cleanPayload
-      );
+        const res = await api.patch<ApiResponse<Prospection>>(`prospections/${id}/`, cleanPayload);
 
-      return res.data.data;
-    } catch (err: unknown) {
-  if (axios.isAxiosError(err)) {
-    console.error('❌ Erreur lors de la mise à jour :', err);
-    console.error('💥 Détail erreur API :', err.response?.data);
-    setError(err);
-  } else {
-    console.error('❌ Erreur inconnue :', err);
-    setError(new Error('Une erreur inconnue est survenue.'));
-  }
-  throw err;
-}
-      
-      finally {
-      setLoading(false);
-    }
-  }, [id]);
+        return res.data.data;
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          setError(err);
+        } else {
+          setError(new Error("Une erreur inconnue est survenue."));
+        }
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { update, loading, error };
 }
@@ -184,22 +177,25 @@ export function useChangerStatut(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const changeStatus = useCallback(async (payload: ChangerStatutPayload) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.post<ApiResponse<Prospection>>(
-        `prospections/${id}/changer-statut/`,
-        payload
-      );
-      return res.data.data;
-    } catch (err) {
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const changeStatus = useCallback(
+    async (payload: ChangerStatutPayload) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.post<ApiResponse<Prospection>>(
+          `prospections/${id}/changer-statut/`,
+          payload
+        );
+        return res.data.data;
+      } catch (err) {
+        setError(err as Error);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { changeStatus, loading, error };
 }
@@ -223,8 +219,8 @@ export function useHistoriqueProspections(id: number | string | null) {
     setError(null);
     api
       .get<ApiResponse<HistoriqueProspection[]>>(`prospections/${id}/historiques/`)
-      .then(res => setData(res.data.data))
-      .catch(err => setError(err))
+      .then((res) => setData(res.data.data))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -235,7 +231,7 @@ export function useHistoriqueProspections(id: number | string | null) {
 // 🔹 useProspectionChoices — récupère les listes de choix
 // ─────────────────────────────────────────────────────────────────────────────
 export function useProspectionChoices() {
-  const [choices, setChoices] = useState<ProspectionChoicesResponse['data'] | null>(null);
+  const [choices, setChoices] = useState<ProspectionChoicesResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -243,16 +239,14 @@ export function useProspectionChoices() {
     setLoading(true);
     setError(null);
     api
-      .get<ProspectionChoicesResponse>('prospections/choices/')
-      .then(res => setChoices(res.data.data))
-      .catch(err => setError(err))
+      .get<ProspectionChoicesResponse>("prospections/choices/")
+      .then((res) => setChoices(res.data.data))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
 
   return { choices, loading, error };
 }
-
-
 
 export default function useFiltresProspections() {
   const [filtres, setFiltres] = useState<{
@@ -276,11 +270,10 @@ export default function useFiltresProspections() {
         setLoading(true);
         setError(null);
 
-        const res = await api.get<ApiResponse<typeof filtres>>('/prospections/filtres/');
-        
+        const res = await api.get<ApiResponse<typeof filtres>>("/prospections/filtres/");
+
         setFiltres(res.data.data);
       } catch (err) {
-        console.error('[useFiltresProspections] ❌ Erreur lors du fetch :', err);
         setError(err as Error);
         setFiltres(null);
       } finally {

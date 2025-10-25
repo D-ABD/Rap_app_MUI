@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  FormEvent,
-} from "react";
+import { useMemo, useState, FormEvent } from "react";
 import {
   Box,
   Button,
@@ -27,7 +22,6 @@ import {
 import type { SelectChangeEvent } from "@mui/material";
 import { toast } from "react-toastify";
 
-import api from "../../api/axios";
 import { useProspectionChoices } from "../../hooks/useProspection";
 import type {
   ProspectionFormData,
@@ -39,7 +33,9 @@ import type {
 } from "../../types/prospection";
 
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
-import CandidatsSelectModal, { type CandidatPick } from "../../components/modals/CandidatsSelectModal";
+import CandidatsSelectModal, {
+  type CandidatPick,
+} from "../../components/modals/CandidatsSelectModal";
 import type { Partenaire } from "../../types/partenaire";
 import PartenaireSelectModal from "../../components/modals/PartenairesSelectModal";
 
@@ -72,13 +68,8 @@ type ProspectionFormDraft = {
   num_offre?: string | null;
 };
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null;
-}
-
 function extractOwnerUserId(candidate: CandidatPick): number | null {
-  if (typeof candidate.compte_utilisateur_id === "number")
-    return candidate.compte_utilisateur_id;
+  if (typeof candidate.compte_utilisateur_id === "number") return candidate.compte_utilisateur_id;
   const cu = candidate.compte_utilisateur;
   return cu && typeof cu.id === "number" ? cu.id : null;
 }
@@ -135,9 +126,7 @@ export default function ProspectionForm({
 
   const { choices, loading: loadingChoices, error } = useProspectionChoices();
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setForm((prev) => {
       const next = { ...prev, [name]: value } as ProspectionFormDraft;
@@ -207,8 +196,7 @@ export default function ProspectionForm({
   };
 
   if (loadingChoices) return <CircularProgress />;
-  if (error)
-    return <Typography color="error">❌ Erreur lors du chargement des choix.</Typography>;
+  if (error) return <Typography color="error">❌ Erreur lors du chargement des choix.</Typography>;
 
   const Section = ({
     icon,
@@ -219,10 +207,7 @@ export default function ProspectionForm({
     title: string;
     children: React.ReactNode;
   }) => (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2.5, mb: 3, borderRadius: 2, background: "#fafafa" }}
-    >
+    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2, background: "#fafafa" }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
         {icon}
         <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
@@ -244,9 +229,7 @@ export default function ProspectionForm({
               🏢 Partenaire : <strong>{partenaireNom ?? "— Non défini"}</strong>
             </Typography>
             <Button variant="outlined" onClick={() => setShowPartenaireModal(true)}>
-              {form.partenaire
-                ? "Modifier le partenaire"
-                : "Sélectionner un partenaire"}
+              {form.partenaire ? "Modifier le partenaire" : "Sélectionner un partenaire"}
             </Button>
           </Box>
 
@@ -256,9 +239,7 @@ export default function ProspectionForm({
                 📚 Formation : <strong>{formationNom ?? "— Non définie"}</strong>
               </Typography>
               <Button variant="outlined" onClick={() => setShowFormationModal(true)}>
-                {form.formation
-                  ? "Modifier la formation"
-                  : "Sélectionner une formation"}
+                {form.formation ? "Modifier la formation" : "Sélectionner une formation"}
               </Button>
             </Box>
           )}
@@ -314,11 +295,7 @@ export default function ProspectionForm({
 
               <FormControl required>
                 <InputLabel>Motif</InputLabel>
-                <Select
-                  name="motif"
-                  value={form.motif}
-                  onChange={handleSelectChange}
-                >
+                <Select name="motif" value={form.motif} onChange={handleSelectChange}>
                   {choices!.motif.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>
                       {opt.label}
@@ -350,11 +327,7 @@ export default function ProspectionForm({
 
               <FormControl required>
                 <InputLabel>Statut</InputLabel>
-                <Select
-                  name="statut"
-                  value={form.statut}
-                  onChange={handleSelectChange}
-                >
+                <Select name="statut" value={form.statut} onChange={handleSelectChange}>
                   {choices!.statut.map((opt) => (
                     <MenuItem key={opt.value} value={opt.value}>
                       {opt.label}
@@ -380,11 +353,7 @@ export default function ProspectionForm({
           <Grid item xs={12}>
             <FormControl fullWidth required>
               <InputLabel>Objectif</InputLabel>
-              <Select
-                name="objectif"
-                value={form.objectif}
-                onChange={handleSelectChange}
-              >
+              <Select name="objectif" value={form.objectif} onChange={handleSelectChange}>
                 {choices!.objectif.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
@@ -410,8 +379,8 @@ export default function ProspectionForm({
               ? "Création..."
               : "Mise à jour..."
             : mode === "create"
-            ? "Créer la prospection"
-            : "Mettre à jour"}
+              ? "Créer la prospection"
+              : "Mettre à jour"}
         </Button>
       </Stack>
 

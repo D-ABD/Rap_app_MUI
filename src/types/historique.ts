@@ -56,11 +56,10 @@ export interface HistoriqueParFormation {
     nouvelle_valeur: string | null;
     commentaire: string | null;
     created_at: string;
-        // facultatif
+    // facultatif
     formation_id?: number;
   }[];
 }
-
 
 // Réponse de l’API
 export interface HistoriqueFormationAPIResponse {
@@ -86,7 +85,6 @@ export interface HistoriqueFormationFiltres {
   date_max?: string;
   texte?: string;
   [key: string]: string | number | undefined; // ✅ ajoute cette ligne
-
 }
 
 export interface FiltresHistoriqueValues {

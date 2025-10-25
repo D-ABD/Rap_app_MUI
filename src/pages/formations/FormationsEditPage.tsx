@@ -27,8 +27,12 @@ export default function FormationsEditPage() {
   const { data: detail, loading, error } = useFormation(formationId ?? 0);
   const { updateFormation, loading: saving } = useUpdateFormation(formationId ?? 0);
   const { deleteFormation, loading: removing } = useDeleteFormation(formationId ?? 0);
-  const { centres = [], statuts = [], typeOffres = [], loading: loadingChoices } =
-    useFormationChoices();
+  const {
+    centres = [],
+    statuts = [],
+    typeOffres = [],
+    loading: loadingChoices,
+  } = useFormationChoices();
 
   const [localDetail, setLocalDetail] = useState<Formation | null>(null);
 
@@ -45,11 +49,19 @@ export default function FormationsEditPage() {
       if (isArchived) {
         await api.post(`/formations/${formationId}/desarchiver/`);
         toast.success("♻️ Formation désarchivée");
-        setLocalDetail({ ...formation, est_archivee: false, activite: "active" });
+        setLocalDetail({
+          ...formation,
+          est_archivee: false,
+          activite: "active",
+        });
       } else {
         await api.post(`/formations/${formationId}/archiver/`);
         toast.info("📦 Formation archivée");
-        setLocalDetail({ ...formation, est_archivee: true, activite: "archivee" });
+        setLocalDetail({
+          ...formation,
+          est_archivee: true,
+          activite: "archivee",
+        });
       }
     } catch {
       toast.error("❌ Échec de l’opération d’archivage");
@@ -108,9 +120,7 @@ export default function FormationsEditPage() {
   if (error || !detail) {
     return (
       <PageTemplate title={`Formation #${formationId}`}>
-        <Typography color="error">
-          ❌ Impossible de charger la formation.
-        </Typography>
+        <Typography color="error">❌ Impossible de charger la formation.</Typography>
       </PageTemplate>
     );
   }
@@ -155,9 +165,7 @@ export default function FormationsEditPage() {
   // ------------------------------------------------------------------
   return (
     <PageTemplate
-      title={`Formation #${formationId} — ${
-        archived ? "Archivée" : "Active"
-      }`}
+      title={`Formation #${formationId} — ${archived ? "Archivée" : "Active"}`}
       backButton
       onBack={() => navigate(-1)}
       actions={
@@ -171,12 +179,7 @@ export default function FormationsEditPage() {
             {archived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
 
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleDelete}
-            disabled={removing}
-          >
+          <Button variant="outlined" color="error" onClick={handleDelete} disabled={removing}>
             {removing ? "Suppression…" : "Supprimer"}
           </Button>
         </Box>

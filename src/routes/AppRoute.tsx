@@ -49,16 +49,11 @@ import CommentairesCreatePage from "../pages/commentaires/CommentairesCreatePage
 import CommentairesCreateFromFormationPage from "../pages/commentaires/CommentairesCreateFromFormationPage";
 import CommentairesEditPage from "../pages/commentaires/CommentairesEditPage";
 
-import DocumentsPage from "../pages/Documents/DocumentsPage";
-import DocumentsCreatePage from "../pages/Documents/DocumentsCreatePage";
-import DocumentsEditPage from "../pages/Documents/DocumentsEditPage";
-
 import FormationsPage from "../pages/formations/FormationsPage";
 import FormationsCreatePage from "../pages/formations/FormationsCreatePage";
 import FormationsEditPage from "../pages/formations/FormationsEditPage";
 import FormationDetailPage from "../pages/formations/FormationDetailPage";
 import FormationsCommentairesPage from "../pages/formations/componentsFormations/FormationsCommentairesPage";
-import FormationsDocumentsPage from "../pages/formations/componentsFormations/FormationsDocumentsPage";
 
 import PartenairesPage from "../pages/partenaires/PartenairesPage";
 import PartenairesCreatePage from "../pages/partenaires/PartenairesCreatePage";
@@ -76,8 +71,6 @@ import ProspectionCommentEditPage from "../pages/prospection/prospectioncomments
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
 import About from "../pages/About";
 import ParametresPage from "../pages/parametres/ParametresPage";
-import CerfaPage from "../pages/cerfa/CerfaPage";
-import CerfaEditPage from "../pages/cerfa/CerfaEditPage";
 
 import { useAuth } from "../hooks/useAuth";
 import ForbiddenPage from "../pages/ForbiddenPage";
@@ -160,28 +153,113 @@ export default function AppRoute() {
         <Route path="/mon-profil" element={secure(<MonProfil />)} />
 
         {/* 🔒 Paramètres (admin/superadmin only) */}
-        <Route path="/parametres" element={<AdminOnlyRoute><ParametresPage /></AdminOnlyRoute>} />
+        <Route
+          path="/parametres"
+          element={
+            <AdminOnlyRoute>
+              <ParametresPage />
+            </AdminOnlyRoute>
+          }
+        />
 
         {/* Centres */}
-        <Route path="/centres" element={<AdminRoute><CentresPage /></AdminRoute>} />
-        <Route path="/centres/create" element={<AdminRoute><CentresCreatePage /></AdminRoute>} />
-        <Route path="/centres/:id/edit" element={<AdminRoute><CentresEditPage /></AdminRoute>} />
+        <Route
+          path="/centres"
+          element={
+            <AdminRoute>
+              <CentresPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/centres/create"
+          element={
+            <AdminRoute>
+              <CentresCreatePage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/centres/:id/edit"
+          element={
+            <AdminRoute>
+              <CentresEditPage />
+            </AdminRoute>
+          }
+        />
 
         {/* Statuts */}
-        <Route path="/statuts" element={<AdminRoute><StatutsPage /></AdminRoute>} />
-        <Route path="/statuts/create" element={<AdminRoute><StatutsCreatePage /></AdminRoute>} />
-        <Route path="/statuts/:id/edit" element={<AdminRoute><StatutsEditPage /></AdminRoute>} />
+        <Route
+          path="/statuts"
+          element={
+            <AdminRoute>
+              <StatutsPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/statuts/create"
+          element={
+            <AdminRoute>
+              <StatutsCreatePage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/statuts/:id/edit"
+          element={
+            <AdminRoute>
+              <StatutsEditPage />
+            </AdminRoute>
+          }
+        />
 
         {/* TypeOffres */}
-        <Route path="/typeoffres" element={<AdminRoute><TypeOffresPage /></AdminRoute>} />
-        <Route path="/typeoffres/create" element={<AdminRoute><TypeOffresCreatePage /></AdminRoute>} />
-        <Route path="/typeoffres/:id/edit" element={<AdminRoute><TypeOffresEditPage /></AdminRoute>} />
+        <Route
+          path="/typeoffres"
+          element={
+            <AdminRoute>
+              <TypeOffresPage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/typeoffres/create"
+          element={
+            <AdminRoute>
+              <TypeOffresCreatePage />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/typeoffres/:id/edit"
+          element={
+            <AdminRoute>
+              <TypeOffresEditPage />
+            </AdminRoute>
+          }
+        />
 
         {/* Appairages */}
         <Route path="/appairages" element={secure(<AppairagesPage />)} />
         <Route path="/appairages/create" element={secure(<AppairagesCreatePage />)} />
         <Route path="/appairages/:id/edit" element={secure(<AppairagesEditPage />)} />
         <Route path="/appairages/:id" element={secure(<AppairageDetailPage />)} />
+
+        {/* Appairage — Commentaires dédiés */}
+        <Route path="/appairage-commentaires" element={secure(<AppairageCommentPage />)} />
+        <Route
+          path="/appairage-commentaires/create"
+          element={secure(<AppairageCommentCreatePage />)}
+        />
+        <Route
+          path="/appairage-commentaires/:id/edit"
+          element={secure(<AppairageCommentEditPage />)}
+        />
+        <Route
+          path="/appairage-commentaires/create/:appairageId"
+          element={secure(<AppairageCommentCreatePage />)}
+        />
 
         {/* Ateliers TRE */}
         <Route path="/ateliers-tre" element={secure(<AteliersTrePage />)} />
@@ -199,42 +277,57 @@ export default function AppRoute() {
         <Route path="/partenaires/:id/edit" element={secure(<PartenairesEditPage />)} />
 
         <Route path="/partenaires/candidat" element={secure(<PartenairesCandidatPage />)} />
-        <Route path="/partenaires/create/candidat" element={secure(<PartenairesCandidatCreatePage />)} />
-        <Route path="/partenaires/:id/edit/candidat" element={secure(<PartenairesCandidatEditPage />)} />
+        <Route
+          path="/partenaires/create/candidat"
+          element={secure(<PartenairesCandidatCreatePage />)}
+        />
+        <Route
+          path="/partenaires/:id/edit/candidat"
+          element={secure(<PartenairesCandidatEditPage />)}
+        />
 
         {/* Prospections */}
         <Route path="/prospections" element={secure(<ProspectionPage />)} />
         <Route path="/prospections/create" element={secure(<ProspectionCreatePage />)} />
         <Route path="/prospections/:id/edit" element={secure(<ProspectionEditPage />)} />
-        
+
         <Route path="/prospections/candidat" element={secure(<ProspectionPageCandidat />)} />
         <Route path="/prospections/create/candidat" element={<ProspectionCreatePageCandidat />} />
         <Route path="/prospections/:id/edit-candidat" element={<ProspectionEditCandidatPage />} />
 
-           {/* Prospection — Commentaires dédiés */}
-      <Route path="/prospection-commentaires" element={secure(<ProspectionCommentPage />)}/>
-      <Route path="/prospection-commentaires/create" element={secure(<ProspectionCommentCreatePage />)}/>
-      <Route path="/prospection-commentaires/:id/edit" element={secure(<ProspectionCommentEditPage />)}/>
-      <Route path="/prospection-commentaires/create/:prospectionId" element={secure(<ProspectionCommentCreatePage />)} />
+        {/* Prospection — Commentaires dédiés */}
+        <Route path="/prospection-commentaires" element={secure(<ProspectionCommentPage />)} />
+        <Route
+          path="/prospection-commentaires/create"
+          element={secure(<ProspectionCommentCreatePage />)}
+        />
+        <Route
+          path="/prospection-commentaires/:id/edit"
+          element={secure(<ProspectionCommentEditPage />)}
+        />
+        <Route
+          path="/prospection-commentaires/create/:prospectionId"
+          element={secure(<ProspectionCommentCreatePage />)}
+        />
 
         {/* Commentaires */}
         <Route path="/commentaires" element={secure(<CommentairesPage />)} />
         <Route path="/commentaires/create" element={secure(<CommentairesCreatePage />)} />
-        <Route path="/commentaires/create/:formationId" element={secure(<CommentairesCreateFromFormationPage />)} />
+        <Route
+          path="/commentaires/create/:formationId"
+          element={secure(<CommentairesCreateFromFormationPage />)}
+        />
         <Route path="/commentaires/:id/edit" element={secure(<CommentairesEditPage />)} />
-
-        {/* Documents */}
-        <Route path="/documents" element={secure(<DocumentsPage />)} />
-        <Route path="/documents/create" element={secure(<DocumentsCreatePage />)} />
-        <Route path="/documents/edit/:id" element={secure(<DocumentsEditPage />)} />
 
         {/* Formations */}
         <Route path="/formations" element={secure(<FormationsPage />)} />
         <Route path="/formations/create" element={secure(<FormationsCreatePage />)} />
         <Route path="/formations/:id/edit" element={secure(<FormationsEditPage />)} />
         <Route path="/formations/:id" element={secure(<FormationDetailPage />)} />
-        <Route path="/formations/:formationId/commentaires" element={secure(<FormationsCommentairesPage />)} />
-        <Route path="/formations/:formationId/documents" element={secure(<FormationsDocumentsPage />)} />
+        <Route
+          path="/formations/:formationId/commentaires"
+          element={secure(<FormationsCommentairesPage />)}
+        />
 
         {/* Utilisateurs */}
         <Route path="/users" element={secure(<UsersPage />)} />
@@ -246,7 +339,6 @@ export default function AppRoute() {
         <Route path="/cerfa" element={secure(<CerfaPage />)} />
         <Route path="/cerfa/:id/edit" element={secure(<CerfaEditPage />)} />
         */}
-
       </Route>
 
       {/* 🚫 403 + 404 */}

@@ -23,10 +23,7 @@ function toFixed0(n?: number) {
   return n == null ? "—" : Math.round(n).toString();
 }
 
-function omit<T extends object, K extends keyof T>(
-  obj: T,
-  keys: readonly K[]
-): Omit<T, K> {
+function omit<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): Omit<T, K> {
   const clone = { ...obj };
   for (const k of keys) delete clone[k];
   return clone;
@@ -54,13 +51,9 @@ export default function FormationSaturationWidget({
   title?: string;
   filters?: Filters;
 }) {
-  const [localFilters, setLocalFilters] = React.useState<Filters>(
-    filters ?? {}
-  );
+  const [localFilters, setLocalFilters] = React.useState<Filters>(filters ?? {});
 
-  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
-    !!filters?.avec_archivees
-  );
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
 
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
@@ -72,26 +65,19 @@ export default function FormationSaturationWidget({
     [localFilters, includeArchived]
   );
 
-  const centreQuery = useFormationGrouped(
-    "centre",
-    omit(effectiveFilters, ["centre"] as const)
-  );
+  const centreQuery = useFormationGrouped("centre", omit(effectiveFilters, ["centre"] as const));
   const deptQuery = useFormationGrouped(
     "departement",
     omit(effectiveFilters, ["departement"] as const)
   );
 
-  const { data, isLoading, error, isFetching } =
-    useFormationOverview(effectiveFilters);
+  const { data, isLoading, error, isFetching } = useFormationOverview(effectiveFilters);
 
   const k = data?.kpis;
 
   // 🎨 couleur du titre selon le taux
-  let toneColor:
-    | "success.main"
-    | "warning.main"
-    | "error.main"
-    | "text.secondary" = "text.secondary";
+  let toneColor: "success.main" | "warning.main" | "error.main" | "text.secondary" =
+    "text.secondary";
   if (k?.taux_saturation != null) {
     if (k.taux_saturation < 50) toneColor = "success.main";
     else if (k.taux_saturation < 80) toneColor = "warning.main";

@@ -1,10 +1,5 @@
 // src/pages/partenaires/PartenairesTable.tsx
-import {
-  Checkbox,
-  IconButton,
-  Link,
-  Typography,
-} from "@mui/material";
+import { Checkbox, IconButton, Link, Typography } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import type { Partenaire } from "../../types/partenaire";
 import ResponsiveTableTemplate, {
@@ -85,29 +80,22 @@ export default function PartenairesTable({
 }: Props) {
   type Kind = "prospections" | "appairages" | "formations" | "candidats";
 
-  const renderCountLink = (
-    count: number | undefined,
-    partenaireId: number,
-    kind: Kind
-  ) => {
+  const renderCountLink = (count: number | undefined, partenaireId: number, kind: Kind) => {
     if (typeof count !== "number") return "—";
 
-    const onClickMap: Partial<
-      Record<Kind, ((id: number) => void) | undefined>
-    > = {
+    const onClickMap: Partial<Record<Kind, ((id: number) => void) | undefined>> = {
       prospections: onClickProspections,
       appairages: onClickAppairages,
       formations: onClickFormations,
       candidats: onClickCandidats,
     };
 
-    const urlMap: Partial<Record<Kind, ((id: number) => string) | undefined>> =
-      {
-        prospections: buildProspectionsUrl,
-        appairages: buildAppairagesUrl,
-        formations: buildFormationsUrl,
-        candidats: buildCandidatsUrl,
-      };
+    const urlMap: Partial<Record<Kind, ((id: number) => string) | undefined>> = {
+      prospections: buildProspectionsUrl,
+      appairages: buildAppairagesUrl,
+      formations: buildFormationsUrl,
+      candidats: buildCandidatsUrl,
+    };
 
     const onClick = onClickMap[kind];
     const buildUrl = urlMap[kind];
@@ -142,11 +130,7 @@ export default function PartenairesTable({
     if (buildUrl) {
       const href = buildUrl(partenaireId);
       return (
-        <Link
-          href={href}
-          onClick={(e) => e.stopPropagation()}
-          underline="hover"
-        >
+        <Link href={href} onClick={(e) => e.stopPropagation()} underline="hover">
           {count}
         </Link>
       );
@@ -195,10 +179,7 @@ export default function PartenairesTable({
       label: "Email",
       render: (p) =>
         p.contact_email ? (
-          <Link
-            href={`mailto:${p.contact_email}`}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <Link href={`mailto:${p.contact_email}`} onClick={(e) => e.stopPropagation()}>
             {p.contact_email}
           </Link>
         ) : p.has_contact ? (
@@ -212,10 +193,7 @@ export default function PartenairesTable({
       label: "Téléphone",
       render: (p) =>
         p.contact_telephone ? (
-          <Link
-            href={`tel:${p.contact_telephone}`}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <Link href={`tel:${p.contact_telephone}`} onClick={(e) => e.stopPropagation()}>
             {p.contact_telephone}
           </Link>
         ) : p.has_contact ? (
@@ -227,7 +205,6 @@ export default function PartenairesTable({
     { key: "zip_code", label: "CP" },
     { key: "city", label: "Ville" },
     { key: "secteur_activite", label: "Secteur" },
-
 
     {
       key: "description",
@@ -272,9 +249,7 @@ export default function PartenairesTable({
       render: (p) =>
         renderCountLink(
           getCount(p.appairages) ??
-            (typeof p.appairages_count === "number"
-              ? p.appairages_count
-              : undefined),
+            (typeof p.appairages_count === "number" ? p.appairages_count : undefined),
           p.id,
           "appairages"
         ),
@@ -285,9 +260,7 @@ export default function PartenairesTable({
       render: (p) =>
         renderCountLink(
           getCount(p.prospections) ??
-            (typeof p.prospections_count === "number"
-              ? p.prospections_count
-              : undefined),
+            (typeof p.prospections_count === "number" ? p.prospections_count : undefined),
           p.id,
           "prospections"
         ),
@@ -298,9 +271,7 @@ export default function PartenairesTable({
       render: (p) =>
         renderCountLink(
           getCount(p.formations) ??
-            (typeof p.formations_count === "number"
-              ? p.formations_count
-              : undefined),
+            (typeof p.formations_count === "number" ? p.formations_count : undefined),
           p.id,
           "formations"
         ),
@@ -311,9 +282,7 @@ export default function PartenairesTable({
       render: (p) =>
         renderCountLink(
           getCount(p.candidats) ??
-            (typeof p.candidats_count === "number"
-              ? p.candidats_count
-              : undefined),
+            (typeof p.candidats_count === "number" ? p.candidats_count : undefined),
           p.id,
           "candidats"
         ),

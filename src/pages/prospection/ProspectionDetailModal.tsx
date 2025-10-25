@@ -19,24 +19,22 @@ import { useProspection } from "../../hooks/useProspection";
 /* ---------- Helpers ---------- */
 const dtfFR =
   typeof Intl !== "undefined"
-    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" })
+    ? new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : undefined;
 
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 const nn = (s?: string | number | null) =>
   s === null || s === undefined || s === "" ? "—" : String(s);
 
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Props ---------- */
 type Props = {
@@ -47,12 +45,7 @@ type Props = {
 };
 
 /* ---------- Component ---------- */
-export default function ProspectionDetailModal({
-  open,
-  onClose,
-  prospectionId,
-  onEdit,
-}: Props) {
+export default function ProspectionDetailModal({ open, onClose, prospectionId, onEdit }: Props) {
   const { data: prospection, loading } = useProspection(prospectionId);
 
   if (!open) return null;
@@ -122,10 +115,7 @@ export default function ProspectionDetailModal({
                     label="Email"
                     value={
                       prospection.partenaire_email ? (
-                        <Link
-                          href={`mailto:${prospection.partenaire_email}`}
-                          underline="hover"
-                        >
+                        <Link href={`mailto:${prospection.partenaire_email}`} underline="hover">
                           {prospection.partenaire_email}
                         </Link>
                       ) : (
@@ -179,9 +169,7 @@ export default function ProspectionDetailModal({
                   />
                   <Field
                     label="Objectif"
-                    value={`${nn(prospection.objectif_display)} (${nn(
-                      prospection.objectif
-                    )})`}
+                    value={`${nn(prospection.objectif_display)} (${nn(prospection.objectif)})`}
                   />
                   <Field
                     label="Statut"
@@ -197,9 +185,7 @@ export default function ProspectionDetailModal({
                         sx={{
                           fontWeight: 600,
                           bgcolor:
-                            prospection.activite === "archivee"
-                              ? "grey.200"
-                              : "success.light",
+                            prospection.activite === "archivee" ? "grey.200" : "success.light",
                           textTransform: "capitalize",
                         }}
                       />
@@ -212,15 +198,9 @@ export default function ProspectionDetailModal({
                     )})`}
                   />
                   <Field label="Relance prévue" value={fmt(prospection.relance_prevue)} />
-                  <Field
-                    label="Date prospection"
-                    value={fmt(prospection.date_prospection)}
-                  />
+                  <Field label="Date prospection" value={fmt(prospection.date_prospection)} />
                   <Field label="Active" value={yn(prospection.is_active)} />
-                  <Field
-                    label="Relance nécessaire"
-                    value={yn(prospection.relance_necessaire)}
-                  />
+                  <Field label="Relance nécessaire" value={yn(prospection.relance_necessaire)} />
                   <Field label="Commentaire" value={nn(prospection.commentaire)} />
                 </Section>
               </Grid>
@@ -274,18 +254,12 @@ export default function ProspectionDetailModal({
           >
             Modifier
           </Button>
-          
         )}
 
         {prospection && onEdit && prospection.id != null && (
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => onEdit(prospection.id!)}
-          >
+          <Button variant="contained" color="primary" onClick={() => onEdit(prospection.id!)}>
             Voir les commentaires
           </Button>
-          
         )}
         <Button variant="outlined" onClick={onClose}>
           Fermer
@@ -299,11 +273,7 @@ export default function ProspectionDetailModal({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 2 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, color: "primary.main" }}
-        gutterBottom
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main" }} gutterBottom>
         {title}
       </Typography>
       <Divider sx={{ mb: 1 }} />

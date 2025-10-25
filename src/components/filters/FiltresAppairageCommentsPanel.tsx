@@ -38,7 +38,11 @@ type Props = {
 /* -------------------------------------------------------------------------- */
 /* HELPERS                                                                    */
 /* -------------------------------------------------------------------------- */
-type OptionWithKey<T extends string | number> = { value: T; label: string; key?: string };
+type OptionWithKey<T extends string | number> = {
+  value: T;
+  label: string;
+  key?: string;
+};
 
 const withPlaceholder = <T extends string | number>(
   opts: OptionWithKey<T>[]

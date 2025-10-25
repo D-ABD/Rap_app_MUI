@@ -1,3 +1,4 @@
+// src/pages/ateliers/AteliersTRETable.tsx
 import {
   Table,
   TableBody,
@@ -14,7 +15,7 @@ import {
 } from "@mui/material";
 import { useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import type { AtelierTRE, BasicUserRef } from "../../types/ateliersTre";
+import type { AtelierTRE } from "../../types/ateliersTre";
 import DeleteIcon from "@mui/icons-material/Delete";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import EditIcon from "@mui/icons-material/Edit";
@@ -51,17 +52,13 @@ function formatDateTimeFR(iso?: string | null): string {
   return dtfDateTimeFR ? dtfDateTimeFR.format(d) : d.toLocaleString("fr-FR");
 }
 
-function createdByLabel(created_by: AtelierTRE["created_by"]): string {
-  if (created_by == null) return "—";
-  if (typeof created_by === "number") return `#${created_by}`;
-  const ref = created_by as BasicUserRef;
-  return ref.full_name?.trim() || `#${ref.id}`;
-}
-
 function candidatsPreview(a: AtelierTRE): string {
   const list = a.candidats_detail ?? [];
   if (!list.length) return "—";
-  const names = list.slice(0, 3).map((c) => c.nom).join(", ");
+  const names = list
+    .slice(0, 3)
+    .map((c) => c.nom)
+    .join(", ");
   const more = list.length > 3 ? ` +${list.length - 3}` : "";
   return `${names}${more}`;
 }
@@ -72,9 +69,8 @@ export default function AteliersTreTable({
   selectedIds,
   onSelectionChange,
   onEdit,
-  onShow,
   onDelete,
-  onRowClick, // ✅
+  onRowClick,
   maxHeight,
 }: Props) {
   const navigate = useNavigate();
@@ -83,15 +79,10 @@ export default function AteliersTreTable({
     (id: number) => (onEdit ? onEdit(id) : navigate(`/ateliers-tre/${id}/edit`)),
     [navigate, onEdit]
   );
-  const goShow = useCallback(
-    (id: number) => (onShow ? onShow(id) : navigate(`/ateliers-tre/${id}`)),
-    [navigate, onShow]
-  );
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const pageIds = useMemo(() => items.map((i) => i.id), [items]);
-  const allChecked =
-    pageIds.length > 0 && pageIds.every((id) => selectedSet.has(id));
+  const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedSet.has(id));
   const someChecked = pageIds.some((id) => selectedSet.has(id)) && !allChecked;
 
   const headerCbRef = useRef<HTMLInputElement | null>(null);
@@ -114,8 +105,7 @@ export default function AteliersTreTable({
       if (checked) {
         if (!selectedSet.has(id)) onSelectionChange([...selectedIds, id]);
       } else {
-        if (selectedSet.has(id))
-          onSelectionChange(selectedIds.filter((x) => x !== id));
+        if (selectedSet.has(id)) onSelectionChange(selectedIds.filter((x) => x !== id));
       }
     },
     [onSelectionChange, selectedIds, selectedSet]
@@ -132,26 +122,25 @@ export default function AteliersTreTable({
   return (
     <TableContainer component={Paper} sx={{ maxHeight: maxHeight ?? "65vh" }}>
       <Table stickyHeader size="small" aria-label="Table des ateliers TRE">
-<TableHead>
-  <TableRow>
-    <TableCell padding="checkbox">
-      <Checkbox
-        inputRef={headerCbRef}
-        indeterminate={someChecked}
-        checked={allChecked}
-        onChange={toggleAllThisPage}
-      />
-    </TableCell>
-    <TableCell>📌 Atelier</TableCell>
-    <TableCell>📅 Date</TableCell>
-    <TableCell>🏫 Centre</TableCell>
-    <TableCell>👥 Inscrits</TableCell>
-    <TableCell>✅ Présents</TableCell>
-    <TableCell>👤 Candidats</TableCell>
-    <TableCell>⚙️ Actions</TableCell>
-  </TableRow>
-</TableHead>
-
+        <TableHead>
+          <TableRow>
+            <TableCell padding="checkbox">
+              <Checkbox
+                inputRef={headerCbRef}
+                indeterminate={someChecked}
+                checked={allChecked}
+                onChange={toggleAllThisPage}
+              />
+            </TableCell>
+            <TableCell>📌 Atelier</TableCell>
+            <TableCell>📅 Date</TableCell>
+            <TableCell>🏫 Centre</TableCell>
+            <TableCell>👥 Inscrits</TableCell>
+            <TableCell>✅ Présents</TableCell>
+            <TableCell>👤 Candidats</TableCell>
+            <TableCell>⚙️ Actions</TableCell>
+          </TableRow>
+        </TableHead>
 
         <TableBody>
           {items.map((a) => {
@@ -160,10 +149,8 @@ export default function AteliersTreTable({
             const dateTxt = formatDateTimeFR(a.date_atelier);
             const centre = a.centre_detail?.label ?? "—";
             const nbInscrits =
-              typeof a.nb_inscrits === "number"
-                ? a.nb_inscrits
-                : a.candidats?.length ?? 0;
-            const nbPresents = a.presence_counts?.present ?? 0; // 🆕
+              typeof a.nb_inscrits === "number" ? a.nb_inscrits : (a.candidats?.length ?? 0);
+            const nbPresents = a.presence_counts?.present ?? 0;
             const candPrev = candidatsPreview(a);
 
             return (
@@ -173,7 +160,7 @@ export default function AteliersTreTable({
                 role="button"
                 tabIndex={0}
                 title="Cliquer pour voir le détail"
-                onClick={() => onRowClick?.(a.id)} // ✅ ouvre modale au clic
+                onClick={() => onRowClick?.(a.id)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -203,12 +190,7 @@ export default function AteliersTreTable({
 
                 {/* Date */}
                 <TableCell>
-                  <Chip
-                    size="small"
-                    color="info"
-                    label={dateTxt}
-                    sx={{ fontSize: "0.75rem" }}
-                  />
+                  <Chip size="small" color="info" label={dateTxt} sx={{ fontSize: "0.75rem" }} />
                 </TableCell>
 
                 {/* Centre */}
@@ -223,7 +205,7 @@ export default function AteliersTreTable({
                   />
                 </TableCell>
 
-                {/* ✅ Présents */}
+                {/* Présents */}
                 <TableCell>
                   <Chip
                     size="small"
@@ -242,11 +224,7 @@ export default function AteliersTreTable({
                 {/* Actions */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1}>
-                    <IconButton
-                      aria-label="Voir"
-                      size="small"
-                      onClick={() => onRowClick?.(a.id)}
-                    >
+                    <IconButton aria-label="Voir" size="small" onClick={() => onRowClick?.(a.id)}>
                       <VisibilityIcon fontSize="inherit" />
                     </IconButton>
                     <IconButton

@@ -9,7 +9,7 @@ export interface FiltresData {
   formation_etats: { value: string; label: string }[];
 }
 
-export interface FiltresValues { 
+export interface FiltresValues {
   centre_id?: number;
   statut_id?: number;
   type_offre_id?: number;

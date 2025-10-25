@@ -31,36 +31,22 @@ export default function AppairagesCreatePage() {
   const { create, loading: creating, error: createError } = useCreateAppairage();
 
   // 🔹 Charger meta
-  const {
-    data: meta,
-    loading: metaLoading,
-    error: metaError,
-  } = useAppairageMeta();
+  const { data: meta, loading: metaLoading, error: metaError } = useAppairageMeta();
 
   const [searchParams] = useSearchParams();
-  const presetPartenaire = useMemo(
-    () => toNum(searchParams.get("partenaire")),
-    [searchParams]
-  );
-  const presetFormation = useMemo(
-    () => toNum(searchParams.get("formation")),
-    [searchParams]
-  );
+  const presetPartenaire = useMemo(() => toNum(searchParams.get("partenaire")), [searchParams]);
+  const presetFormation = useMemo(() => toNum(searchParams.get("formation")), [searchParams]);
 
   // labels transmis en URL
   const paramPartenaireNom = searchParams.get("partenaire_nom")?.trim() || null;
   const paramFormationNom = searchParams.get("formation_nom")?.trim() || null;
 
   // nom du partenaire via hook
-  const { data: partenaireData } = usePartenaire(
-    presetPartenaire ?? undefined
-  );
+  const { data: partenaireData } = usePartenaire(presetPartenaire ?? undefined);
   const partenaireNom = paramPartenaireNom ?? partenaireData?.nom ?? null;
 
   // nom formation (fallback API)
-  const [formationNom, setFormationNom] = useState<string | null>(
-    paramFormationNom ?? null
-  );
+  const [formationNom, setFormationNom] = useState<string | null>(paramFormationNom ?? null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -69,11 +55,8 @@ export default function AppairagesCreatePage() {
         const res = await api.get<unknown>(`/formations/${presetFormation}/`);
         const raw = res.data as unknown;
         const data =
-          isRecord(raw) && isRecord(raw.data)
-            ? raw.data
-            : (raw as Record<string, unknown>);
-        const nom =
-          isRecord(data) && typeof data.nom === "string" ? data.nom : null;
+          isRecord(raw) && isRecord(raw.data) ? raw.data : (raw as Record<string, unknown>);
+        const nom = isRecord(data) && typeof data.nom === "string" ? data.nom : null;
         if (!cancelled && nom) setFormationNom(nom);
       } catch {
         if (!cancelled) setFormationNom(null);
@@ -116,9 +99,7 @@ export default function AppairagesCreatePage() {
   if (createError || metaError) {
     return (
       <PageTemplate title="➕ Nouvel appairage">
-        <Typography color="error">
-          ❌ Impossible d’initialiser le formulaire.
-        </Typography>
+        <Typography color="error">❌ Impossible d’initialiser le formulaire.</Typography>
       </PageTemplate>
     );
   }
@@ -128,19 +109,13 @@ export default function AppairagesCreatePage() {
     return (
       <PageTemplate title="➕ Nouvel appairage" centered>
         <CircularProgress />
-        <Typography sx={{ mt: 2 }}>
-          ⏳ Chargement du formulaire…
-        </Typography>
+        <Typography sx={{ mt: 2 }}>⏳ Chargement du formulaire…</Typography>
       </PageTemplate>
     );
   }
 
   return (
-    <PageTemplate
-      title="➕ Nouvel appairage"
-      backButton
-      onBack={() => navigate(-1)}
-    >
+    <PageTemplate title="➕ Nouvel appairage" backButton onBack={() => navigate(-1)}>
       <Box mt={2}>
         <AppairageForm
           mode="create"

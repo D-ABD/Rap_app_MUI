@@ -33,13 +33,7 @@ import ExportButtonAppairageComment from "../../../components/export_buttons/Exp
 import PageTemplate from "../../../components/PageTemplate";
 
 type ChoiceStr = { value: string; label: string };
-type NormalizedRole =
-  | "superadmin"
-  | "admin"
-  | "staff"
-  | "stagiaire"
-  | "candidat"
-  | "autre";
+type NormalizedRole = "superadmin" | "admin" | "staff" | "stagiaire" | "candidat" | "autre";
 
 function normalizeRole(u: User | null): NormalizedRole {
   if (!u) return "autre";
@@ -63,9 +57,7 @@ export default function AppairageCommentPage() {
   const showFilters = ["superadmin", "admin", "staff"].includes(role);
   const panelMode: "default" | "candidate" = showFilters ? "default" : "candidate";
 
-  const [params, setParams] = useState<
-    AppairageCommentListParams & { search?: string }
-  >(() => {
+  const [params, setParams] = useState<AppairageCommentListParams & { search?: string }>(() => {
     const initial: AppairageCommentListParams & { search?: string } = {
       ordering: "-created_at",
       search: "",
@@ -79,10 +71,7 @@ export default function AppairageCommentPage() {
   const [reloadKey, setReloadKey] = useState<number>(0);
 
   const { data, loading, error } = useListAppairageComments(params, reloadKey);
-  const rows: AppairageCommentDTO[] = useMemo(
-    () => (Array.isArray(data) ? data : []),
-    [data]
-  );
+  const rows: AppairageCommentDTO[] = useMemo(() => (Array.isArray(data) ? data : []), [data]);
 
   // Filtres dynamiques
   const filtresFromRows = useMemo(() => {
@@ -110,12 +99,14 @@ export default function AppairageCommentPage() {
   // suppression
   const [selectedRow, setSelectedRow] = useState<AppairageCommentDTO | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
-  const { remove, loading: deleting } = useDeleteAppairageComment();
+
+  // ✅ Correction ici : on passe un id même s'il est null
+  const { remove, loading: deleting } = useDeleteAppairageComment(selectedRow?.id ?? 0);
 
   const handleDelete = useCallback(async () => {
     if (!selectedRow) return;
     try {
-      await remove(selectedRow.id);
+      await remove();
       toast.success(`🗑️ Commentaire #${selectedRow.id} supprimé`);
       setShowConfirm(false);
       setSelectedRow(null);
@@ -178,9 +169,7 @@ export default function AppairageCommentPage() {
           <CircularProgress />
         </Box>
       ) : error ? (
-        <Typography color="error">
-          Erreur lors du chargement des commentaires.
-        </Typography>
+        <Typography color="error">Erreur lors du chargement des commentaires.</Typography>
       ) : rows.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
           <Typography>Aucun commentaire trouvé.</Typography>
@@ -198,20 +187,13 @@ export default function AppairageCommentPage() {
       )}
 
       {/* Confirmation dialog */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Voulez-vous supprimer ce commentaire&nbsp;?
-          </DialogContentText>
+          <DialogContentText>Voulez-vous supprimer ce commentaire&nbsp;?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowConfirm(false)}>Annuler</Button>

@@ -75,9 +75,7 @@ export default function ResponsiveTableTemplate<T>({
                       {col.label}
                     </Typography>
                     <Typography variant="body1">
-                      {col.render
-                        ? col.render(row)
-                        : String(row[col.key as keyof T] ?? "—")}
+                      {col.render ? col.render(row) : String(row[col.key as keyof T] ?? "—")}
                     </Typography>
                   </Box>
                 ))}
@@ -162,9 +160,7 @@ export default function ResponsiveTableTemplate<T>({
                     backgroundColor: theme.palette.background.paper,
                   }}
                 >
-                  {col.render
-                    ? col.render(row)
-                    : String(row[col.key as keyof T] ?? "—")}
+                  {col.render ? col.render(row) : String(row[col.key as keyof T] ?? "—")}
                 </TableCell>
               ))}
               {actions && (
@@ -187,4 +183,3 @@ export default function ResponsiveTableTemplate<T>({
     </TableContainer>
   );
 }
- 

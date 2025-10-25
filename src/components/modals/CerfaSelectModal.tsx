@@ -1,3 +1,4 @@
+// src/components/modals/CerfaSelectModal.tsx
 import { useEffect, useMemo, useState } from "react";
 import {
   Dialog,
@@ -19,16 +20,14 @@ import { toast } from "react-toastify";
 import { api, CerfaContrat } from "../../types/cerfa";
 
 /* ---------- Types ---------- */
-type DRFPaginated<T> = { count: number; next: string | null; previous: string | null; results: T[] };
+type DRFPaginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
 type DRFEnvelope<T> = DRFPaginated<T> | { data: DRFPaginated<T> };
-type ApiEnvelope<T> = { data: T } | T;
 
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null;
-}
-function unwrap<T>(payload: ApiEnvelope<T>): T {
-  return isRecord(payload) && "data" in payload ? (payload as { data: T }).data : (payload as T);
-}
 function asPaginated<T>(data: DRFEnvelope<T>): DRFPaginated<T> {
   return "results" in data ? data : data.data;
 }
@@ -93,8 +92,11 @@ export default function CerfaSelectModal({ show, onClose, onSelect, onCreate }: 
         const page = asPaginated<CerfaContrat>(res.data);
         const normalized = page.results.map(normalizeCerfa);
         if (!cancelled) setItems(normalized);
-      } catch (err: unknown) {
-        console.error("Erreur chargement CERFA :", err);
+      } catch (_err: unknown) {
+        if (import.meta.env.MODE !== "production") {
+          // eslint-disable-next-line no-console
+          console.error("Erreur lors du chargement des contrats CERFA :", _err);
+        }
         if (!cancelled) setError("Erreur lors du chargement des contrats CERFA.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -112,7 +114,8 @@ export default function CerfaSelectModal({ show, onClose, onSelect, onCreate }: 
     const s = search.trim().toLowerCase();
     if (!s) return items;
     return items.filter((c) => {
-      const full = `${c.apprenti_prenom ?? ""} ${c.apprenti_nom_naissance ?? ""} ${c.employeur_nom ?? ""} ${c.formation_nom ?? ""}`.toLowerCase();
+      const full =
+        `${c.apprenti_prenom ?? ""} ${c.apprenti_nom_naissance ?? ""} ${c.employeur_nom ?? ""} ${c.formation_nom ?? ""}`.toLowerCase();
       return full.includes(s);
     });
   }, [items, search]);
@@ -122,18 +125,21 @@ export default function CerfaSelectModal({ show, onClose, onSelect, onCreate }: 
     if (!onCreate) return;
     setCreating(true);
     try {
-const payload: Partial<CerfaContrat> = {
-  apprenti_nom_naissance: nom.trim(),
-  apprenti_prenom: prenom.trim(),
-  employeur_nom: employeur.trim() || undefined,
-};
- 
+      const payload: Partial<CerfaContrat> = {
+        apprenti_nom_naissance: nom.trim(),
+        apprenti_prenom: prenom.trim(),
+        employeur_nom: employeur.trim() || undefined,
+      };
+
       const created = await onCreate(payload);
       toast.success("✅ CERFA créé et sélectionné");
       onSelect(created);
       onClose();
-    } catch (err) {
-      console.error("Erreur création CERFA :", err);
+    } catch (_err) {
+      if (import.meta.env.MODE !== "production") {
+        // eslint-disable-next-line no-console
+        console.error("Erreur lors de la création du CERFA :", _err);
+      }
       toast.error("❌ Échec de la création du CERFA");
     } finally {
       setCreating(false);

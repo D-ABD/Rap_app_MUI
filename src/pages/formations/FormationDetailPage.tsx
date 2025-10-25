@@ -1,21 +1,11 @@
 // src/pages/formations/FormationsDetailPage.tsx
-import {
-  Box,
-  Grid,
-  Paper,
-  Typography,
-  Divider,
-  Link,
-  Button,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Grid, Paper, Typography, Divider, Button, CircularProgress } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useState } from "react";
 
 import { useFormation } from "../../hooks/useFormations";
-import DocumentsSection from "./componentsFormations/DocumentsSection";
 import PageTemplate from "../../components/PageTemplate";
 import FormationCommentsModal from "../../components/modals/FormationCommentsModal"; // ✅ import ajouté
 
@@ -31,18 +21,13 @@ const dtfFR =
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 const nn = (s?: string | number | null) =>
   s === null || s === undefined || s === "" ? "—" : String(s);
 
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Composant principal ---------- */
 export default function FormationsDetailPage() {
@@ -89,16 +74,10 @@ export default function FormationsDetailPage() {
             <Section title="Identité">
               <Field label="Nom" value={nn(formation.nom)} />
               <Field label="Centre" value={formation.centre?.nom ?? "—"} />
-              <Field
-                label="Type d’offre"
-                value={formation.type_offre?.libelle ?? "—"}
-              />
+              <Field label="Type d’offre" value={formation.type_offre?.libelle ?? "—"} />
               <Field label="Statut" value={formation.statut?.libelle ?? "—"} />
               <Field label="Active" value={yn(formation.is_active)} />
-              <Field
-                label="Statut temporel"
-                value={nn(formation.status_temporel)}
-              />
+              <Field label="Statut temporel" value={nn(formation.status_temporel)} />
               <Field label="À recruter" value={yn(formation.is_a_recruter)} />
             </Section>
           </Grid>
@@ -120,10 +99,7 @@ export default function FormationsDetailPage() {
               <Field label="N° Offre" value={nn(formation.num_offre)} />
               <Field label="N° Produit" value={nn(formation.num_produit)} />
               <Field label="Assistante" value={nn(formation.assistante)} />
-              <Field
-                label="Convocation envoyée"
-                value={yn(formation.convocation_envoie)}
-              />
+              <Field label="Convocation envoyée" value={yn(formation.convocation_envoie)} />
             </Section>
           </Grid>
 
@@ -134,10 +110,7 @@ export default function FormationsDetailPage() {
               <Field label="Code diplôme" value={nn(formation.code_diplome)} />
               <Field label="Code RNCP" value={nn(formation.code_rncp)} />
               <Field label="Total heures" value={nn(formation.total_heures)} />
-              <Field
-                label="Heures distanciel"
-                value={nn(formation.heures_distanciel)}
-              />
+              <Field label="Heures distanciel" value={nn(formation.heures_distanciel)} />
             </Section>
           </Grid>
 
@@ -151,10 +124,7 @@ export default function FormationsDetailPage() {
               <Field label="Inscrits MP" value={nn(formation.inscrits_mp)} />
               <Field label="Inscrits total" value={nn(formation.inscrits_total)} />
               <Field label="Prévu total" value={nn(formation.prevus_total)} />
-              <Field
-                label="Places restantes"
-                value={nn(formation.places_restantes)}
-              />
+              <Field label="Places restantes" value={nn(formation.places_restantes)} />
               <Field label="À recruter" value={nn(formation.a_recruter)} />
             </Section>
           </Grid>
@@ -162,36 +132,15 @@ export default function FormationsDetailPage() {
           {/* ─────────── Statistiques & indicateurs ─────────── */}
           <Grid item xs={12}>
             <Section title="Statistiques et indicateurs">
-              <Field
-                label="Entrées en formation"
-                value={nn(formation.entree_formation)}
-              />
+              <Field label="Entrées en formation" value={nn(formation.entree_formation)} />
               <Field label="Candidats" value={nn(formation.nombre_candidats)} />
-              <Field
-                label="Entretiens"
-                value={nn(formation.nombre_entretiens)}
-              />
-              <Field
-                label="Événements"
-                value={nn(formation.nombre_evenements)}
-              />
+              <Field label="Entretiens" value={nn(formation.nombre_entretiens)} />
+              <Field label="Événements" value={nn(formation.nombre_evenements)} />
               <Field label="Saturation" value={nn(formation.saturation)} />
-              <Field
-                label="Badge saturation"
-                value={nn(formation.saturation_badge)}
-              />
-              <Field
-                label="Badge label"
-                value={nn(formation.saturation_badge_label)}
-              />
-              <Field
-                label="Taux de transformation"
-                value={nn(formation.taux_transformation)}
-              />
-              <Field
-                label="Badge transformation"
-                value={nn(formation.transformation_badge)}
-              />
+              <Field label="Badge saturation" value={nn(formation.saturation_badge)} />
+              <Field label="Badge label" value={nn(formation.saturation_badge_label)} />
+              <Field label="Taux de transformation" value={nn(formation.taux_transformation)} />
+              <Field label="Badge transformation" value={nn(formation.transformation_badge)} />
             </Section>
           </Grid>
 
@@ -208,19 +157,11 @@ export default function FormationsDetailPage() {
               />
               <Field
                 label="Prospections"
-                value={
-                  formation.prospections?.length
-                    ? formation.prospections.length
-                    : "—"
-                }
+                value={formation.prospections?.length ? formation.prospections.length : "—"}
               />
               <Field
                 label="Documents"
-                value={
-                  formation.documents?.length
-                    ? formation.documents.length
-                    : "—"
-                }
+                value={formation.documents?.length ? formation.documents.length : "—"}
               />
               <Field
                 label="Commentaires"
@@ -260,13 +201,7 @@ export default function FormationsDetailPage() {
 }
 
 /* ---------- Sous-composants ---------- */
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 2 }}>
       <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -283,13 +218,7 @@ function Section({
 /**
  * 🔹 Affiche “— NC” en rouge italique quand la donnée est vide
  */
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | React.ReactNode;
-}) {
+function Field({ label, value }: { label: string; value: string | number | React.ReactNode }) {
   const str = typeof value === "number" ? String(value) : value;
   const isMissing =
     str === null ||
@@ -303,9 +232,7 @@ function Field({
       <Typography variant="body2">
         <strong>{label} :</strong>{" "}
         {isMissing ? (
-          <span style={{ color: "red", fontStyle: "italic", opacity: 0.85 }}>
-            — NC
-          </span>
+          <span style={{ color: "red", fontStyle: "italic", opacity: 0.85 }}>— NC</span>
         ) : (
           str
         )}

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import api from '../api/axios';
+// src/hooks/useChoices.ts
+import { useEffect, useState } from "react";
+import api from "../api/axios";
 
 export type ChoiceItem = {
   value: string;
@@ -20,10 +21,18 @@ export default function useChoices(resource: string) {
           return acc;
         }, {});
         setChoices(mapped);
-      } catch (error) {
-        console.error(`Erreur lors du chargement des choix pour ${resource}`, error);
+      } catch (err) {
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.debug(
+            `[useChoices] erreur lors du chargement des choices pour ${resource} :`,
+            err
+          );
+        }
+        setChoices({});
       }
     };
+
     fetchChoices();
   }, [resource]);
 

@@ -1,15 +1,7 @@
 // src/pages/formations/componentsFormations/ProspectionsSection.tsx
 import { useState } from "react";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import {
-  Box,
-  Typography,
-  Divider,
-  Stack,
-  Button,
-  Paper,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Typography, Divider, Stack, Button, Paper, CircularProgress } from "@mui/material";
 import type { Prospection } from "../../../types/prospection";
 
 interface Props {
@@ -49,16 +41,13 @@ export default function ProspectionsSection({
       </Typography>
 
       {prospections.length === 0 && (
-        <Typography color="text.secondary">
-          ⚠️ Aucune prospection pour cette formation.
-        </Typography>
+        <Typography color="text.secondary">⚠️ Aucune prospection pour cette formation.</Typography>
       )}
 
       {affichées.map((p) => (
         <Box key={p.id} sx={{ py: 1 }}>
           <Typography variant="body2" color="text.secondary">
-            📅 {new Date(p.date_prospection).toLocaleDateString()} — 🧑‍💼{" "}
-            {p.owner_username}
+            📅 {new Date(p.date_prospection).toLocaleDateString()} — 🧑‍💼 {p.owner_username}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             📌 {p.objectif_display} — 🏷️ {p.statut_display}
@@ -71,18 +60,9 @@ export default function ProspectionsSection({
       ))}
 
       {/* Boutons de navigation */}
-      <Stack
-        direction="row"
-        spacing={2}
-        justifyContent="center"
-        flexWrap="wrap"
-        sx={{ mt: 2 }}
-      >
+      <Stack direction="row" spacing={2} justifyContent="center" flexWrap="wrap" sx={{ mt: 2 }}>
         {displayLimit < prospections.length ? (
-          <Button
-            variant="outlined"
-            onClick={() => setDisplayLimit((prev) => prev + limit)}
-          >
+          <Button variant="outlined" onClick={() => setDisplayLimit((prev) => prev + limit)}>
             🔽 Voir plus
           </Button>
         ) : (
@@ -105,9 +85,7 @@ export default function ProspectionsSection({
         <Button
           variant="contained"
           color="success"
-          onClick={() =>
-            navigate(`/prospections/create?formation=${formationId}`)
-          }
+          onClick={() => navigate(`/prospections/create?formation=${formationId}`)}
         >
           ➕ Ajouter une prospection
         </Button>

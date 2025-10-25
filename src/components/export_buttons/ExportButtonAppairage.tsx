@@ -24,13 +24,9 @@ type Props = {
   endpointBase?: string;
 };
 
-function getFilenameFromDisposition(
-  disposition?: string | null,
-  fallback = "export"
-) {
+function getFilenameFromDisposition(disposition?: string | null, fallback = "export") {
   if (!disposition) return fallback;
-  const match =
-    /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
+  const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
   const raw = match?.[1] ?? match?.[2] ?? "";
   try {
     const name = decodeURIComponent(raw).trim();
@@ -83,8 +79,7 @@ export default function ExportButtonAppairage({
     try {
       setBusy(true);
 
-      const qsBase =
-        typeof window !== "undefined" ? window.location.search || "" : "";
+      const qsBase = typeof window !== "undefined" ? window.location.search || "" : "";
       const params = new URLSearchParams(qsBase);
 
       // 🆕 Ajoute le paramètre "avec_archivees" si coché
@@ -96,10 +91,12 @@ export default function ExportButtonAppairage({
 
       let res;
       if (selectedIds.length > 0) {
-        ("👉 POST avec ids =", selectedIds);
         res = await api.post(
           url,
-          { ids: selectedIds, ...(avecArchivees ? { avec_archivees: true } : {}) },
+          {
+            ids: selectedIds,
+            ...(avecArchivees ? { avec_archivees: true } : {}),
+          },
           { responseType: "blob" }
         );
       } else {
@@ -108,8 +105,7 @@ export default function ExportButtonAppairage({
       }
 
       const contentType = res.headers["content-type"] || "";
-      const fallbackMime =
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      const fallbackMime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
       const blob = new Blob([res.data], { type: contentType || fallbackMime });
 
@@ -137,7 +133,6 @@ export default function ExportButtonAppairage({
       );
       setShowModal(false);
     } catch (e: unknown) {
-      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -171,11 +166,7 @@ export default function ExportButtonAppairage({
         <DialogContent dividers>
           <Box sx={{ display: "grid", gap: 1.5 }}>
             <Typography fontWeight={600}>Format d’export</Typography>
-            <ExportSelect
-              value={exportFormat}
-              onChange={setExportFormat}
-              options={["xlsx"]}
-            />
+            <ExportSelect value={exportFormat} onChange={setExportFormat} options={["xlsx"]} />
 
             {/* 🆕 Case à cocher “Inclure les archivés” */}
             <FormControlLabel
@@ -191,24 +182,17 @@ export default function ExportButtonAppairage({
 
           {typeof window !== "undefined" && window.location.search ? (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Les filtres/tri actuels (
-              <code>{window.location.search}</code>) seront appliqués si aucune
-              sélection n’est fournie.
+              Les filtres/tri actuels (<code>{window.location.search}</code>) seront appliqués si
+              aucune sélection n’est fournie.
             </Typography>
           ) : (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Aucun filtre explicite dans l’URL : l’export portera sur
-              l’ensemble du jeu courant.
+              Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble du jeu courant.
             </Typography>
           )}
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -218,12 +202,7 @@ export default function ExportButtonAppairage({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

@@ -1,16 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  MenuItem,
-  Paper,
-  Typography,
-  CircularProgress,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, MenuItem, Paper, CircularProgress } from "@mui/material";
 
 import useForm from "../../hooks/useForm";
 import api from "../../api/axios";
@@ -28,14 +19,7 @@ export default function TypeOffresCreatePage() {
   const [previewColor, setPreviewColor] = useState("#6c757d");
   const [loading, setLoading] = useState(true);
 
-  const {
-    values,
-    errors,
-    handleChange,
-    resetForm,
-    setErrors,
-    setFieldValue,
-  } = useForm({
+  const { values, errors, handleChange, resetForm, setErrors, setFieldValue } = useForm({
     nom: "",
     couleur: "",
     autre: "",
@@ -46,11 +30,7 @@ export default function TypeOffresCreatePage() {
     api
       .get("/typeoffres/choices/")
       .then((res) => {
-        const payload =
-          res.data.results?.results ||
-          res.data.results ||
-          res.data.data ||
-          [];
+        const payload = res.data.results?.results || res.data.results || res.data.data || [];
         setChoices(Array.isArray(payload) ? payload : []);
       })
       .catch(() => {
@@ -201,11 +181,7 @@ export default function TypeOffresCreatePage() {
               <Button type="submit" variant="contained" color="primary">
                 💾 Créer
               </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => navigate("/typeoffres")}
-              >
+              <Button type="button" variant="outlined" onClick={() => navigate("/typeoffres")}>
                 Annuler
               </Button>
             </Stack>

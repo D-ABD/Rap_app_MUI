@@ -44,11 +44,7 @@ const dtf =
 
 const fmtDate = (iso: string) => {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtf
-    ? dtf.format(d)
-    : d.toLocaleString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtf ? dtf.format(d) : d.toLocaleString("fr-FR");
 };
 
 /* ---------- Component ---------- */
@@ -61,17 +57,23 @@ export default function AppairageCommentsModal({
   const [newComment, setNewComment] = useState("");
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  const { data: comments, loading, refetch } = useListAppairageComments(
-    { appairage: appairageId },
-    show ? 1 : 0
-  );
+  const {
+    data: comments,
+    loading,
+    refetch,
+  } = useListAppairageComments({ appairage: appairageId }, show ? 1 : 0);
   const { create, loading: creating } = useCreateAppairageComment();
-  const { remove, loading: deleting } = useDeleteAppairageComment();
+
+  // ✅ Correction : on fournit un id par défaut pour satisfaire le hook
+  const { remove, loading: deleting } = useDeleteAppairageComment(deletingId ?? 0);
 
   const handleAdd = async () => {
     if (!newComment.trim()) return;
     try {
-      const created = await create({ appairage: appairageId, body: newComment });
+      const created = await create({
+        appairage: appairageId,
+        body: newComment,
+      });
       setNewComment("");
       onCommentAdded?.(created);
       refetch();
@@ -84,7 +86,7 @@ export default function AppairageCommentsModal({
     if (!confirm(`Supprimer le commentaire #${id} ?`)) return;
     try {
       setDeletingId(id);
-      await remove(id);
+      await remove(); // ✅ id déjà passé au hook
       refetch();
     } catch {
       alert("Suppression impossible.");
@@ -99,11 +101,7 @@ export default function AppairageCommentsModal({
     <Dialog open={show} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         💬 Commentaires appairage
-        <Badge
-          badgeContent={count}
-          color="primary"
-          sx={{ ml: "auto", mr: 1 }}
-        />
+        <Badge badgeContent={count} color="primary" sx={{ ml: "auto", mr: 1 }} />
         <IconButton onClick={refetch} disabled={loading}>
           <RefreshIcon />
         </IconButton>
@@ -124,11 +122,7 @@ export default function AppairageCommentsModal({
             placeholder="Ajouter un commentaire…"
             sx={{ mb: 1 }}
           />
-          <Button
-            variant="contained"
-            onClick={handleAdd}
-            disabled={!newComment.trim() || creating}
-          >
+          <Button variant="contained" onClick={handleAdd} disabled={!newComment.trim() || creating}>
             {creating ? "⏳ Ajout…" : "Ajouter"}
           </Button>
         </Box>
@@ -152,19 +146,14 @@ export default function AppairageCommentsModal({
                     onClick={() => handleDelete(c.id)}
                     disabled={deletingId === c.id || deleting}
                   >
-                    {deletingId === c.id ? (
-                      <CircularProgress size={18} />
-                    ) : (
-                      <DeleteIcon />
-                    )}
+                    {deletingId === c.id ? <CircularProgress size={18} /> : <DeleteIcon />}
                   </IconButton>
                 }
               >
                 <ListItemText
                   primary={
                     <Typography variant="body2" color="text.secondary">
-                      <strong>{c.auteur_nom || "—"}</strong> •{" "}
-                      {fmtDate(c.created_at)}
+                      <strong>{c.auteur_nom || "—"}</strong> • {fmtDate(c.created_at)}
                     </Typography>
                   }
                   secondary={

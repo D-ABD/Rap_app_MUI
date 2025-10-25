@@ -52,7 +52,6 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
           theme="colored"
         />
       </ThemeProvider>
-
     </QueryClientProvider>
   </React.StrictMode>
 );

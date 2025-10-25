@@ -18,8 +18,6 @@ export type ProspectionStatut =
 
 export type ProspectionActivite = "active" | "archivee";
 
-  
-
 export type ProspectionObjectif =
   | "prise_contact"
   | "rendez_vous"
@@ -90,13 +88,13 @@ export interface Prospection {
   type_prospection_display: string;
   motif: ProspectionMotif;
   motif_display: string;
-  statut: ProspectionStatut;            // statut de la prospection
+  statut: ProspectionStatut; // statut de la prospection
   statut_display: string;
   activite: ProspectionActivite;
   activite_display: string;
   objectif: ProspectionObjectif;
   objectif_display: string;
-  commentaire: string;                  // (conservé tel quel pour compat)
+  commentaire: string; // (conservé tel quel pour compat)
 
   // ✅ ajouté : moyen de contact saisi
   moyen_contact?: ProspectionMoyenContact | null;
@@ -128,16 +126,16 @@ export interface Prospection {
 
   // ✅ NOUVEAUX champs d’affichage renvoyés par l’API (read-only)
   // Partenaire
-  partenaire_ville?: string | null;     // partenaire.city
-  partenaire_tel?: string | null;       // partenaire.contact_telephone
-  partenaire_email?: string | null;     // partenaire.contact_email
+  partenaire_ville?: string | null; // partenaire.city
+  partenaire_tel?: string | null; // partenaire.contact_telephone
+  partenaire_email?: string | null; // partenaire.contact_email
 
   // Formation
-  formation_date_debut?: string | null;       // formation.start_date (ISO date)
-  formation_date_fin?: string | null;         // formation.end_date   (ISO date)
-  type_offre_display?: string | null;         // formation.type_offre.nom
-  formation_statut_display?: string | null;   // formation.statut.nom/libellé
-  places_disponibles?: number | null;         // formation.places_disponibles
+  formation_date_debut?: string | null; // formation.start_date (ISO date)
+  formation_date_fin?: string | null; // formation.end_date   (ISO date)
+  type_offre_display?: string | null; // formation.type_offre.nom
+  formation_statut_display?: string | null; // formation.statut.nom/libellé
+  places_disponibles?: number | null; // formation.places_disponibles
 }
 
 // ----------------------------------
@@ -148,7 +146,7 @@ export interface ProspectionFormData {
   partenaire_nom?: string | null;
 
   activite?: ProspectionActivite;
-activite_display?: string;
+  activite_display?: string;
 
   formation?: number | null;
   date_prospection: string; // ISO date
@@ -213,7 +211,7 @@ export interface ProspectionFiltresValues {
   formation?: number;
   formation_num_offre?: string;
   partenaire?: number;
-activite?: ProspectionActivite;
+  activite?: ProspectionActivite;
   // 🔎 recherche & période
   search?: string;
   date_min?: string; // ISO date (sur date_prospection)
@@ -233,8 +231,7 @@ activite?: ProspectionActivite;
   formation_statut?: number | number[] | string;
   centre?: number | number[] | string;
 
-    inclure_archives?: boolean | string; // ← nouveau
-
+  inclure_archives?: boolean | string; // ← nouveau
 
   // (optionnel) tri supporté par l'API
   ordering?:
@@ -306,7 +303,7 @@ export interface ProspectionChoicesResponse {
   message: string;
   data: {
     statut: Choice<ProspectionStatut>[];
-    activite?: Choice<ProspectionActivite>[];  // 🆕 si renvoyé par le back
+    activite?: Choice<ProspectionActivite>[]; // 🆕 si renvoyé par le back
     objectif: Choice<ProspectionObjectif>[];
     motif: Choice<ProspectionMotif>[];
     type_prospection: Choice<ProspectionTypeProspection>[];
@@ -406,8 +403,8 @@ export type ProspectionDetailDTO = ProspectionFormData & {
   moyen_contact_display?: string | null;
 
   // 🗓️ Dates
-  date_prospection?: string | null;   // ISO datetime
-  relance_prevue?: string | null;     // ISO date (YYYY-MM-DD)
+  date_prospection?: string | null; // ISO datetime
+  relance_prevue?: string | null; // ISO date (YYYY-MM-DD)
 
   // 💬 Commentaires
   commentaire?: string | null;

@@ -8,7 +8,7 @@ import api from "../api/axios";
 export type CommentaireFilters = {
   // Filtres temporels (sur created_at côté backend)
   date_from?: string; // "YYYY-MM-DD"
-  date_to?: string;   // "YYYY-MM-DD"
+  date_to?: string; // "YYYY-MM-DD"
 
   // Périmètre / rattachements
   formation?: number | string; // sélection formation par id
@@ -19,8 +19,8 @@ export type CommentaireFilters = {
   departement?: string; // "92", "75", …
 
   // Auteurs & recherche
-  auteur?: number | string;  // user id
-  search?: string;           // contenu
+  auteur?: number | string; // user id
+  search?: string; // contenu
 
   // Saturation
   saturation_min?: number;
@@ -42,17 +42,17 @@ export type CommentaireItem = {
   type_offre: string | null;
   statut: string | null;
 
-  contenu: string;                  // preview ou full selon ?full=
+  contenu: string; // preview ou full selon ?full=
   saturation: number | null;
   saturation_formation: number | null;
 
   auteur: string;
-  date: string;                     // JJ/MM/AAAA
-  heure: string;                    // HH:MM
+  date: string; // JJ/MM/AAAA
+  heure: string; // HH:MM
   is_recent: boolean;
   is_edited: boolean;
-  created_at: string | null;        // ISO
-  updated_at: string | null;        // ISO
+  created_at: string | null; // ISO
+  updated_at: string | null; // ISO
 };
 
 export type CommentaireLatestResponse = {
@@ -95,10 +95,9 @@ function normalizeFilters(filters: CommentaireFilters) {
 // ────────────────────────────────────────────────────────────
 export async function getCommentaireLatest(filters: CommentaireFilters = {}) {
   const params = normalizeFilters(filters);
-  const { data } = await api.get<CommentaireLatestResponse>(
-    "/commentaire-stats/latest/",
-    { params }
-  );
+  const { data } = await api.get<CommentaireLatestResponse>("/commentaire-stats/latest/", {
+    params,
+  });
   return data;
 }
 
@@ -117,12 +116,8 @@ export function useCommentaireLatest(filters: CommentaireFilters = {}) {
   });
 }
 
-
-
 // ────────────────────────────────────────────────────────────
 /** Hook pour récupérer les formations groupées */
-
-
 
 export function useFormationOptionsFromGrouped(filters: CommentaireFilters = {}) {
   type GroupedFormationResult = {

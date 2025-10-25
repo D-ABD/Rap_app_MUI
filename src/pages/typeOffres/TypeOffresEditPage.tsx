@@ -72,8 +72,7 @@ export default function TypeOffresEditPage() {
   }, [fetchTypeOffre]);
 
   const selectedChoice = choices.find((c) => c.value === values.nom);
-  const previewColor =
-    values.couleur || selectedChoice?.default_color || initialColor;
+  const previewColor = values.couleur || selectedChoice?.default_color || initialColor;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -226,11 +225,7 @@ export default function TypeOffresEditPage() {
               <Button type="submit" variant="contained" color="primary">
                 💾 Enregistrer
               </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => navigate("/typeoffres")}
-              >
+              <Button type="button" variant="outlined" onClick={() => navigate("/typeoffres")}>
                 Annuler
               </Button>
             </Stack>

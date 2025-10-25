@@ -16,11 +16,7 @@ export default function CommentairesCreateFromFormationPage() {
   }
 
   return (
-    <PageTemplate
-      title="➕ Créer un commentaire"
-      backButton
-      onBack={() => window.history.back()}
-    >
+    <PageTemplate title="➕ Créer un commentaire" backButton onBack={() => window.history.back()}>
       <CommentaireForm formationId={formationId} readonlyFormation />
     </PageTemplate>
   );

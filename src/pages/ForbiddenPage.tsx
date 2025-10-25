@@ -24,12 +24,7 @@ const ForbiddenPage = () => {
         Vous n’avez pas les droits nécessaires pour accéder à cette page.
       </Typography>
 
-      <Button
-        variant="contained"
-        color="primary"
-        component={RouterLink}
-        to="/"
-      >
+      <Button variant="contained" color="primary" component={RouterLink} to="/">
         Retour à l’accueil
       </Button>
     </Box>

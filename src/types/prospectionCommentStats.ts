@@ -44,8 +44,8 @@ export type ProspectionCommentItem = {
   is_internal: boolean;
 
   auteur: string;
-  date: string;   // "DD/MM/YYYY"
-  heure: string;  // "HH:MM"
+  date: string; // "DD/MM/YYYY"
+  heure: string; // "HH:MM"
   created_at: string;
   updated_at: string | null;
 
@@ -69,8 +69,8 @@ export type ProspectionCommentGroupRow = {
   group_label: string;
   total: number;
 
-  "prospection__centre_id"?: number | null;
-  "prospection__centre__nom"?: string | null;
+  prospection__centre_id?: number | null;
+  prospection__centre__nom?: string | null;
   departement?: string | null;
 };
 

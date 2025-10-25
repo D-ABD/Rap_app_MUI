@@ -139,14 +139,12 @@ export default function UsersSelectModal({
             lastError = e;
           }
         }
+
         if (!page) throw lastError ?? new Error("Aucun endpoint utilisateur valide.");
 
         const normalized = page.results.map(normalizeUser);
         if (!cancelled) setItems(normalized);
-      } catch (err: unknown) {
-        if (import.meta.env.MODE !== "production") {
-          console.error("Erreur chargement users :", err);
-        }
+      } catch {
         if (!cancelled) setError("Erreur lors du chargement des utilisateurs.");
       } finally {
         if (!cancelled) setLoading(false);
@@ -166,17 +164,13 @@ export default function UsersSelectModal({
 
   const filtered = useMemo<UserPick[]>(() => {
     let list = items;
-    list = list.filter((u) =>
-      u.role ? allowed.has(u.role.toString().toLowerCase()) : false
-    );
+    list = list.filter((u) => (u.role ? allowed.has(u.role.toString().toLowerCase()) : false));
     if (onlyActive) {
       list = list.filter((u) => u.is_active);
     }
     const s = _nn(search).toLowerCase();
     if (s) {
-      list = list.filter((u) =>
-        `${u.full_name} ${u.email ?? ""}`.toLowerCase().includes(s)
-      );
+      list = list.filter((u) => `${u.full_name} ${u.email ?? ""}`.toLowerCase().includes(s));
     }
     return list;
   }, [allowed, items, onlyActive, search]);
@@ -209,9 +203,7 @@ export default function UsersSelectModal({
                     primary={
                       <>
                         <strong>{u.full_name}</strong>
-                        {u.email && (
-                          <span style={{ color: "#6b7280" }}> ({u.email})</span>
-                        )}
+                        {u.email && <span style={{ color: "#6b7280" }}> ({u.email})</span>}
                         {u.role && (
                           <Chip
                             size="small"
@@ -237,9 +229,7 @@ export default function UsersSelectModal({
                 </ListItemButton>
               </ListItem>
             ))}
-            {filtered.length === 0 && (
-              <Typography>Aucun utilisateur trouvé.</Typography>
-            )}
+            {filtered.length === 0 && <Typography>Aucun utilisateur trouvé.</Typography>}
           </List>
         )}
       </DialogContent>

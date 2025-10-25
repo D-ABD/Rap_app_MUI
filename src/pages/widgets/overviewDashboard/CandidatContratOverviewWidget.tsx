@@ -21,8 +21,6 @@ import {
 } from "../../../types/candidatStats";
 
 import WorkIcon from "@mui/icons-material/Work";
-
-// ✅ Recharts
 import {
   BarChart,
   Bar,
@@ -41,7 +39,7 @@ function fmt(n?: number | null) {
   return n == null ? "0" : Math.round(n).toString();
 }
 
-// 🎨 Palette couleurs cohérente
+// 🎨 Palette cohérente
 const COLORS = [
   "#1e88e5", // Apprentissage
   "#43a047", // Professionnalisation
@@ -58,16 +56,13 @@ export default function CandidatContratOverviewWidget({
   title?: string;
   initialFilters?: CandidatFilters;
 }) {
-  const [filters, setFilters] = React.useState<CandidatFilters>(
-    initialFilters ?? {}
-  );
+  const [filters, setFilters] = React.useState<CandidatFilters>(initialFilters ?? {});
 
   const { data, isLoading, error } = useCandidatOverview(filters);
-
-  const { data: centresGrouped, isLoading: loadingCentres } = useCandidatGrouped(
-    "centre",
-    { ...filters, centre: undefined }
-  );
+  const { data: centresGrouped, isLoading: loadingCentres } = useCandidatGrouped("centre", {
+    ...filters,
+    centre: undefined,
+  });
   const { data: depsGrouped } = useCandidatGrouped("departement", {
     ...filters,
     departement: undefined,
@@ -96,7 +91,10 @@ export default function CandidatContratOverviewWidget({
           (typeof r.departement === "string" && r.departement) ||
           (typeof r.group_key === "string" ? r.group_key : "");
         return code
-          ? { code: String(code), label: resolveCandidatGroupLabel(r, "departement") }
+          ? {
+              code: String(code),
+              label: resolveCandidatGroupLabel(r, "departement"),
+            }
           : null;
       })
       .filter((o): o is { code: string; label: string } => Boolean(o)) ?? [];
@@ -105,8 +103,16 @@ export default function CandidatContratOverviewWidget({
 
   // ✅ Données du graphique contrats
   const chartData = [
-    { name: "Apprentissage", value: k?.contrat_apprentissage ?? 0, color: COLORS[0] },
-    { name: "Professionnalisation", value: k?.contrat_professionnalisation ?? 0, color: COLORS[1] },
+    {
+      name: "Apprentissage",
+      value: k?.contrat_apprentissage ?? 0,
+      color: COLORS[0],
+    },
+    {
+      name: "Professionnalisation",
+      value: k?.contrat_professionnalisation ?? 0,
+      color: COLORS[1],
+    },
     { name: "CRIF", value: k?.contrat_crif ?? 0, color: COLORS[2] },
     { name: "POEI / POEC", value: k?.contrat_poei_poec ?? 0, color: COLORS[3] },
     { name: "Sans contrat", value: k?.contrat_sans ?? 0, color: COLORS[4] },
@@ -122,6 +128,7 @@ export default function CandidatContratOverviewWidget({
         gap: 2,
         borderRadius: 2,
         height: "100%",
+        minHeight: 360, // ✅ garantit de l’espace pour le graphique
       }}
     >
       {/* Header */}
@@ -138,7 +145,7 @@ export default function CandidatContratOverviewWidget({
       {!isLoading && !error && (
         <Box textAlign="center">
           <Typography variant="h6" fontWeight="bold" color="primary">
-            {k?.total ?? 0}
+            {fmt(k?.total)}
           </Typography>
           <Typography variant="body2" color="text.secondary">
             candidats au total
@@ -151,9 +158,7 @@ export default function CandidatContratOverviewWidget({
         <Select
           size="small"
           value={filters.centre ?? ""}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, centre: e.target.value || undefined }))
-          }
+          onChange={(e) => setFilters((f) => ({ ...f, centre: e.target.value || undefined }))}
           disabled={loadingCentres}
           sx={{ minWidth: 120 }}
           displayEmpty
@@ -170,7 +175,10 @@ export default function CandidatContratOverviewWidget({
           size="small"
           value={filters.departement ?? ""}
           onChange={(e) =>
-            setFilters((f) => ({ ...f, departement: e.target.value || undefined }))
+            setFilters((f) => ({
+              ...f,
+              departement: e.target.value || undefined,
+            }))
           }
           sx={{ minWidth: 120 }}
           displayEmpty
@@ -185,19 +193,26 @@ export default function CandidatContratOverviewWidget({
       </Box>
 
       {/* Graphique */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress size={22} />
-        </Box>
-      ) : error ? (
-        <Alert severity="error">{getErrorMessage(error)}</Alert>
-      ) : (
-        <Box sx={{ height: 240 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: 0, bottom: 10 }}
-            >
+      <Box
+        sx={{
+          width: "100%",
+          flex: 1,
+          minWidth: 0, // ✅ empêche Recharts de calculer des dimensions négatives
+          minHeight: 240, // ✅ hauteur stable
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={22} />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{getErrorMessage(error)}</Alert>
+        ) : (
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
@@ -211,8 +226,8 @@ export default function CandidatContratOverviewWidget({
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </Box>
-      )}
+        )}
+      </Box>
     </Card>
   );
 }

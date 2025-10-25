@@ -1,3 +1,4 @@
+// src/pages/cerfa/CerfaDetailModal.tsx
 import {
   Dialog,
   DialogTitle,
@@ -23,24 +24,20 @@ import type { CerfaContrat } from "../../types/cerfa";
 /* ---------- Helpers ---------- */
 const dtfFR =
   typeof Intl !== "undefined"
-    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" })
+    ? new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : undefined;
 
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 const nn = (s?: string | number | null) =>
   s === null || s === undefined || s === "" ? "—" : String(s);
-
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
 
 /* ---------- Props ---------- */
 type Props = {
@@ -78,10 +75,10 @@ export default function CerfaDetailModal({
   // ✅ Champs essentiels
   const requiredFields: Record<string, any> = {
     "Nom de naissance": contrat.apprenti_nom_naissance,
-    "Prénom": contrat.apprenti_prenom,
+    Prénom: contrat.apprenti_prenom,
     "Nom employeur": contrat.employeur_nom,
     "SIRET employeur": contrat.employeur_siret,
-    "Formation": contrat.formation,
+    Formation: contrat.formation,
     "Diplôme visé": contrat.diplome_vise,
   };
 
@@ -107,8 +104,7 @@ export default function CerfaDetailModal({
       } else {
         toast.warning("PDF généré mais aucune URL détectée.");
       }
-    } catch (err: any) {
-      console.error("Erreur génération PDF:", err);
+    } catch (_err: any) {
       toast.error("❌ Erreur lors de la génération du PDF.");
     }
   };
@@ -158,9 +154,7 @@ export default function CerfaDetailModal({
                 variant="contained"
                 color="secondary"
                 size="small"
-                startIcon={
-                  isGenerating ? <CircularProgress size={16} /> : <AutoFixHighIcon />
-                }
+                startIcon={isGenerating ? <CircularProgress size={16} /> : <AutoFixHighIcon />}
                 disabled={isGenerating || hasMissingFields}
                 onClick={handleGeneratePdf}
               >
@@ -174,9 +168,7 @@ export default function CerfaDetailModal({
             <span>
               <Button
                 variant="outlined"
-                startIcon={
-                  isDownloading ? <CircularProgress size={16} /> : <PictureAsPdfIcon />
-                }
+                startIcon={isDownloading ? <CircularProgress size={16} /> : <PictureAsPdfIcon />}
                 onClick={handleDownloadPdf}
                 disabled={isDownloading}
               >
@@ -203,8 +195,7 @@ export default function CerfaDetailModal({
       <DialogContent dividers>
         {hasMissingFields && (
           <Alert severity="warning" sx={{ mb: 2 }}>
-            ⚠️ Champs manquants :{" "}
-            <strong>{missingFields.join(", ")}</strong>.  
+            ⚠️ Champs manquants : <strong>{missingFields.join(", ")}</strong>.
             <br />
             Complétez-les avant de générer le PDF.
           </Alert>
@@ -261,13 +252,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | React.ReactNode;
-}) {
+function Field({ label, value }: { label: string; value: string | number | React.ReactNode }) {
   const str = typeof value === "number" ? String(value) : value;
   const isMissing = str === null || str === undefined || str === "" || str === "—";
 
@@ -286,4 +271,3 @@ function Field({
     </Grid>
   );
 }
- 

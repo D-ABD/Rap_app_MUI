@@ -19,8 +19,8 @@ export default function About() {
       </Typography>
 
       <Typography variant="body1" color="text.secondary" maxWidth="600px" mb={3}>
-        Cette application a été développée pour faciliter la gestion des
-        prospections, appairages, formations et suivi des candidats.
+        Cette application a été développée pour faciliter la gestion des prospections, appairages,
+        formations et suivi des candidats.
       </Typography>
 
       {/* 🔹 Boutons de navigation */}

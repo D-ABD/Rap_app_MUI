@@ -60,11 +60,7 @@ export default function FormationsCommentairesPage() {
 
   if (!id) {
     return (
-      <PageTemplate
-        title="Commentaires de la formation"
-        backButton
-        onBack={() => navigate(-1)}
-      >
+      <PageTemplate title="Commentaires de la formation" backButton onBack={() => navigate(-1)}>
         <Typography color="error">❌ Formation non spécifiée.</Typography>
       </PageTemplate>
     );
@@ -72,11 +68,7 @@ export default function FormationsCommentairesPage() {
 
   if (loadingFormation || loadingCommentaires) {
     return (
-      <PageTemplate
-        title="Commentaires de la formation"
-        backButton
-        onBack={() => navigate(-1)}
-      >
+      <PageTemplate title="Commentaires de la formation" backButton onBack={() => navigate(-1)}>
         <Stack alignItems="center" justifyContent="center" sx={{ py: 6 }}>
           <CircularProgress />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
@@ -89,14 +81,8 @@ export default function FormationsCommentairesPage() {
 
   if (errorFormation || errorCommentaires || !formation) {
     return (
-      <PageTemplate
-        title="Commentaires de la formation"
-        backButton
-        onBack={() => navigate(-1)}
-      >
-        <Typography color="error">
-          ❌ Erreur lors du chargement des données.
-        </Typography>
+      <PageTemplate title="Commentaires de la formation" backButton onBack={() => navigate(-1)}>
+        <Typography color="error">❌ Erreur lors du chargement des données.</Typography>
       </PageTemplate>
     );
   }
@@ -107,29 +93,18 @@ export default function FormationsCommentairesPage() {
 🏢 ${formation.centre?.nom || "Centre inconnu"}`;
 
   return (
-    <PageTemplate
-      title="Commentaires de la formation"
-      backButton
-      onBack={() => navigate(-1)}
-    >
+    <PageTemplate title="Commentaires de la formation" backButton onBack={() => navigate(-1)}>
       <Typography sx={{ whiteSpace: "pre-line", mb: 4 }}>{infos}</Typography>
 
-      <FormationSection
-        title={`📄 Commentaires (${commentaires.length})`}
-        defaultExpanded
-      >
+      <FormationSection title={`📄 Commentaires (${commentaires.length})`} defaultExpanded>
         {commentairesAffiches.length === 0 && (
-          <Typography color="text.secondary">
-            ⚠️ Aucun commentaire pour cette formation.
-          </Typography>
+          <Typography color="text.secondary">⚠️ Aucun commentaire pour cette formation.</Typography>
         )}
 
         {commentairesAffiches.map((commentaire, index) => (
           <Box key={commentaire.id}>
             <Box sx={{ py: 2 }}>
-              <CommentaireContent
-                html={commentaire.contenu || "<em>—</em>"}
-              />
+              <CommentaireContent html={commentaire.contenu || "<em>—</em>"} />
 
               <Stack
                 direction="row"
@@ -157,12 +132,7 @@ export default function FormationsCommentairesPage() {
           </Box>
         ))}
 
-        <Stack
-          direction="row"
-          justifyContent="center"
-          spacing={2}
-          sx={{ mt: 3, flexWrap: "wrap" }}
-        >
+        <Stack direction="row" justifyContent="center" spacing={2} sx={{ mt: 3, flexWrap: "wrap" }}>
           {displayLimit < commentaires.length ? (
             <MuiButton variant="outlined" onClick={handleVoirPlus}>
               🔽 Voir plus de commentaires

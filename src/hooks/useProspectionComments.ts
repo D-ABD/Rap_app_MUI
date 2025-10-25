@@ -28,26 +28,14 @@ const BASE = "/prospection-commentaires/";
 /* ──────────────────────────────────────────────────────────────────────────
    Helpers de dé-sérialisation
    ────────────────────────────────────────────────────────────────────────── */
-type ApiArrayShape<T> = T[] | { data: T[] } | { results: T[] };
 type ApiObjectShape<T> = T | { data: T };
 
-function isArray<T>(d: unknown): d is T[] {
-  return Array.isArray(d);
-}
-function hasDataArray<T>(d: unknown): d is { data: T[] } {
-  return typeof d === "object" && d !== null && Array.isArray((d as any).data);
-}
-function hasResultsArray<T>(d: unknown): d is { results: T[] } {
-  return typeof d === "object" && d !== null && Array.isArray((d as any).results);
-}
-function extractArray<T>(payload: ApiArrayShape<T>): T[] {
-  if (isArray(payload)) return payload;
-  if (hasDataArray(payload)) return payload.data;
-  if (hasResultsArray(payload)) return payload.results;
-  return [];
-}
 function extractObject<T>(payload: ApiObjectShape<T>): T {
-  if (typeof payload === "object" && payload !== null && "data" in (payload as Record<string, unknown>)) {
+  if (
+    typeof payload === "object" &&
+    payload !== null &&
+    "data" in (payload as Record<string, unknown>)
+  ) {
     return (payload as { data: T }).data;
   }
   return payload as T;
@@ -76,7 +64,8 @@ function buildListQuery(p: ProspectionCommentListParams): QueryDict {
   if (typeof p.created_by === "number") q.created_by = p.created_by;
   if (typeof p.is_internal === "boolean") q.is_internal = p.is_internal;
   if (typeof p.prospection_owner === "number") q.prospection_owner = p.prospection_owner;
-  if (typeof p.prospection_partenaire === "number") q.prospection_partenaire = p.prospection_partenaire;
+  if (typeof p.prospection_partenaire === "number")
+    q.prospection_partenaire = p.prospection_partenaire;
   if (p.ordering) q.ordering = p.ordering;
 
   // Filtres textuels
@@ -104,7 +93,6 @@ function buildListQuery(p: ProspectionCommentListParams): QueryDict {
 
   return q;
 }
-
 
 /* ──────────────────────────────────────────────────────────────────────────
    LISTE
@@ -231,20 +219,26 @@ export function useUpdateProspectionComment(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const update = useCallback(async (payload: ProspectionCommentUpdateInput) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await api.patch<ApiObjectShape<ProspectionCommentDTO>>(`${BASE}${id}/`, payload);
-      return extractObject<ProspectionCommentDTO>(res.data);
-    } catch (err) {
-      if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
-      else setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const update = useCallback(
+    async (payload: ProspectionCommentUpdateInput) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await api.patch<ApiObjectShape<ProspectionCommentDTO>>(
+          `${BASE}${id}/`,
+          payload
+        );
+        return extractObject<ProspectionCommentDTO>(res.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) setError(new Error(`HTTP ${err.response?.status ?? "?"}`));
+        else setError(err as Error);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { update, loading, error };
 }
@@ -295,7 +289,9 @@ export function useProspectionCommentFilterOptions(reloadKey = 0) {
     setError(null);
 
     api
-      .get<ProspectionCommentFilterOptions>(`${BASE}filter-options/`, { cancelToken: source.token })
+      .get<ProspectionCommentFilterOptions>(`${BASE}filter-options/`, {
+        cancelToken: source.token,
+      })
       .then((res) => setData(res.data))
       .catch((err) => {
         if (!axios.isCancel(err)) {
@@ -330,9 +326,7 @@ export function useArchiveProspectionComment(id: number | string) {
       if (!id) return;
       try {
         setLoading(true);
-        const endpoint = isArchived
-          ? `${BASE}${id}/desarchiver/`
-          : `${BASE}${id}/archiver/`;
+        const endpoint = isArchived ? `${BASE}${id}/desarchiver/` : `${BASE}${id}/archiver/`;
         await api.post(endpoint);
         // ✅ Renvoie les bons codes alignés avec le backend & DTO
         return isArchived ? "actif" : "archive";

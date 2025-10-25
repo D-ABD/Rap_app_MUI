@@ -114,70 +114,70 @@ type PartenaireWritePayload = {
  */
 function cleanPartenairePayload(input: Partial<Partenaire>): PartenaireWritePayload {
   // Clés autorisées côté écriture
-const allowedKeys: (keyof PartenaireWritePayload)[] = [
-  "nom",
-  "type",
-  "secteur_activite",
+  const allowedKeys: (keyof PartenaireWritePayload)[] = [
+    "nom",
+    "type",
+    "secteur_activite",
 
-  // Adresse
-  "street_number",
-  "street_name",
-  "street_complement",
-  "zip_code",
-  "city",
-  "country",
+    // Adresse
+    "street_number",
+    "street_name",
+    "street_complement",
+    "zip_code",
+    "city",
+    "country",
 
-  // Coordonnées
-  "telephone",
-  "email",
+    // Coordonnées
+    "telephone",
+    "email",
 
-  // Centre
-  "default_centre",
-  "default_centre_id",
+    // Centre
+    "default_centre",
+    "default_centre_id",
 
-  // Contact
-  "contact_nom",
-  "contact_poste",
-  "contact_telephone",
-  "contact_email",
+    // Contact
+    "contact_nom",
+    "contact_poste",
+    "contact_telephone",
+    "contact_email",
 
-  // Web
-  "website",
-  "social_network_url",
+    // Web
+    "website",
+    "social_network_url",
 
-  // Actions / descriptions
-  "actions",
-  "action_description",
-  "description",
+    // Actions / descriptions
+    "actions",
+    "action_description",
+    "description",
 
-  // Données employeur
-  "siret",
-  "type_employeur",
-  "employeur_specifique",
-  "code_ape",
-  "effectif_total",
-  "idcc",
-  "assurance_chomage_speciale",
+    // Données employeur
+    "siret",
+    "type_employeur",
+    "employeur_specifique",
+    "code_ape",
+    "effectif_total",
+    "idcc",
+    "assurance_chomage_speciale",
 
-  // Maîtres d’apprentissage
-  "maitre1_nom_naissance",
-  "maitre1_prenom",
-  "maitre1_date_naissance",
-  "maitre1_courriel",
-  "maitre1_emploi_occupe",
-  "maitre1_diplome_titre",
-  "maitre1_niveau_diplome",
+    // Maîtres d’apprentissage
+    "maitre1_nom_naissance",
+    "maitre1_prenom",
+    "maitre1_date_naissance",
+    "maitre1_courriel",
+    "maitre1_emploi_occupe",
+    "maitre1_diplome_titre",
+    "maitre1_niveau_diplome",
 
-  "maitre2_nom_naissance",
-  "maitre2_prenom",
-  "maitre2_date_naissance",
-  "maitre2_courriel",
-  "maitre2_emploi_occupe",
-  "maitre2_diplome_titre",
-  "maitre2_niveau_diplome",
+    "maitre2_nom_naissance",
+    "maitre2_prenom",
+    "maitre2_date_naissance",
+    "maitre2_courriel",
+    "maitre2_emploi_occupe",
+    "maitre2_diplome_titre",
+    "maitre2_niveau_diplome",
 
-  "is_active",
-];
+    "is_active",
+  ];
 
   // 1) Copie filtrée + normalisation "" -> null + trim
   const baseEntries = Object.entries(input)
@@ -253,9 +253,7 @@ const allowedKeys: (keyof PartenaireWritePayload)[] = [
 /* ────────────────────────────────────────────────────────────────────────────
    Liste des partenaires
    ──────────────────────────────────────────────────────────────────────────── */
-export function useListPartenaires(
-  params: Record<string, string | number | boolean> = {}
-) {
+export function useListPartenaires(params: Record<string, string | number | boolean> = {}) {
   const [data, setData] = useState<Partenaire[] | Paginated<Partenaire>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
@@ -276,7 +274,9 @@ export function useListPartenaires(
       setError(null);
       try {
         const parsedParams = JSON.parse(paramsKey) as Record<string, string | number | boolean>;
-        const res = await api.get<unknown>("/partenaires/", { params: parsedParams });
+        const res = await api.get<unknown>("/partenaires/", {
+          params: parsedParams,
+        });
         const payload = unwrap<Partenaire[] | Paginated<Partenaire>>(res.data);
         if (!alive) return;
         setData(payload);
@@ -380,10 +380,7 @@ export function usePartenaireWithRelations(id?: number) {
 export function useCreatePartenaire() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);
-/**
- * Crée un partenaire (ou réutilise un existant si doublon détecté côté backend).
- * Retourne l'objet complet du partenaire, avec `was_reused=true` si réutilisation.
- */
+
   async function create(payload: Partial<Partenaire>): Promise<Partenaire> {
     setLoading(true);
     setError(null);
@@ -393,12 +390,20 @@ export function useCreatePartenaire() {
       return unwrap<Partenaire>(res.data);
     } catch (err) {
       if (err instanceof Error) setError(err);
-      // logs utiles en dev
-      console.groupCollapsed("⛔ create partenaire failed");
-      if (isRecord(err) && "response" in err) {
-        const r = (err as { response?: { status?: number; data?: unknown } }).response;
+
+      // logs utiles en dev uniquement
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.groupCollapsed("⛔ create partenaire failed");
+        if (isRecord(err) && "response" in err) {
+          const _r = (err as { response?: { status?: number; data?: unknown } }).response;
+          // eslint-disable-next-line no-console
+          console.debug("Réponse backend :", _r);
+        }
+        // eslint-disable-next-line no-console
+        console.groupEnd();
       }
-      console.groupEnd();
+
       throw err;
     } finally {
       setLoading(false);
@@ -424,11 +429,19 @@ export function useUpdatePartenaire(id: number) {
       return unwrap<Partenaire>(res.data);
     } catch (err) {
       if (err instanceof Error) setError(err);
-      console.groupCollapsed("⛔ update partenaire failed");
-      if (isRecord(err) && "response" in err) {
-        const r = (err as { response?: { status?: number; data?: unknown } }).response;
+
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.groupCollapsed("⛔ update partenaire failed");
+        if (isRecord(err) && "response" in err) {
+          const _r = (err as { response?: { status?: number; data?: unknown } }).response;
+          // eslint-disable-next-line no-console
+          console.debug("Réponse backend :", _r);
+        }
+        // eslint-disable-next-line no-console
+        console.groupEnd();
       }
-      console.groupEnd();
+
       throw err;
     } finally {
       setLoading(false);
@@ -531,9 +544,11 @@ export function usePartenaireFilters() {
       } catch (err) {
         if (!alive) return;
         if (err instanceof Error) {
-          // log utile en dev
-          console.error("❌ Erreur chargement filtres :", err);
           setError(err);
+          if (import.meta.env.DEV) {
+            // eslint-disable-next-line no-console
+            console.debug("[usePartenaireFilters] erreur lors du chargement des filtres :", err);
+          }
         }
       } finally {
         if (alive) setLoading(false);

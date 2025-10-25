@@ -1,12 +1,6 @@
 // pages/prospection/ProspectionComment/ProspectionCommentForm.tsx
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import ProspectionSelectModal, {
   ProspectionLite,
 } from "../../../components/modals/ProspectionSelectModal";
@@ -33,12 +27,9 @@ export default function ProspectionCommentForm({
   const [prospection, setProspection] = useState<number | "">(
     initial?.prospection ?? prospectionId ?? ""
   );
-  const [selectedProspection, setSelectedProspection] =
-    useState<ProspectionLite | null>(null);
+  const [selectedProspection, setSelectedProspection] = useState<ProspectionLite | null>(null);
   const [body, setBody] = useState(initial?.body ?? "");
-  const [isInternal] = useState(
-    canSetInternal ? initial?.is_internal ?? false : false
-  );
+  const [isInternal] = useState(canSetInternal ? (initial?.is_internal ?? false) : false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showProspectionModal, setShowProspectionModal] = useState(false);
@@ -72,27 +63,21 @@ export default function ProspectionCommentForm({
     setProspection("");
   }, []);
 
-  const handleChangeBody = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const next = e.target.value;
-      if (next.length <= MAX_BODY_LEN) setBody(next);
-    },
-    []
-  );
+  const handleChangeBody = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const next = e.target.value;
+    if (next.length <= MAX_BODY_LEN) setBody(next);
+  }, []);
 
-  const handleChangeProspectionManual = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSelectedProspection(null);
-      const val = e.target.value.trim();
-      if (val === "") {
-        setProspection("");
-        return;
-      }
-      const n = Number(val);
-      setProspection(Number.isFinite(n) && n > 0 ? n : "");
-    },
-    []
-  );
+  const handleChangeProspectionManual = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedProspection(null);
+    const val = e.target.value.trim();
+    if (val === "") {
+      setProspection("");
+      return;
+    }
+    const n = Number(val);
+    setProspection(Number.isFinite(n) && n > 0 ? n : "");
+  }, []);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -138,12 +123,7 @@ export default function ProspectionCommentForm({
   );
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      aria-busy={submitting || undefined}
-      noValidate
-    >
+    <Box component="form" onSubmit={handleSubmit} aria-busy={submitting || undefined} noValidate>
       <Stack spacing={3}>
         {/* Sélecteur prospection */}
         {prospectionId == null && (

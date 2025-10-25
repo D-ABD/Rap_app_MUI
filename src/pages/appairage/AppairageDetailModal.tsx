@@ -17,7 +17,7 @@ import type { Appairage, AppairageListItem } from "../../types/appairage";
 interface Props {
   open: boolean;
   onClose: () => void;
-  appairage?: Appairage | AppairageListItem | null; // ✅ union ici
+  appairage?: Appairage | AppairageListItem | null;
   loading?: boolean;
   onEdit?: (id: number) => void;
 }
@@ -41,21 +41,20 @@ export default function AppairageDetailModal({
       disableEnforceFocus
     >
       <DialogTitle
-  sx={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  }}
->
-  <Typography component="div" variant="h6" fontWeight={700}>
-    🔗 Détail de l’appairage
-  </Typography>
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography component="div" variant="h6" fontWeight={700}>
+          🔗 Détail de l’appairage
+        </Typography>
 
-  <Button onClick={onClose} variant="outlined">
-    Fermer
-  </Button>
-</DialogTitle>
-
+        <Button onClick={onClose} variant="outlined">
+          Fermer
+        </Button>
+      </DialogTitle>
 
       <DialogContent dividers>
         {loading || !appairage ? (
@@ -135,26 +134,26 @@ export default function AppairageDetailModal({
                 <Section title="Audit">
                   <Grid container spacing={2}>
                     <Grid item xs={6}>
-  <Item
-    label="Activité"
-    value={
-      appairage.activite_display ? (
-        <span
-          style={{
-            color: appairage.activite_display.toLowerCase().includes("archiv")
-              ? "#777"
-              : "green",
-            fontWeight: 600,
-          }}
-        >
-          {appairage.activite_display}
-        </span>
-      ) : (
-        "—"
-      )
-    }
-  />
-</Grid>
+                      <Item
+                        label="Activité"
+                        value={
+                          appairage.activite_display ? (
+                            <span
+                              style={{
+                                color: appairage.activite_display.toLowerCase().includes("archiv")
+                                  ? "#777"
+                                  : "green",
+                                fontWeight: 600,
+                              }}
+                            >
+                              {appairage.activite_display}
+                            </span>
+                          ) : (
+                            "—"
+                          )
+                        }
+                      />
+                    </Grid>
 
                     <Grid item xs={6}>
                       <Item label="Statut" value={appairage.statut_display} />
@@ -187,6 +186,45 @@ export default function AppairageDetailModal({
                     </Grid>
                   </Grid>
                 </Section>
+
+                {/* ───────────── Dernier commentaire ───────────── */}
+                {appairage.last_commentaire && (
+                  <Section title="Dernier commentaire">
+                    <Paper
+                      variant="outlined"
+                      sx={{
+                        p: 1.5,
+                        borderRadius: 1,
+                        backgroundColor: "#fafafa",
+                        borderColor: "#ddd",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          whiteSpace: "pre-wrap",
+                          color: "text.primary",
+                        }}
+                      >
+                        {appairage.last_commentaire}
+                      </Typography>
+
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ display: "block", mt: 1 }}
+                      >
+                        ✍️ {appairage.created_by_nom ?? "—"} —{" "}
+                        {appairage.created_at
+                          ? new Date(appairage.created_at).toLocaleString("fr-FR", {
+                              dateStyle: "short",
+                              timeStyle: "short",
+                            })
+                          : "—"}
+                      </Typography>
+                    </Paper>
+                  </Section>
+                )}
               </Grid>
             </Grid>
           </Paper>
@@ -194,7 +232,6 @@ export default function AppairageDetailModal({
       </DialogContent>
 
       <DialogActions sx={{ justifyContent: "space-between", px: 3, py: 2 }}>
-        {/* Bouton gauche : Modifier */}
         {appairage && onEdit && (
           <Button
             startIcon={<EditIcon />}
@@ -206,7 +243,6 @@ export default function AppairageDetailModal({
           </Button>
         )}
 
-        {/* Bouton droit : Fermer */}
         <Button variant="outlined" onClick={onClose}>
           Fermer
         </Button>
@@ -219,11 +255,7 @@ export default function AppairageDetailModal({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 2 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, color: "primary.main" }}
-        gutterBottom
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main" }} gutterBottom>
         {title}
       </Typography>
       <Divider sx={{ mb: 1 }} />
@@ -236,9 +268,7 @@ function Item({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
     <Typography variant="body2" sx={{ mb: 0.5, whiteSpace: "nowrap" }}>
       <strong>{label} :</strong>{" "}
-      {value ?? (
-        <span style={{ color: "red", fontStyle: "italic", opacity: 0.8 }}>— NC</span>
-      )}
+      {value ?? <span style={{ color: "red", fontStyle: "italic", opacity: 0.8 }}>— NC</span>}
     </Typography>
   );
 }

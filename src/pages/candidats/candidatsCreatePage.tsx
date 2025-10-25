@@ -6,7 +6,6 @@ import { CircularProgress, Typography, Box } from "@mui/material";
 
 import { useCandidatMeta, useCreateCandidat } from "../../hooks/useCandidats";
 import { useMe } from "../../hooks/useUsers";
-import { useFormationsOptions } from "../../hooks/useFormations";
 import type { CandidatFormData } from "../../types/candidat";
 
 import CandidatForm from "./CandidatForm";
@@ -24,27 +23,21 @@ type CreatedCandidatLite = {
 export default function CandidatCreatePage() {
   const navigate = useNavigate();
   const { data: meta, loading: loadingMeta } = useCandidatMeta();
-  const { options: formationOptions } = useFormationsOptions();
   const { user: me } = useMe();
   const { create, loading } = useCreateCandidat();
 
-  const canEditFormation =
-    !!me && ["admin", "superadmin", "staff"].includes(me.role);
+  const canEditFormation = !!me && ["admin", "superadmin", "staff"].includes(me.role);
 
   // 🔹 Modale post-création
   const [choiceOpen, setChoiceOpen] = useState(false);
-  const [lastCreated, setLastCreated] = useState<CreatedCandidatLite | null>(
-    null
-  );
+  const [lastCreated, setLastCreated] = useState<CreatedCandidatLite | null>(null);
 
   // 🧩 handleSubmit : on laisse CandidatForm gérer les erreurs 400
   const handleSubmit = async (values: CandidatFormData) => {
     try {
       // 🔧 Nettoyer les valeurs vides
       const payload = Object.fromEntries(
-        Object.entries(values).map(([k, v]) =>
-          v === "" ? [k, undefined] : [k, v]
-        )
+        Object.entries(values).map(([k, v]) => (v === "" ? [k, undefined] : [k, v]))
       ) as CandidatFormData;
 
       const created = (await create(payload)) as CreatedCandidatLite;
@@ -62,7 +55,6 @@ export default function CandidatCreatePage() {
       const status = error?.response?.status;
       if (status && status !== 400) {
         toast.error("Erreur serveur ou réseau lors de la création.");
-        console.error("Create candidat failed:", error);
       }
       // Laisse remonter l’erreur 400 pour gestion dans <CandidatForm />
       throw error;
@@ -72,12 +64,7 @@ export default function CandidatCreatePage() {
   // ── Loading meta ────────────────────────────────
   if (loadingMeta) {
     return (
-      <PageTemplate
-        title="Créer un candidat"
-        backButton
-        onBack={() => navigate(-1)}
-        centered
-      >
+      <PageTemplate title="Créer un candidat" backButton onBack={() => navigate(-1)} centered>
         <CircularProgress />
         <Typography sx={{ mt: 2 }}>⏳ Chargement…</Typography>
       </PageTemplate>

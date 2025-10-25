@@ -65,9 +65,7 @@ export default function FormationGroupedWidget({
   filters?: Filters;
 }) {
   const [by, setBy] = React.useState<GroupBy>(initialBy);
-  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
-    !!filters?.avec_archivees
-  );
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
 
   const effectiveFilters = React.useMemo(
     () => ({ ...(filters ?? {}), avec_archivees: includeArchived }),
@@ -105,10 +103,8 @@ export default function FormationGroupedWidget({
     const totalAppAFaire = sum("app_a_faire");
 
     const moyenneSaturation =
-      data.results.reduce(
-        (acc, r) => acc + (Number(r.taux_saturation) || 0),
-        0
-      ) / data.results.length;
+      data.results.reduce((acc, r) => acc + (Number(r.taux_saturation) || 0), 0) /
+      data.results.length;
 
     return {
       nbFormations,
@@ -219,15 +215,14 @@ export default function FormationGroupedWidget({
             <TableBody>
               {data.results.map((r, idx) => {
                 const label = resolveGroupLabel(r, by, dicts);
-                const rowAny = r as Record<string, unknown>;
                 const isEven = idx % 2 === 0;
                 const saturation = r.taux_saturation ?? 0;
                 const saturationColor =
                   saturation < 50
                     ? "success.main"
                     : saturation < 80
-                    ? "warning.main"
-                    : "error.main";
+                      ? "warning.main"
+                      : "error.main";
 
                 return (
                   <TableRow
@@ -241,9 +236,7 @@ export default function FormationGroupedWidget({
                       sx={{
                         position: "sticky",
                         left: 0,
-                        backgroundColor: isEven
-                          ? "background.default"
-                          : "grey.50",
+                        backgroundColor: isEven ? "background.default" : "grey.50",
                         zIndex: 1,
                         fontWeight: 500,
                         minWidth: 180,
@@ -262,10 +255,7 @@ export default function FormationGroupedWidget({
                     <TableCell align="right">{toFixed0(r.total_places_mp)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_inscrits_mp)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_disponibles)}</TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ color: saturationColor, fontWeight: 600 }}
-                    >
+                    <TableCell align="right" sx={{ color: saturationColor, fontWeight: 600 }}>
                       {Math.round(saturation)}%
                     </TableCell>
                     <TableCell align="right">{toFixed0(r.entrees_formation)}</TableCell>
@@ -275,7 +265,9 @@ export default function FormationGroupedWidget({
                     <TableCell align="right">{toFixed0(r.nb_test_ok)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_inscrits_gespers)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_apprentissage)}</TableCell>
-                    <TableCell align="right">{toFixed0(r.nb_contrats_professionnalisation)}</TableCell>
+                    <TableCell align="right">
+                      {toFixed0(r.nb_contrats_professionnalisation)}
+                    </TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_poei_poec)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_autres)}</TableCell>
                     <TableCell align="right">{toFixed0(r.app_total)}</TableCell>
@@ -303,10 +295,7 @@ export default function FormationGroupedWidget({
                   <TableCell align="right">{toFixed0(totals.totalPlacesMp)}</TableCell>
                   <TableCell align="right">{toFixed0(totals.totalInscritsMp)}</TableCell>
                   <TableCell align="right">{toFixed0(totals.totalDispo)}</TableCell>
-                  <TableCell
-                    align="right"
-                    sx={{ fontWeight: 700 }}
-                  >
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>
                     {Math.round(totals.moyenneSaturation)}%
                   </TableCell>
                   <TableCell align="right">{toFixed0(totals.totalEntrees)}</TableCell>

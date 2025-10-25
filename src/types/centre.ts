@@ -22,7 +22,7 @@ export interface Centre {
   /** Code postal à 5 chiffres */
   code_postal: string | null;
 
-    /** Commune */
+  /** Commune */
   commune: string | null;
 
   /** Numéro de voie (ex: 12, 4B, etc.) */
@@ -73,12 +73,7 @@ export interface Centre {
  */
 export type CentreFormData = Omit<
   Centre,
-  | "id"
-  | "created_at"
-  | "updated_at"
-  | "is_active"
-  | "full_address"
-  | "nb_prepa_comp_global"
+  "id" | "created_at" | "updated_at" | "is_active" | "full_address" | "nb_prepa_comp_global"
 >;
 
 /**

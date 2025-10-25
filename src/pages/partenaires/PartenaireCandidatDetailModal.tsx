@@ -18,24 +18,22 @@ import type { Partenaire } from "../../types/partenaire";
 /* ---------- Helpers ---------- */
 const dtfFR =
   typeof Intl !== "undefined"
-    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" })
+    ? new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
     : undefined;
 
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 const nn = (s?: string | number | null) =>
   s === null || s === undefined || s === "" ? "—" : String(s);
 
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Props ---------- */
 type Props = {
@@ -161,7 +159,6 @@ export default function PartenaireCandidatDetailModal({
               </Section>
             </Grid>
 
-
             {/* ─────────── Contact principal ─────────── */}
             <Grid item xs={12}>
               <Section title="Contact principal">
@@ -203,16 +200,12 @@ export default function PartenaireCandidatDetailModal({
               </Section>
             </Grid>
 
-
             {/* ─────────── Métadonnées ─────────── */}
             <Grid item xs={12}>
               <Section title="Métadonnées">
                 <Field label="Créé le" value={fmt(partenaire.created_at)} />
                 <Field label="Mis à jour le" value={fmt(partenaire.updated_at)} />
-                <Field
-                  label="Créé par"
-                  value={partenaire.created_by?.full_name ?? "—"}
-                />
+                <Field label="Créé par" value={partenaire.created_by?.full_name ?? "—"} />
               </Section>
             </Grid>
           </Grid>
@@ -243,16 +236,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | React.ReactNode;
-}) {
+function Field({ label, value }: { label: string; value: string | number | React.ReactNode }) {
   const str = typeof value === "number" ? String(value) : value;
-  const isMissing =
-    str === null || str === undefined || str === "" || str === "—";
+  const isMissing = str === null || str === undefined || str === "" || str === "—";
 
   return (
     <Grid item xs={12} sm={6} md={4}>

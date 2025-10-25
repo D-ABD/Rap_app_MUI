@@ -1,4 +1,8 @@
+// ======================================================
 // src/components/modals/FormationSelectModal.tsx
+// Modale de sélection d'une formation
+// ======================================================
+
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -59,6 +63,7 @@ function readStartDate(f: Formation): string | null {
   }
   return null;
 }
+
 function readEndDate(f: Formation): string | null {
   const obj = f as unknown as Record<string, unknown>;
   const keys = ["date_fin", "dateFin", "fin", "end_date", "endDate", "date_fin_prevue"] as const;
@@ -68,6 +73,7 @@ function readEndDate(f: Formation): string | null {
   }
   return null;
 }
+
 function formatDate(d?: string | null): string {
   if (!d) return "—";
   const dt = new Date(d);
@@ -78,6 +84,7 @@ function formatDate(d?: string | null): string {
     year: "numeric",
   }).format(dt);
 }
+
 function toPick(f: Formation): FormationPick {
   const date_debut = readStartDate(f);
   const date_fin = readEndDate(f);
@@ -108,21 +115,26 @@ export default function FormationSelectModal({ show, onClose, onSelect }: Props)
   useEffect(() => {
     if (!show) return;
     let cancelled = false;
+
     const fetch = async () => {
       setLoading(true);
       try {
-        const res = await api.get("/formations/", { params: { texte: search, page_size: 20 } });
+        const res = await api.get("/formations/", {
+          params: { texte: search, page_size: 20 },
+        });
         const data = (res.data?.data?.results ?? res.data?.results ?? []) as Formation[];
         if (!cancelled) setFormations(data);
-      } catch (err) {
+      } catch (_err) {
         if (import.meta.env.MODE !== "production") {
-          console.error("Erreur chargement formations :", err);
+          // eslint-disable-next-line no-console
+          console.error("Erreur lors du chargement des formations :", _err);
         }
         if (!cancelled) setFormations([]);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
+
     fetch();
     return () => {
       cancelled = true;
@@ -157,7 +169,8 @@ export default function FormationSelectModal({ show, onClose, onSelect }: Props)
                     <ListItemText
                       primary={
                         <>
-                          📚 <strong>{f.nom}</strong> — {f.centre?.nom ?? "—"} · {f.num_offre ?? "—"}
+                          📚 <strong>{pick.nom ?? "—"}</strong> — {pick.centre?.nom ?? "—"} ·{" "}
+                          {pick.num_offre ?? "—"}
                           {typeLabel && (
                             <Chip
                               label={typeLabel}
@@ -178,7 +191,9 @@ export default function FormationSelectModal({ show, onClose, onSelect }: Props)
                 </ListItem>
               );
             })}
-            {formations.length === 0 && <Typography>Aucune formation trouvée.</Typography>}
+            {formations.length === 0 && !loading && (
+              <Typography sx={{ mt: 2, textAlign: "center" }}>Aucune formation trouvée.</Typography>
+            )}
           </List>
         )}
       </DialogContent>

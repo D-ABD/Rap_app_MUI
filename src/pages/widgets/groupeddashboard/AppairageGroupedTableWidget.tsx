@@ -54,15 +54,9 @@ function resolveLabel(row: AppairageGroupRow, by: AppairageGroupBy): string {
     case "statut":
       return row.statut ?? "—";
     case "formation":
-      return (
-        row.formation__nom ??
-        (row.formation_id ? `Formation #${row.formation_id}` : "—")
-      );
+      return row.formation__nom ?? (row.formation_id ? `Formation #${row.formation_id}` : "—");
     case "partenaire":
-      return (
-        row.partenaire__nom ??
-        (row.partenaire_id ? `Partenaire #${row.partenaire_id}` : "—")
-      );
+      return row.partenaire__nom ?? (row.partenaire_id ? `Partenaire #${row.partenaire_id}` : "—");
     default:
       return "—";
   }
@@ -93,17 +87,12 @@ export default function AppairageGroupedTableWidget({
   title = "Détails des Appairages",
 }: Props) {
   const [by, setBy] = React.useState<AppairageGroupBy>(defaultBy);
-  const [filters, setFilters] = React.useState<AppairageFilters>(
-    defaultFilters ?? {}
-  );
+  const [filters, setFilters] = React.useState<AppairageFilters>(defaultFilters ?? {});
   const [includeArchived, setIncludeArchived] = React.useState(false);
 
   // ✅ Combine les filtres avec le flag "archivés"
   const filtersWithArchived = { ...filters, avec_archivees: includeArchived };
-  const { data, isLoading, error, refetch } = useAppairageGrouped(
-    by,
-    filtersWithArchived
-  );
+  const { data, isLoading, error, refetch } = useAppairageGrouped(by, filtersWithArchived);
 
   /* Agrégats totaux */
   const totals = React.useMemo(() => {
@@ -123,9 +112,7 @@ export default function AppairageGroupedTableWidget({
       nb_partenaires,
       nb_formations,
       appairage_ok,
-      taux_ok: appairages_total
-        ? Math.round((appairage_ok * 100) / appairages_total)
-        : 0,
+      taux_ok: appairages_total ? Math.round((appairage_ok * 100) / appairages_total) : 0,
       transmis: sum("transmis"),
       en_attente: sum("en_attente"),
       a_faire: sum("a_faire"),
@@ -178,16 +165,16 @@ export default function AppairageGroupedTableWidget({
             sx={{ minWidth: 100 }}
           />
 
-{/* Bouton Archivées */}
-<Button
-  size="small"
-  variant={includeArchived ? "contained" : "outlined"}
-  color={includeArchived ? "secondary" : "inherit"}
-  onClick={() => setIncludeArchived((v) => !v)}
-  startIcon={<ArchiveIcon fontSize="small" />}
->
-  {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
-</Button>
+          {/* Bouton Archivées */}
+          <Button
+            size="small"
+            variant={includeArchived ? "contained" : "outlined"}
+            color={includeArchived ? "secondary" : "inherit"}
+            onClick={() => setIncludeArchived((v) => !v)}
+            startIcon={<ArchiveIcon fontSize="small" />}
+          >
+            {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
+          </Button>
 
           {/* Bouton de rafraîchissement */}
           <IconButton onClick={() => refetch()} title="Rafraîchir">
@@ -241,17 +228,12 @@ export default function AppairageGroupedTableWidget({
 
                 return (
                   <TableRow key={idx} hover>
-                    <TableCell sx={{ fontWeight: 600 }}>
-                      {resolveLabel(r, by)}
-                    </TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>{resolveLabel(r, by)}</TableCell>
                     <TableCell align="right">{fmtInt(total)}</TableCell>
                     <TableCell align="right">{fmtInt(rr.nb_candidats)}</TableCell>
                     <TableCell align="right">{fmtInt(rr.nb_partenaires)}</TableCell>
                     <TableCell align="right">{fmtInt(rr.nb_formations)}</TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ color: tauxColor, fontWeight: 600 }}
-                    >
+                    <TableCell align="right" sx={{ color: tauxColor, fontWeight: 600 }}>
                       {pct(ok, total)}
                     </TableCell>
                     <TableCell align="right">{fmtInt(rr.transmis)}</TableCell>
@@ -285,12 +267,7 @@ export default function AppairageGroupedTableWidget({
                   align="right"
                   sx={{
                     fontWeight: 700,
-                    color:
-                      totals.taux_ok >= 60
-                        ? "green"
-                        : totals.taux_ok >= 30
-                        ? "orange"
-                        : "red",
+                    color: totals.taux_ok >= 60 ? "green" : totals.taux_ok >= 30 ? "orange" : "red",
                   }}
                 >
                   {totals.appairages_total ? `${totals.taux_ok}%` : "—"}

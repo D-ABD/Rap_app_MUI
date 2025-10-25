@@ -1,12 +1,6 @@
 // src/components/filters/FiltresAppairagePanel.tsx
 import React, { useCallback, useMemo } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, Typography } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 
 import {
@@ -34,18 +28,12 @@ interface Props {
   onReset?: () => void;
 }
 
-const map = <T extends { value: string | number; label: string }>(
-  arr?: T[]
-) => arr ?? [];
+const map = <T extends { value: string | number; label: string }>(arr?: T[]) => arr ?? [];
 
-const withPlaceholder = (
-  opts: Array<{ value: string | number; label: string }>
-) => (opts.length ? opts : [{ value: "", label: "—" }]);
+const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
+  opts.length ? opts : [{ value: "", label: "—" }];
 
-function buildReset(
-  values: WithSearchAndCentre,
-  meta: MetaWithCentre
-): WithSearchAndCentre {
+function buildReset(values: WithSearchAndCentre, meta: MetaWithCentre): WithSearchAndCentre {
   const next: WithSearchAndCentre = { ...values };
   if (meta.statut_choices) next.statut = undefined;
   if (meta.formation_choices) next.formation = undefined;
@@ -67,26 +55,24 @@ export const AppairageFilters: React.FC<Props> = ({
   onRefresh,
   onReset,
 }) => {
-  const onLocalSearchChange =
-    useCallback<React.ChangeEventHandler<HTMLInputElement>>(
-      (e) => {
-        onChange({ ...values, search: e.target.value, page: 1 });
-      },
-      [onChange, values]
-    );
+  const onLocalSearchChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    (e) => {
+      onChange({ ...values, search: e.target.value, page: 1 });
+    },
+    [onChange, values]
+  );
 
-  const onSearchKeyDown =
-    useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
-      (e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          if (values.search) {
-            onChange({ ...values, search: undefined, page: 1 });
-          }
+  const onSearchKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
+    (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (values.search) {
+          onChange({ ...values, search: undefined, page: 1 });
         }
-      },
-      [onChange, values]
-    );
+      }
+    },
+    [onChange, values]
+  );
 
   const fields = useMemo<Array<FieldConfig<WithSearchAndCentre>>>(() => {
     return [
@@ -191,8 +177,7 @@ export const AppairageFilters: React.FC<Props> = ({
         key: "avec_archivees",
         label: "📦 Inclure les archivés",
         type: "checkbox" as const,
-        tooltip:
-          "Afficher aussi les appairages archivés (sans filtrer exclusivement)",
+        tooltip: "Afficher aussi les appairages archivés (sans filtrer exclusivement)",
       },
     ];
   }, [meta]);
@@ -242,17 +227,10 @@ export const AppairageFilters: React.FC<Props> = ({
             mb={1.5}
             flexWrap={{ xs: "wrap", md: "nowrap" }}
           >
-            <label
-              htmlFor="appairages-search-input"
-              style={visuallyHidden as React.CSSProperties}
-            >
+            <label htmlFor="appairages-search-input" style={visuallyHidden as React.CSSProperties}>
               Rechercher des appairages
             </label>
-            <Typography
-              component="span"
-              id="appairages-search-help"
-              sx={visuallyHidden}
-            >
+            <Typography component="span" id="appairages-search-help" sx={visuallyHidden}>
               Tapez votre recherche. Appuyez sur Échap pour effacer.
             </Typography>
 
@@ -273,9 +251,7 @@ export const AppairageFilters: React.FC<Props> = ({
             {values.search && (
               <Button
                 variant="outlined"
-                onClick={() =>
-                  onChange({ ...values, search: undefined, page: 1 })
-                }
+                onClick={() => onChange({ ...values, search: undefined, page: 1 })}
               >
                 ✕
               </Button>

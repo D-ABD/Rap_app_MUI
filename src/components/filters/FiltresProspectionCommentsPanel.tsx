@@ -4,7 +4,6 @@ import type { ProspectionCommentListParams } from "../../types/prospectionCommen
 
 type Choice<T extends string | number> = { value: T; label: string };
 
-
 /** Valeurs parent (compat API) */
 type BaseValues = ProspectionCommentListParams & {
   search?: string;
@@ -39,9 +38,7 @@ type Props = {
 };
 
 // ✅ génère des options uniques et sûres pour les Select MUI
-function toUniqueOptions<T extends string | number>(
-  arr: Array<{ value: T; label: string }>
-) {
+function toUniqueOptions<T extends string | number>(arr: Array<{ value: T; label: string }>) {
   const seen = new Set<string>();
   return arr.reduce(
     (acc, item, i) => {

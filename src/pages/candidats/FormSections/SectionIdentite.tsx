@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardHeader,
@@ -11,8 +11,8 @@ import {
   MenuItem,
   Checkbox,
   FormControlLabel,
-} from '@mui/material';
-import type { CandidatFormData, CandidatMeta } from '../../../types/candidat';
+} from "@mui/material";
+import type { CandidatFormData, CandidatMeta } from "../../../types/candidat";
 
 interface Props {
   form: CandidatFormData;
@@ -21,9 +21,9 @@ interface Props {
 }
 
 export default function SectionIdentite({ form, setForm }: Props) {
-  const handleCheckbox = (key: keyof CandidatFormData) =>
-    (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm(f => ({ ...f, [key]: e.target.checked }));
+  const handleCheckbox =
+    (key: keyof CandidatFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+      setForm((f) => ({ ...f, [key]: e.target.checked }));
 
   return (
     <Card variant="outlined">
@@ -39,8 +39,8 @@ export default function SectionIdentite({ form, setForm }: Props) {
               fullWidth
               required
               label="Nom"
-              value={form.nom ?? ''}
-              onChange={e => setForm(f => ({ ...f, nom: e.target.value }))}
+              value={form.nom ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
             />
           </Grid>
           <Grid item xs={12} md={6}>
@@ -48,8 +48,8 @@ export default function SectionIdentite({ form, setForm }: Props) {
               fullWidth
               required
               label="Prénom"
-              value={form.prenom ?? ''}
-              onChange={e => setForm(f => ({ ...f, prenom: e.target.value }))}
+              value={form.prenom ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))}
             />
           </Grid>
 
@@ -58,8 +58,8 @@ export default function SectionIdentite({ form, setForm }: Props) {
             <TextField
               fullWidth
               label="Nom de naissance"
-              value={form.nom_naissance ?? ''}
-              onChange={e => setForm(f => ({ ...f, nom_naissance: e.target.value }))}
+              value={form.nom_naissance ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, nom_naissance: e.target.value }))}
             />
           </Grid>
 
@@ -68,14 +68,11 @@ export default function SectionIdentite({ form, setForm }: Props) {
             <FormControl fullWidth>
               <FormLabel>Sexe</FormLabel>
               <Select
-                value={form.sexe ?? ''}
-                onChange={e =>
-                  setForm(f => ({
+                value={form.sexe ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
                     ...f,
-                    sexe:
-                      e.target.value === ''
-                        ? undefined
-                        : (e.target.value as 'M' | 'F' | null),
+                    sexe: e.target.value === "" ? undefined : (e.target.value as "M" | "F" | null),
                   }))
                 }
                 displayEmpty
@@ -95,16 +92,16 @@ export default function SectionIdentite({ form, setForm }: Props) {
               fullWidth
               type="email"
               label="Email"
-              value={form.email ?? ''}
-              onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+              value={form.email ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               label="Téléphone"
-              value={form.telephone ?? ''}
-              onChange={e => setForm(f => ({ ...f, telephone: e.target.value }))}
+              value={form.telephone ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, telephone: e.target.value }))}
             />
           </Grid>
 
@@ -115,17 +112,20 @@ export default function SectionIdentite({ form, setForm }: Props) {
               type="date"
               label="Date de naissance"
               InputLabelProps={{ shrink: true }}
-              value={form.date_naissance ?? ''}
-              onChange={e => setForm(f => ({ ...f, date_naissance: e.target.value }))}
+              value={form.date_naissance ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, date_naissance: e.target.value }))}
             />
           </Grid>
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
               label="Département de naissance"
-              value={form.departement_naissance ?? ''}
-              onChange={e =>
-                setForm(f => ({ ...f, departement_naissance: e.target.value }))
+              value={form.departement_naissance ?? ""}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  departement_naissance: e.target.value,
+                }))
               }
             />
           </Grid>
@@ -133,8 +133,8 @@ export default function SectionIdentite({ form, setForm }: Props) {
             <TextField
               fullWidth
               label="Commune de naissance"
-              value={form.commune_naissance ?? ''}
-              onChange={e => setForm(f => ({ ...f, commune_naissance: e.target.value }))}
+              value={form.commune_naissance ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, commune_naissance: e.target.value }))}
             />
           </Grid>
 
@@ -144,16 +144,16 @@ export default function SectionIdentite({ form, setForm }: Props) {
               fullWidth
               label="Pays de naissance"
               placeholder="Saisie libre"
-              value={form.pays_naissance ?? ''}
-              onChange={e => setForm(f => ({ ...f, pays_naissance: e.target.value }))}
+              value={form.pays_naissance ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, pays_naissance: e.target.value }))}
             />
           </Grid>
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               label="Nationalité"
-              value={form.nationalite ?? ''}
-              onChange={e => setForm(f => ({ ...f, nationalite: e.target.value }))}
+              value={form.nationalite ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, nationalite: e.target.value }))}
             />
           </Grid>
 
@@ -162,8 +162,8 @@ export default function SectionIdentite({ form, setForm }: Props) {
             <TextField
               fullWidth
               label="Numéro de sécurité sociale (NIR)"
-              value={form.nir ?? ''}
-              onChange={e => setForm(f => ({ ...f, nir: e.target.value }))}
+              value={form.nir ?? ""}
+              onChange={(e) => setForm((f) => ({ ...f, nir: e.target.value }))}
               inputProps={{ maxLength: 15 }}
             />
           </Grid>
@@ -171,23 +171,13 @@ export default function SectionIdentite({ form, setForm }: Props) {
           {/* Checkboxes */}
           <Grid item xs={12} md={3}>
             <FormControlLabel
-              control={
-                <Checkbox
-                  checked={!!form.rqth}
-                  onChange={handleCheckbox('rqth')}
-                />
-              }
+              control={<Checkbox checked={!!form.rqth} onChange={handleCheckbox("rqth")} />}
               label="Reconnaissance RQTH"
             />
           </Grid>
           <Grid item xs={12} md={3}>
             <FormControlLabel
-              control={
-                <Checkbox
-                  checked={!!form.permis_b}
-                  onChange={handleCheckbox('permis_b')}
-                />
-              }
+              control={<Checkbox checked={!!form.permis_b} onChange={handleCheckbox("permis_b")} />}
               label="Permis B"
             />
           </Grid>

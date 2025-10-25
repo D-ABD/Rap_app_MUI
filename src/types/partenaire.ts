@@ -17,7 +17,7 @@ export type CentreLite = { id: number; nom: string };
 
 export interface Partenaire {
   id: number;
-  was_reused?: boolean; 
+  was_reused?: boolean;
   nom: string;
   type: PartenaireType;
   type_display: string;
@@ -151,4 +151,3 @@ export interface PartenaireMinimal {
   created_at: string;
   updated_at: string;
 }
- 

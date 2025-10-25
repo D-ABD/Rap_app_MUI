@@ -21,7 +21,7 @@ import HandshakeIcon from "@mui/icons-material/Handshake";
 import ArchiveIcon from "@mui/icons-material/Archive";
 import DashboardTemplateSaturation from "../../../components/dashboard/DashboardTemplateSaturation";
 
-function pct(n: number) {
+function pct(n: number): number {
   if (!Number.isFinite(n)) return 0;
   return Math.max(0, Math.min(100, Math.round(n)));
 }
@@ -34,13 +34,11 @@ export default function AppairageConversionKpi({
   initialFilters?: AppairageFilters;
 }) {
   const initialRef = React.useRef<AppairageFilters>(initialFilters ?? {});
-  const [filters, setFilters] = React.useState<AppairageFilters>(
-    initialRef.current
-  );
+  const [filters, setFilters] = React.useState<AppairageFilters>(initialRef.current);
   const [autoDepartement, setAutoDepartement] = React.useState(true);
-
-  // 🔘 Gestion du bouton "archivées"
   const [includeArchived, setIncludeArchived] = React.useState(false);
+
+  // 🔘 Mise à jour du filtre archivées
   React.useEffect(() => {
     setFilters((f) => ({
       ...f,
@@ -56,10 +54,11 @@ export default function AppairageConversionKpi({
     error: errCentres,
   } = useAppairageGrouped("centre", { ...filters, centre: undefined });
 
+  // ✅ Typage explicite pour éviter TS7006
   const centreOptions = React.useMemo(() => {
-    const rows = centresGrouped?.results ?? [];
+    const rows = (centresGrouped?.results ?? []) as AppairageGroupRow[];
     return rows
-      .map((r: AppairageGroupRow) => {
+      .map((r): { id: string; label: string } | null => {
         const rawId =
           r.formation__centre_id ??
           (typeof r.group_key === "number" || typeof r.group_key === "string"
@@ -71,16 +70,12 @@ export default function AppairageConversionKpi({
           label: resolveAppairageGroupLabel(r, "centre"),
         };
       })
-      .filter(Boolean)
-      .sort((a, b) =>
-        (a!.label || "").localeCompare(b!.label || "")
-      ) as Array<{ id: string; label: string }>;
+      .filter((v): v is { id: string; label: string } => v !== null)
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [centresGrouped]);
 
   const centreValue =
-    filters.centre && centreOptions.some((c) => c.id === filters.centre)
-      ? filters.centre
-      : "";
+    filters.centre && centreOptions.some((c) => c.id === filters.centre) ? filters.centre : "";
 
   const { data: depForCentre } = useAppairageGrouped("departement", {
     ...filters,
@@ -88,6 +83,7 @@ export default function AppairageConversionKpi({
     centre: filters.centre,
   });
 
+  // ✅ Corrigé : ajout des dépendances manquantes
   React.useEffect(() => {
     if (!autoDepartement || !filters.centre) return;
     const depRaw = depForCentre?.results?.[0]?.departement;
@@ -101,6 +97,7 @@ export default function AppairageConversionKpi({
   const ok = (data?.kpis?.statuts?.["appairage_ok"] as number | undefined) ?? 0;
   const taux = total > 0 ? (ok / total) * 100 : 0;
 
+  /* Barre de filtres */
   const filtersBar = (
     <>
       <FormControl size="small" sx={{ minWidth: 140 }}>
@@ -140,7 +137,7 @@ export default function AppairageConversionKpi({
         sx={{ width: 100 }}
       />
 
-      {/* Bouton Archivées */}
+      {/* 🔘 Bouton Archivées */}
       <Button
         size="small"
         variant={includeArchived ? "contained" : "outlined"}
@@ -159,13 +156,7 @@ export default function AppairageConversionKpi({
       toneColor="primary.main"
       isFetching={isFetching}
       isLoading={isLoading}
-      error={
-        error
-          ? getErrorMessage(error)
-          : errCentres
-          ? getErrorMessage(errCentres)
-          : null
-      }
+      error={error ? getErrorMessage(error) : errCentres ? getErrorMessage(errCentres) : null}
       filters={filtersBar}
     >
       {total > 0 && (

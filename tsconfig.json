@@ -1,9 +1,14 @@
 {
   "compilerOptions": {
+    // ✅ Cible moderne, compatible avec Vite
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
+
+    // ✅ React 17+ / 18+ : pas besoin d'importer React dans chaque fichier
     "jsx": "react-jsx",
+
+    // ✅ Bonne rigueur TypeScript
     "strict": true,
     "isolatedModules": true,
     "esModuleInterop": true,
@@ -11,8 +16,23 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "noEmit": true
+
+    // ✅ Ne génère pas de fichiers .js
+    "noEmit": true,
+
+    // ✅ Résolution de modules propre
+    "baseUrl": ".",
+
+    // ⚙️ (Optionnel) ce path n’est pas obligatoire,
+    // tu peux le garder s’il corrige une erreur d’import avec react-toastify
+    "paths": {
+      "react-toastify": ["node_modules/react-toastify/dist/index.d.ts"]
+    }
   },
+
+  // ✅ Inclut tout le code de ton app
   "include": ["src"],
+
+  // ✅ Référence TS/Vite par défaut
   "references": [{ "path": "./tsconfig.node.json" }]
 }

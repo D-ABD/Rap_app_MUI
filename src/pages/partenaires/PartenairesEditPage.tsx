@@ -1,14 +1,9 @@
+// src/pages/partenaires/PartenairesEditPage.tsx
 import { useNavigate, useParams, Link as RouterLink } from "react-router-dom";
 import { useState, useMemo } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Button, CircularProgress, Typography } from "@mui/material";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
+import axios from "axios";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import HandshakeIcon from "@mui/icons-material/Handshake";
 
@@ -67,7 +62,6 @@ export default function PartenaireEditPage() {
 
   const partenaireNom = data?.nom ?? null;
 
-  // 🟢 TOUS LES HOOKS AVANT TOUT RETURN
   const newProspectionUrl = useMemo(() => {
     const base = `/prospections/create?partenaire=${partenaireId}`;
     return partenaireNom ? `${base}&partenaire_nom=${enc(partenaireNom)}` : base;
@@ -78,10 +72,8 @@ export default function PartenaireEditPage() {
     return partenaireNom ? `${base}&partenaire_nom=${enc(partenaireNom)}` : base;
   }, [partenaireId, partenaireNom]);
 
-const initialValues = useMemo<Partial<Partenaire> | undefined>(
-  () => (data ?? undefined),
-  [data?.id]
-);
+  // ✅ Correction exhaustive-deps : inclut `data` dans les dépendances
+  const initialValues = useMemo<Partial<Partenaire> | undefined>(() => data ?? undefined, [data]);
 
   const handleSubmit = async (values: Partial<Partenaire>) => {
     try {
@@ -89,9 +81,9 @@ const initialValues = useMemo<Partial<Partenaire> | undefined>(
       await update(payload);
       toast.success("✅ Modifications enregistrées");
       navigate("/partenaires");
-    } catch (err) {
-      if (isAxiosError(err)) {
-        const detail = err.response?.data?.detail;
+    } catch (_err) {
+      if (axios.isAxiosError(_err)) {
+        const detail = _err.response?.data?.detail;
         if (typeof detail === "string") {
           if (detail.toLowerCase().includes("centre")) {
             toast.error(`❌ ${detail} — contactez votre administrateur.`);
@@ -102,13 +94,14 @@ const initialValues = useMemo<Partial<Partenaire> | undefined>(
           toast.error("❌ Échec de la mise à jour du partenaire.");
         }
 
-        if (import.meta.env.MODE !== "production") {
-          console.error("Erreur API mise à jour partenaire :", err.response?.data ?? err);
+        // ✅ plus de console.log : notification silencieuse en mode dev
+        if (import.meta.env.DEV) {
+          toast.info("Détails de l’erreur disponibles dans la console backend (mode dev).");
         }
       } else {
         toast.error("❌ Erreur inattendue lors de la mise à jour.");
-        if (import.meta.env.MODE !== "production") {
-          console.error("Erreur de mise à jour", err);
+        if (import.meta.env.DEV) {
+          toast.info("Erreur inconnue (mode dev).");
         }
       }
     }
@@ -179,7 +172,6 @@ const initialValues = useMemo<Partial<Partenaire> | undefined>(
       }
     >
       <Box>
-        {/* 🔹 Formulaire d’édition */}
         <Box id="edit-section">
           <Typography variant="h6" sx={{ mb: 1 }}>
             Modifier les informations
@@ -198,7 +190,6 @@ const initialValues = useMemo<Partial<Partenaire> | undefined>(
         </Box>
       </Box>
 
-      {/* 🔹 Modale de sélection de candidat */}
       <CandidatsSelectModal
         show={openCandModal}
         onClose={() => setOpenCandModal(false)}

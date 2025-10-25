@@ -21,7 +21,5 @@ export function getFieldValue(
     }
   }
 
-  return typeof value === "string" || typeof value === "number"
-    ? value
-    : fallback;
+  return typeof value === "string" || typeof value === "number" ? value : fallback;
 }

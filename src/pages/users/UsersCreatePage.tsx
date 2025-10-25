@@ -2,14 +2,7 @@
 import { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Paper,
-  TextField,
-  Button,
-  Stack,
-  MenuItem,
-  Typography,
-} from "@mui/material";
+import { Paper, TextField, Button, Stack, MenuItem, Typography } from "@mui/material";
 
 import PageTemplate from "../../components/PageTemplate";
 import useForm from "../../hooks/useForm";
@@ -21,21 +14,19 @@ export default function UsersCreatePage() {
   const navigate = useNavigate();
   const { roles, loading: loadingRoles } = useUserRoles();
 
-  const { values, errors, handleChange, setErrors, resetForm } =
-    useForm<UserCreatePayload>({
-      email: "",
-      username: "",
-      first_name: "",
-      last_name: "",
-      password: "",
-      phone: "",
-      bio: "",
-      avatar: null,
-      role: "stagiaire", // ✅ valeur par défaut
-    });
+  const { values, errors, handleChange, setErrors, resetForm } = useForm<UserCreatePayload>({
+    email: "",
+    username: "",
+    first_name: "",
+    last_name: "",
+    password: "",
+    phone: "",
+    bio: "",
+    avatar: null,
+    role: "stagiaire", // ✅ valeur par défaut
+  });
 
-  const isCandidatOuStagiaire =
-    values.role === "stagiaire" || values.role === "candidat";
+  const isCandidatOuStagiaire = values.role === "stagiaire" || values.role === "candidat";
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -183,28 +174,14 @@ export default function UsersCreatePage() {
               <Typography variant="body2" color="text.secondary">
                 Avatar
               </Typography>
-              <input
-                id="avatar"
-                name="avatar"
-                type="file"
-                onChange={handleChange}
-              />
+              <input id="avatar" name="avatar" type="file" onChange={handleChange} />
             </Stack>
 
             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="success"
-                disabled={loadingRoles}
-              >
+              <Button type="submit" variant="contained" color="success" disabled={loadingRoles}>
                 💾 Créer
               </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => navigate("/users")}
-              >
+              <Button type="button" variant="outlined" onClick={() => navigate("/users")}>
                 Annuler
               </Button>
             </Stack>

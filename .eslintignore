@@ -1,0 +1,14 @@
+# Ignorer les dossiers compilés et dépendances
+node_modules/
+dist/
+build/
+coverage/
+
+# Dossiers Vite et caches
+.vite/
+.vscode/
+.eslintcache
+
+# Autres générés
+*.config.js
+*.config.cjs

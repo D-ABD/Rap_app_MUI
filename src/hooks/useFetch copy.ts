@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo } from 'react';
-import type { AxiosError } from 'axios';
-import api from '../api/axios';
+import { useState, useCallback, useMemo } from "react";
+import type { AxiosError } from "axios";
+import api from "../api/axios";
 
 type FetchError = {
   message?: string;
@@ -36,7 +36,6 @@ export default function useFetch<T>(
       const response = await api.get(url, { params: stableParams });
       const raw = response.data;
 
-
       let parsed: unknown;
 
       if (parseWrapper) {
@@ -44,15 +43,15 @@ export default function useFetch<T>(
         if (raw && raw.success && raw.data) {
           parsed = raw.data;
         } else {
-          throw new Error('Réponse inattendue : format avec enveloppe requis.');
+          throw new Error("Réponse inattendue : format avec enveloppe requis.");
         }
       } else {
         // 🌐 Mode classique : DRF brut ou fallback
-        if ('results' in raw) {
+        if ("results" in raw) {
           parsed = raw;
-        } else if ('data' in raw && raw.success !== undefined && 'results' in raw.data) {
+        } else if ("data" in raw && raw.success !== undefined && "results" in raw.data) {
           parsed = raw.data;
-        } else if ('data' in raw && raw.success !== undefined) {
+        } else if ("data" in raw && raw.success !== undefined) {
           parsed = raw.data;
         } else {
           parsed = raw;
@@ -62,13 +61,7 @@ export default function useFetch<T>(
       setData(parsed as T);
     } catch (err) {
       const axiosError = err as AxiosError<FetchError>;
-      console.error('❌ Erreur lors du fetch :', axiosError);
-
-      setError(
-        axiosError.response?.data?.message ||
-        axiosError.message ||
-        'Erreur inconnue'
-      );
+      setError(axiosError.response?.data?.message || axiosError.message || "Erreur inconnue");
     } finally {
       setLoading(false);
     }

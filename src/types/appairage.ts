@@ -11,7 +11,7 @@ export type AppairageStatut =
   | "a_faire"
   | "contrat_a_signer"
   | "contrat_en_attente"
-  | "appairage_ok"
+  | "appairage_ok";
 
 // ----------------------------------
 // Nouvelle énumération DRF : activité
@@ -24,9 +24,8 @@ export const AppairageActiviteLabels: Record<AppairageActivite, string> = {
   archive: "Archivé",
 };
 
-export const isAppairageArchived = (
-  a: { activite?: AppairageActivite }
-): boolean => a.activite === "archive";
+export const isAppairageArchived = (a: { activite?: AppairageActivite }): boolean =>
+  a.activite === "archive";
 
 // Labels associés
 export const AppairageStatutLabels: Record<AppairageStatut, string> = {
@@ -40,7 +39,6 @@ export const AppairageStatutLabels: Record<AppairageStatut, string> = {
   contrat_en_attente: "Contrat en attente",
   appairage_ok: "Appairage OK",
 };
-
 
 export interface HistoriqueAppairage {
   id: number;
@@ -77,7 +75,7 @@ export interface FormationIdentiteComplete {
   num_offre: string | null;
   statut: string;
   start_date: string | null; // ISO
-  end_date: string | null;   // ISO
+  end_date: string | null; // ISO
   saturation_formation?: number | null;
   saturation_badge?: string | null;
 }
@@ -88,7 +86,7 @@ export interface FormationIdentiteBref {
   centre_nom: string;
   num_offre: string | null;
   start_date: string | null; // ISO
-  end_date: string | null;   // ISO
+  end_date: string | null; // ISO
 }
 
 export interface Appairage {
@@ -179,7 +177,7 @@ export interface AppairageListItem {
   last_commentaire?: string | null;
 
   created_by_nom: string | null;
-    created_at?: string; 
+  created_at?: string;
   updated_by_nom?: string | null;
   updated_at?: string | null;
 }
@@ -207,7 +205,7 @@ export interface AppairageFormData {
   candidat_prenom: string | null;
 
   statut: AppairageStatut;
-activite?: AppairageActivite | null;
+  activite?: AppairageActivite | null;
 
   commentaire: string;
 
@@ -247,6 +245,5 @@ export interface AppairageFiltresValues {
   page_size?: number;
   created_by?: number;
   avec_archivees?: boolean; // 👈 ajouté
-    activite?: AppairageActivite; // ✅ ajouté
-
+  activite?: AppairageActivite; // ✅ ajouté
 }

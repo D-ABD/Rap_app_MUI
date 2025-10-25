@@ -1,7 +1,7 @@
 // src/api/auth.ts
 
-import type { User } from '../types/User';
-import api from './axios';
+import type { User } from "../types/User";
+import api from "./axios";
 
 /**
  * 🔐 login(email, password)
@@ -16,7 +16,7 @@ import api from './axios';
  * Note : Le paramètre `withCredentials: true` est important si le backend utilise des cookies
  */
 export const login = async (email: string, password: string) => {
-  const res = await api.post('/token/', { email, password }, { withCredentials: true });
+  const res = await api.post("/token/", { email, password }, { withCredentials: true });
   return res.data; // { access, refresh }
 };
 
@@ -31,8 +31,8 @@ export const login = async (email: string, password: string) => {
  * Important : Le token JWT doit être déjà stocké dans le `localStorage` sous la clé `access`
  */
 export const getUserProfile = async (): Promise<User> => {
-  const token = localStorage.getItem('access');
-  const res = await api.get('/users/me/', {
+  const token = localStorage.getItem("access");
+  const res = await api.get("/users/me/", {
     headers: {
       Authorization: `Bearer ${token}`,
     },
@@ -40,4 +40,3 @@ export const getUserProfile = async (): Promise<User> => {
 
   return res.data.data; // ✅ extraire seulement l'objet User
 };
-

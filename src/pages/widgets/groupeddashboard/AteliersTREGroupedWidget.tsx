@@ -1,13 +1,5 @@
 import * as React from "react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Typography,
-  Box,
-  Button,
-  IconButton,
-} from "@mui/material";
+import { Card, CardHeader, CardContent, Typography, Box, Button, IconButton } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   ATELIER_TYPE_LABELS,
@@ -19,22 +11,16 @@ import {
   useAtelierTREGrouped,
 } from "../../../types/atelierTreStats";
 
-const fmt = (n?: number | null) =>
-  n === undefined || n === null ? "—" : Math.round(n).toString();
+const fmt = (n?: number | null) => (n === undefined || n === null ? "—" : Math.round(n).toString());
 
 type AtelierTypeKey = keyof typeof ATELIER_TYPE_LABELS;
 
 export default function AteliersTREGroupedWidget() {
   const initialRef = React.useRef<AtelierTREFilters>({});
   const [by, setBy] = React.useState<AtelierTREGroupBy>("centre");
-  const [filters, setFilters] = React.useState<AtelierTREFilters>(
-    initialRef.current
-  );
+  const [filters, setFilters] = React.useState<AtelierTREFilters>(initialRef.current);
 
-  const { data: grouped, isLoading, error, refetch } = useAtelierTREGrouped(
-    by,
-    filters
-  );
+  const { data: grouped, isLoading, error, refetch } = useAtelierTREGrouped(by, filters);
 
   // Centres
   const { data: centresGrouped } = useAtelierTREGrouped("centre", {
@@ -58,8 +44,7 @@ export default function AteliersTREGroupedWidget() {
   );
 
   const atelierTypeEntries = React.useMemo(
-    () =>
-      Object.entries(ATELIER_TYPE_LABELS) as Array<[AtelierTypeKey, string]>,
+    () => Object.entries(ATELIER_TYPE_LABELS) as Array<[AtelierTypeKey, string]>,
     []
   );
 
@@ -80,35 +65,21 @@ export default function AteliersTREGroupedWidget() {
 
     const totalRow: AtelierTREGroupRow = {
       group_key: "total",
-      nb_ateliers: grouped.results.reduce(
-        (acc, r) => acc + (r.nb_ateliers ?? 0),
-        0
-      ),
-      candidats_uniques: grouped.results.reduce(
-        (acc, r) => acc + (r.candidats_uniques ?? 0),
-        0
-      ),
-      presences_total: grouped.results.reduce(
-        (acc, r) => acc + (r.presences_total ?? 0),
-        0
-      ),
+      nb_ateliers: grouped.results.reduce((acc, r) => acc + (r.nb_ateliers ?? 0), 0),
+      candidats_uniques: grouped.results.reduce((acc, r) => acc + (r.candidats_uniques ?? 0), 0),
+      presences_total: grouped.results.reduce((acc, r) => acc + (r.presences_total ?? 0), 0),
       present: grouped.results.reduce((acc, r) => acc + (r.present ?? 0), 0),
       absent: grouped.results.reduce((acc, r) => acc + (r.absent ?? 0), 0),
       excuse: grouped.results.reduce((acc, r) => acc + (r.excuse ?? 0), 0),
       inconnu: grouped.results.reduce((acc, r) => acc + (r.inconnu ?? 0), 0),
-      taux_presence:
-        (() => {
-          const present = grouped.results.reduce(
-            (acc, r) => acc + (r.present ?? 0),
-            0
-          );
-          const denom = grouped.results.reduce(
-            (acc, r) =>
-              acc + (r.present ?? 0) + (r.absent ?? 0) + (r.excuse ?? 0),
-            0
-          );
-          return denom > 0 ? Math.round((present / denom) * 1000) / 10 : null;
-        })(),
+      taux_presence: (() => {
+        const present = grouped.results.reduce((acc, r) => acc + (r.present ?? 0), 0);
+        const denom = grouped.results.reduce(
+          (acc, r) => acc + (r.present ?? 0) + (r.absent ?? 0) + (r.excuse ?? 0),
+          0
+        );
+        return denom > 0 ? Math.round((present / denom) * 1000) / 10 : null;
+      })(),
     };
     return [...grouped.results, totalRow];
   }, [grouped]);
@@ -192,12 +163,7 @@ export default function AteliersTREGroupedWidget() {
               </select>
             </Box>
 
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={reset}
-              disabled={!isDirty}
-            >
+            <Button variant="outlined" size="small" onClick={reset} disabled={!isDirty}>
               Réinitialiser
             </Button>
 
@@ -239,8 +205,7 @@ export default function AteliersTREGroupedWidget() {
               </thead>
               <tbody>
                 {resultsWithTotal.map((r: AtelierTREGroupRow, idx: number) => {
-                  const isTotal =
-                    String(r.group_key).toLowerCase() === "total";
+                  const isTotal = String(r.group_key).toLowerCase() === "total";
                   return (
                     <tr
                       key={idx}
@@ -255,22 +220,12 @@ export default function AteliersTREGroupedWidget() {
                       <td>{fmt(r.nb_ateliers)}</td>
                       <td>{fmt(r.candidats_uniques)}</td>
                       <td>{fmt(r.presences_total)}</td>
-                      <td style={{ background: "#c8e6c9" }}>
-                        {fmt(r.present)}
-                      </td>
-                      <td style={{ background: "#ffcdd2" }}>
-                        {fmt(r.absent)}
-                      </td>
-                      <td style={{ background: "#ffe0b2" }}>
-                        {fmt(r.excuse)}
-                      </td>
-                      <td style={{ background: "#e0e0e0" }}>
-                        {fmt(r.inconnu)}
-                      </td>
+                      <td style={{ background: "#c8e6c9" }}>{fmt(r.present)}</td>
+                      <td style={{ background: "#ffcdd2" }}>{fmt(r.absent)}</td>
+                      <td style={{ background: "#ffe0b2" }}>{fmt(r.excuse)}</td>
+                      <td style={{ background: "#e0e0e0" }}>{fmt(r.inconnu)}</td>
                       <td style={{ background: "#bbdefb" }}>
-                        {r.taux_presence != null
-                          ? `${r.taux_presence.toFixed(1)} %`
-                          : "—"}
+                        {r.taux_presence != null ? `${r.taux_presence.toFixed(1)} %` : "—"}
                       </td>
                     </tr>
                   );

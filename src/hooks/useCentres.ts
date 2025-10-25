@@ -27,14 +27,14 @@ export function useCentres(params?: {
 }) {
   const queryKey = ["centres", params];
 
-return useQuery({
-  queryKey,
-  queryFn: async (): Promise<PaginatedResponse<Centre>> => {
-    const response = await api.get("/centres/", { params });
-    return response.data;
-  },
-  placeholderData: keepPreviousData,
-});
+  return useQuery({
+    queryKey,
+    queryFn: async (): Promise<PaginatedResponse<Centre>> => {
+      const response = await api.get("/centres/", { params });
+      return response.data;
+    },
+    placeholderData: keepPreviousData,
+  });
 }
 
 /* ============================================================
@@ -129,7 +129,10 @@ export function useDeleteCentre() {
 export function useCentreConstants() {
   return useQuery({
     queryKey: ["centre-constants"],
-    queryFn: async (): Promise<{ nom_max_length: number; code_postal_length: number }> => {
+    queryFn: async (): Promise<{
+      nom_max_length: number;
+      code_postal_length: number;
+    }> => {
       const response = await api.get("/centres/constants/");
       return response.data;
     },

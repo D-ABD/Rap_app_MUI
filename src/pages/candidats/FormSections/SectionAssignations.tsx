@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardHeader,
@@ -7,8 +7,8 @@ import {
   TextField,
   Button,
   FormHelperText,
-} from '@mui/material';
-import type { CandidatFormData } from '../../../types/candidat';
+} from "@mui/material";
+import type { CandidatFormData } from "../../../types/candidat";
 
 interface Props {
   form: CandidatFormData;
@@ -21,19 +21,14 @@ interface Props {
  * Section Assignations & visibilité du candidat
  * Gère le champ "vu_par" et ouvre la modale de sélection d’utilisateur.
  */
-export default function SectionAssignations({
-  form,
-  setForm,
-  showUsersModal,
-  setShowUsersModal,
-}: Props) {
+export default function SectionAssignations({ form, setForm, setShowUsersModal }: Props) {
   // ✅ Label dynamique simple basé sur form.vu_par
   const vuParLabel =
-    typeof form.vu_par === 'number'
+    typeof form.vu_par === "number"
       ? `Utilisateur #${form.vu_par}`
       : form.vu_par
-      ? String(form.vu_par)
-      : '';
+        ? String(form.vu_par)
+        : "";
 
   return (
     <Card variant="outlined">
@@ -56,7 +51,7 @@ export default function SectionAssignations({
               color="error"
               variant="outlined"
               onClick={() =>
-                setForm(f => ({
+                setForm((f) => ({
                   ...f,
                   vu_par: undefined,
                 }))

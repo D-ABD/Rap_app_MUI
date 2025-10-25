@@ -53,11 +53,7 @@ export default function CommentairesPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   // 🧩 données des filtres dynamiques
-  const {
-    filtres,
-    loading: filtresLoading,
-    error: filtresError,
-  } = useCommentairesFiltres();
+  const { filtres, loading: filtresLoading, error: filtresError } = useCommentairesFiltres();
 
   // 🧾 sélection
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -65,12 +61,17 @@ export default function CommentairesPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   // 📄 pagination
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   // ⚙️ fetch des commentaires
   const effectiveParams = useMemo(
-    () => ({ search, page, page_size: pageSize, ordering: "-created_at", ...filters }),
+    () => ({
+      search,
+      page,
+      page_size: pageSize,
+      ordering: "-created_at",
+      ...filters,
+    }),
     [search, page, pageSize, filters]
   );
 
@@ -91,14 +92,9 @@ export default function CommentairesPage() {
   }, [data, setCount]);
 
   // ✅ helpers sélection
-  const toggleSelect = useCallback(
-    (id: number) => {
-      setSelectedIds((prev) =>
-        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-      );
-    },
-    []
-  );
+  const toggleSelect = useCallback((id: number) => {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
+  }, []);
   const clearSelection = () => setSelectedIds([]);
   const selectAll = () => setSelectedIds(commentaires.map((c) => c.id));
 
@@ -129,11 +125,7 @@ export default function CommentairesPage() {
       onRefresh={fetchData}
       actions={
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
-          <Button
-            variant="outlined"
-            onClick={() => setShowFilters((v) => !v)}
-            fullWidth={isMobile}
-          >
+          <Button variant="outlined" onClick={() => setShowFilters((v) => !v)} fullWidth={isMobile}>
             {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
           </Button>
 
@@ -179,11 +171,7 @@ export default function CommentairesPage() {
 
           {selectedIds.length > 0 && (
             <>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button variant="contained" color="error" onClick={() => setShowConfirm(true)}>
                 🗑️ Supprimer ({selectedIds.length})
               </Button>
               <Button variant="outlined" onClick={selectAll}>
@@ -197,25 +185,24 @@ export default function CommentairesPage() {
         </Stack>
       }
       filters={
-        showFilters && (
-          filtresLoading ? (
-            <Typography sx={{ p: 2 }}>Chargement des filtres…</Typography>
-          ) : filtresError ? (
-            <Typography sx={{ p: 2 }} color="error">
-              Erreur lors du chargement des filtres.
-            </Typography>
-          ) : (
-            <FiltresCommentairesPanel
-              filtres={filtres ?? undefined}
-              values={filters}
-              onChange={(updated) => {
-                setFilters(updated);
-                setPage(1);
-              }}
-              onRefresh={fetchData}
-            />
-          )
-        )
+        showFilters &&
+        (filtresLoading ? (
+          <Typography sx={{ p: 2 }}>Chargement des filtres…</Typography>
+        ) : filtresError ? (
+          <Typography sx={{ p: 2 }} color="error">
+            Erreur lors du chargement des filtres.
+          </Typography>
+        ) : (
+          <FiltresCommentairesPanel
+            filtres={filtres ?? undefined}
+            values={filters}
+            onChange={(updated) => {
+              setFilters(updated);
+              setPage(1);
+            }}
+            onRefresh={fetchData}
+          />
+        ))
       }
       footer={
         count > 0 && (
@@ -242,9 +229,7 @@ export default function CommentairesPage() {
       {loading ? (
         <CircularProgress />
       ) : error ? (
-        <Typography color="error">
-          Erreur lors du chargement des commentaires.
-        </Typography>
+        <Typography color="error">Erreur lors du chargement des commentaires.</Typography>
       ) : commentaires.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
           <Box fontSize={48} mb={1}>
@@ -262,12 +247,7 @@ export default function CommentairesPage() {
       )}
 
       {/* Confirmation suppression */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

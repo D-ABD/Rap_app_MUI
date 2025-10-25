@@ -1,12 +1,6 @@
 // src/pages/appairages/appairage_comments/AppairageCommentForm.tsx
 import { useCallback, useEffect, useId, useState } from "react";
-import {
-  Box,
-  Button,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Stack, TextField, Typography } from "@mui/material";
 import type {
   AppairageCommentCreateInput,
   AppairageCommentUpdateInput,
@@ -16,21 +10,13 @@ import type {
 type Props = {
   initial?: AppairageCommentDTO | null;
   appairageId?: number;
-  onSubmit: (
-    data: AppairageCommentCreateInput | AppairageCommentUpdateInput
-  ) => Promise<void>;
+  onSubmit: (data: AppairageCommentCreateInput | AppairageCommentUpdateInput) => Promise<void>;
 };
 
 const MAX_BODY_LEN = 4000;
 
-export default function AppairageCommentForm({
-  initial = null,
-  appairageId,
-  onSubmit,
-}: Props) {
-  const [appairage, setAppairage] = useState<number | "">(
-    initial?.appairage ?? appairageId ?? ""
-  );
+export default function AppairageCommentForm({ initial = null, appairageId, onSubmit }: Props) {
+  const [appairage, setAppairage] = useState<number | "">(initial?.appairage ?? appairageId ?? "");
   const [body, setBody] = useState<string>(initial?.body ?? "");
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,13 +41,12 @@ export default function AppairageCommentForm({
 
       setSubmitting(true);
 
-      const payload: AppairageCommentCreateInput | AppairageCommentUpdateInput =
-        initial
-          ? { body: body.trim() } // update → seul le body est modifiable
-          : {
-              appairage: Number(appairage),
-              body: body.trim(),
-            };
+      const payload: AppairageCommentCreateInput | AppairageCommentUpdateInput = initial
+        ? { body: body.trim() } // update → seul le body est modifiable
+        : {
+            appairage: Number(appairage),
+            body: body.trim(),
+          };
 
       try {
         await onSubmit(payload);
@@ -78,12 +63,7 @@ export default function AppairageCommentForm({
   );
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      noValidate
-      sx={{ mt: 2 }}
-    >
+    <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 2 }}>
       <Stack spacing={2}>
         {/* Champ Appairage visible uniquement en création si pas fourni */}
         {!initial && appairageId == null && (
@@ -91,9 +71,7 @@ export default function AppairageCommentForm({
             label="Appairage ID"
             type="number"
             value={appairage}
-            onChange={(e) =>
-              setAppairage(Number(e.target.value) || "")
-            }
+            onChange={(e) => setAppairage(Number(e.target.value) || "")}
             required
             fullWidth
           />
@@ -118,16 +96,8 @@ export default function AppairageCommentForm({
           </Typography>
         )}
 
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={submitting}
-        >
-          {submitting
-            ? "Enregistrement…"
-            : initial
-            ? "Mettre à jour"
-            : "Enregistrer"}
+        <Button type="submit" variant="contained" disabled={submitting}>
+          {submitting ? "Enregistrement…" : initial ? "Mettre à jour" : "Enregistrer"}
         </Button>
       </Stack>
     </Box>

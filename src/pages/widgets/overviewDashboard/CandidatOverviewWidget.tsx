@@ -21,23 +21,14 @@ import {
 } from "../../../types/candidatStats";
 
 import ListAltIcon from "@mui/icons-material/ListAlt";
-
-// ✅ Recharts
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 // 🎨 Couleurs cohérentes
 const STATUS_COLORS = [
   "#fb8c00", // En appairage
   "#6d4c41", // En accompagnement
-  "#1e88e5", // En attente entretien (placeholder pour évolution)
-  "#ef5350", // Sans suivi (placeholder pour évolution)
+  "#1e88e5", // En attente entretien
+  "#ef5350", // Sans suivi
 ];
 
 export default function CandidatOverviewWidget({
@@ -47,17 +38,13 @@ export default function CandidatOverviewWidget({
   title?: string;
   initialFilters?: CandidatFilters;
 }) {
-  const [filters, setFilters] = React.useState<CandidatFilters>(
-    initialFilters ?? {}
-  );
+  const [filters, setFilters] = React.useState<CandidatFilters>(initialFilters ?? {});
 
   const { data, isLoading, error } = useCandidatOverview(filters);
-
-  const { data: centresGrouped, isLoading: loadingCentres } = useCandidatGrouped(
-    "centre",
-    { ...filters, centre: undefined }
-  );
-
+  const { data: centresGrouped, isLoading: loadingCentres } = useCandidatGrouped("centre", {
+    ...filters,
+    centre: undefined,
+  });
   const { data: depsGrouped } = useCandidatGrouped("departement", {
     ...filters,
     departement: undefined,
@@ -85,7 +72,10 @@ export default function CandidatOverviewWidget({
           (typeof r.departement === "string" && r.departement) ||
           (typeof r.group_key === "string" ? r.group_key : "");
         return code
-          ? { code: String(code), label: resolveCandidatGroupLabel(r, "departement") }
+          ? {
+              code: String(code),
+              label: resolveCandidatGroupLabel(r, "departement"),
+            }
           : null;
       })
       .filter((o): o is { code: string; label: string } => o !== null) ?? [];
@@ -94,15 +84,21 @@ export default function CandidatOverviewWidget({
 
   // ✅ Données camembert
   const statusData = [
-    { name: "En appairage", value: k?.en_appairage ?? 0, color: STATUS_COLORS[0] },
-    { name: "En accompagnement", value: k?.en_accompagnement ?? 0, color: STATUS_COLORS[1] },
+    {
+      name: "En appairage",
+      value: k?.en_appairage ?? 0,
+      color: STATUS_COLORS[0],
+    },
+    {
+      name: "En accompagnement",
+      value: k?.en_accompagnement ?? 0,
+      color: STATUS_COLORS[1],
+    },
   ];
 
   const totalStatus = statusData.reduce((acc, d) => acc + d.value, 0);
   const pct = (val: number) =>
-    totalStatus > 0
-      ? ((val / totalStatus) * 100).toFixed(1).replace(/\.0$/, "")
-      : "0";
+    totalStatus > 0 ? ((val / totalStatus) * 100).toFixed(1).replace(/\.0$/, "") : "0";
 
   return (
     <Card
@@ -113,6 +109,7 @@ export default function CandidatOverviewWidget({
         gap: 2,
         borderRadius: 2,
         height: "100%",
+        minHeight: 360, // ✅ évite les hauteurs nulles pendant le rendu
       }}
     >
       {/* Header */}
@@ -182,7 +179,17 @@ export default function CandidatOverviewWidget({
       </Box>
 
       {/* Camembert statuts */}
-      <Box flex={1} minWidth={280} height={240}>
+      <Box
+        sx={{
+          width: "100%",
+          flex: 1,
+          minWidth: 0, // ✅ empêche les tailles négatives
+          minHeight: 240, // ✅ hauteur stable
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         {isLoading ? (
           <Box display="flex" justifyContent="center" p={2}>
             <CircularProgress size={22} />
@@ -190,7 +197,7 @@ export default function CandidatOverviewWidget({
         ) : error ? (
           <Alert severity="error">{getErrorMessage(error)}</Alert>
         ) : (
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
                 data={statusData}
@@ -199,18 +206,14 @@ export default function CandidatOverviewWidget({
                 outerRadius="80%"
                 dataKey="value"
                 labelLine={false}
-                label={({ name, value }) =>
-                  `${name} (${pct(value as number)}%)`
-                }
+                label={({ name, value }) => `${name} (${pct(value as number)}%)`}
               >
                 {statusData.map((entry, index) => (
                   <Cell key={`status-${index}`} fill={entry.color} />
                 ))}
               </Pie>
               <Tooltip
-                formatter={(v, n) =>
-                  [`${v} candidats (${pct(v as number)}%)`, n as string]
-                }
+                formatter={(v, n) => [`${v} candidats (${pct(v as number)}%)`, n as string]}
               />
               <Legend verticalAlign="bottom" height={30} iconType="circle" />
             </PieChart>

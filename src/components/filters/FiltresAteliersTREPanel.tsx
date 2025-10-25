@@ -1,20 +1,9 @@
 // src/components/filters/FiltresAteliersTREPanel.tsx
 import React, { useCallback, useMemo } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  Typography,
-  MenuItem,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, Typography, MenuItem } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 
-import type {
-  Choice,
-  AtelierTREFiltresValues,
-  TypeAtelier,
-} from "../../types/ateliersTre";
+import type { Choice, AtelierTREFiltresValues, TypeAtelier } from "../../types/ateliersTre";
 
 type Props = {
   options: { type_atelier: Choice[]; centre?: Choice[] } | undefined;
@@ -25,9 +14,8 @@ type Props = {
 };
 
 const map = <T,>(arr?: T[]) => arr ?? [];
-const withPlaceholder = (
-  opts: Array<{ value: string | number; label: string }>
-) => (opts.length ? opts : [{ value: "", label: "—" }]);
+const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
+  opts.length ? opts : [{ value: "", label: "—" }];
 
 function buildReset(values: AtelierTREFiltresValues): AtelierTREFiltresValues {
   return {
@@ -52,18 +40,14 @@ export default function FiltresAteliersTREPanel({
   const typeChoices = map(options?.type_atelier);
   const centreChoices = map(options?.centre);
 
-  const onLocalSearchChange = useCallback<
-    React.ChangeEventHandler<HTMLInputElement>
-  >(
+  const onLocalSearchChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
     (e) => {
       onChange({ ...values, search: e.target.value, page: 1 });
     },
     [onChange, values]
   );
 
-  const onSearchKeyDown = useCallback<
-    React.KeyboardEventHandler<HTMLInputElement>
-  >(
+  const onSearchKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
     (e) => {
       if (e.key === "Escape") {
         e.preventDefault();
@@ -116,17 +100,10 @@ export default function FiltresAteliersTREPanel({
             mb={1.5}
             flexWrap={{ xs: "wrap", md: "nowrap" }}
           >
-            <label
-              htmlFor="ateliers-search-input"
-              style={visuallyHidden as React.CSSProperties}
-            >
+            <label htmlFor="ateliers-search-input" style={visuallyHidden as React.CSSProperties}>
               Rechercher des ateliers
             </label>
-            <Typography
-              component="span"
-              id="ateliers-search-help"
-              sx={visuallyHidden}
-            >
+            <Typography component="span" id="ateliers-search-help" sx={visuallyHidden}>
               Tapez votre recherche. Appuyez sur Échap pour effacer.
             </Typography>
 
@@ -147,9 +124,7 @@ export default function FiltresAteliersTREPanel({
             {values.search && (
               <Button
                 variant="outlined"
-                onClick={() =>
-                  onChange({ ...values, search: "", page: 1 })
-                }
+                onClick={() => onChange({ ...values, search: "", page: 1 })}
               >
                 ✕
               </Button>
@@ -157,12 +132,7 @@ export default function FiltresAteliersTREPanel({
           </Stack>
 
           {/* 📅 Dates */}
-          <Stack
-            direction="row"
-            spacing={1}
-            mb={1.5}
-            flexWrap={{ xs: "wrap", md: "nowrap" }}
-          >
+          <Stack direction="row" spacing={1} mb={1.5} flexWrap={{ xs: "wrap", md: "nowrap" }}>
             <TextField
               type="date"
               size="small"
@@ -202,10 +172,7 @@ export default function FiltresAteliersTREPanel({
             onChange={(e) =>
               onChange({
                 ...values,
-                type_atelier:
-                  e.target.value === ""
-                    ? undefined
-                    : (e.target.value as TypeAtelier), // ✅ cast
+                type_atelier: e.target.value === "" ? undefined : (e.target.value as TypeAtelier), // ✅ cast
                 page: 1,
               })
             }
@@ -233,10 +200,7 @@ export default function FiltresAteliersTREPanel({
               onChange={(e) =>
                 onChange({
                   ...values,
-                  centre:
-                    e.target.value === ""
-                      ? undefined
-                      : Number(e.target.value), // ✅ conversion number
+                  centre: e.target.value === "" ? undefined : Number(e.target.value), // ✅ conversion number
                   page: 1,
                 })
               }
@@ -261,9 +225,7 @@ export default function FiltresAteliersTREPanel({
             size="small"
             label="↕️ Tri"
             value={values.ordering ?? "-date_atelier"}
-            onChange={(e) =>
-              onChange({ ...values, ordering: e.target.value, page: 1 })
-            }
+            onChange={(e) => onChange({ ...values, ordering: e.target.value, page: 1 })}
             sx={{ minWidth: 200, mr: 2, mb: 1.5 }}
           >
             <MenuItem value="-date_atelier">📅 Date (récent→ancien)</MenuItem>
@@ -278,9 +240,7 @@ export default function FiltresAteliersTREPanel({
           <Stack direction="row" spacing={1} mt={2}>
             <Button
               variant="outlined"
-              onClick={() =>
-                actions.onReset ? actions.onReset() : undefined
-              }
+              onClick={() => (actions.onReset ? actions.onReset() : undefined)}
             >
               {actions.resetLabel}
             </Button>

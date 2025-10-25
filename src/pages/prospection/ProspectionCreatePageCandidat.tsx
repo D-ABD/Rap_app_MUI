@@ -40,14 +40,8 @@ export default function ProspectionCreatePageCandidat() {
   const { create, loading: creating, error: createError } = useCreateProspection();
 
   const [searchParams] = useSearchParams();
-  const presetPartenaire = useMemo(
-    () => toNum(searchParams.get("partenaire")),
-    [searchParams]
-  );
-  const presetFormation = useMemo(
-    () => toNum(searchParams.get("formation")),
-    [searchParams]
-  );
+  const presetPartenaire = useMemo(() => toNum(searchParams.get("partenaire")), [searchParams]);
+  const presetFormation = useMemo(() => toNum(searchParams.get("formation")), [searchParams]);
 
   // 🔎 nom du partenaire si ?partenaire=.. présent
   const { data: partenaireData } = usePartenaire(presetPartenaire ?? undefined);
@@ -130,9 +124,7 @@ export default function ProspectionCreatePageCandidat() {
       const created = await create(payload);
       toast.success("✅ Prospection créée avec succès");
 
-      const wantsComment = window.confirm(
-        "Souhaitez-vous ajouter un commentaire maintenant ?"
-      );
+      const wantsComment = window.confirm("Souhaitez-vous ajouter un commentaire maintenant ?");
       const createdId = extractCreatedId(created);
 
       if (wantsComment && createdId) {
@@ -148,9 +140,7 @@ export default function ProspectionCreatePageCandidat() {
   return (
     <PageTemplate title="➕ Nouvelle prospection" backButton onBack={() => navigate(-1)}>
       {createError ? (
-        <Typography color="error">
-          ❌ Impossible d’initialiser le formulaire.
-        </Typography>
+        <Typography color="error">❌ Impossible d’initialiser le formulaire.</Typography>
       ) : (
         <ProspectionFormCandidat
           key={`create-cand-${presetPartenaire ?? "none"}-${partenaireNom ?? ""}-${presetFormation ?? "none"}-${formationNom ?? ""}`}

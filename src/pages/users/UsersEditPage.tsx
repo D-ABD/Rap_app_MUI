@@ -31,19 +31,17 @@ export default function UsersEditPage() {
   const [loading, setLoading] = useState(true);
   const [showFormationModal, setShowFormationModal] = useState(false);
 
-  const { values, errors, setValues, setErrors, handleChange } =
-    useForm<UserUpdatePayload>({
-      username: "",
-      first_name: "",
-      last_name: "",
-      phone: "",
-      bio: "",
-      role: undefined,
-      formation: undefined,
-    });
+  const { values, errors, setValues, setErrors, handleChange } = useForm<UserUpdatePayload>({
+    username: "",
+    first_name: "",
+    last_name: "",
+    phone: "",
+    bio: "",
+    role: undefined,
+    formation: undefined,
+  });
 
-  const isCandidatOuStagiaire =
-    values.role === "stagiaire" || values.role === "candidat";
+  const isCandidatOuStagiaire = values.role === "stagiaire" || values.role === "candidat";
 
   useEffect(() => {
     if (!id) return;
@@ -94,8 +92,7 @@ export default function UsersEditPage() {
       const rawErrors = error?.response?.data?.errors;
 
       if (rawErrors) {
-        const parsedErrors: Partial<Record<keyof UserUpdatePayload, string>> =
-          {};
+        const parsedErrors: Partial<Record<keyof UserUpdatePayload, string>> = {};
         for (const key in rawErrors) {
           const messages = rawErrors[key];
           if (Array.isArray(messages) && typeof messages[0] === "string") {
@@ -203,10 +200,7 @@ export default function UsersEditPage() {
                   {values.formation && (
                     <Typography variant="body2" sx={{ mt: 1 }}>
                       ✅ Formation sélectionnée :{" "}
-                      {
-                        formations.find((f) => f.id === values.formation)?.nom ||
-                        "—"
-                      }
+                      {formations.find((f) => f.id === values.formation)?.nom || "—"}
                     </Typography>
                   )}
 
@@ -219,19 +213,10 @@ export default function UsersEditPage() {
               )}
 
               <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="success"
-                  disabled={loadingRoles}
-                >
+                <Button type="submit" variant="contained" color="success" disabled={loadingRoles}>
                   💾 Enregistrer
                 </Button>
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={() => navigate("/users")}
-                >
+                <Button type="button" variant="outlined" onClick={() => navigate("/users")}>
                   Annuler
                 </Button>
               </Stack>

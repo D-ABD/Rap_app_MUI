@@ -16,9 +16,10 @@ import axios from "axios";
 // Debug utils (désactivez en mettant à false)
 const DEBUG_ATELIERS = true;
 
-const dbg = (...args: ReadonlyArray<unknown>): void => {
+const dbg = (..._args: ReadonlyArray<unknown>): void => {
   if (!DEBUG_ATELIERS) return;
 };
+
 // ──────────────────────────────────────────────────────────────────────────────
 
 // Util: clé stable pour les deps (stringify simple)
@@ -38,8 +39,7 @@ const isAxiosErr = (e: unknown): e is AxiosError<unknown> =>
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
 
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null;
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 
 const hasArrayProp = <K extends string>(
   obj: Record<string, unknown>,
@@ -49,8 +49,7 @@ const hasArrayProp = <K extends string>(
 const hasStringOrNullProp = <K extends string>(
   obj: Record<string, unknown>,
   key: K
-): obj is Record<K, string | null> =>
-  typeof obj[key] === "string" || obj[key] === null;
+): obj is Record<K, string | null> => typeof obj[key] === "string" || obj[key] === null;
 
 const hasNumberProp = <K extends string>(
   obj: Record<string, unknown>,
@@ -80,14 +79,9 @@ function normalizeListResponse(payload: unknown): AtelierTREListResponse {
   if (isObject(payload)) {
     if (hasArrayProp(payload, "results")) {
       const results = payload["results"] as unknown[];
-      const count =
-        hasNumberProp(payload, "count") ? payload["count"] : results.length;
-      const next = hasStringOrNullProp(payload, "next")
-        ? payload["next"]
-        : null;
-      const previous = hasStringOrNullProp(payload, "previous")
-        ? payload["previous"]
-        : null;
+      const count = hasNumberProp(payload, "count") ? payload["count"] : results.length;
+      const next = hasStringOrNullProp(payload, "next") ? payload["next"] : null;
+      const previous = hasStringOrNullProp(payload, "previous") ? payload["previous"] : null;
       return {
         count,
         next,
@@ -112,12 +106,9 @@ function normalizeListResponse(payload: unknown): AtelierTREListResponse {
       const inner = payload["data"] as Record<string, unknown>;
       if (hasArrayProp(inner, "results")) {
         const results = inner["results"] as unknown[];
-        const count =
-          hasNumberProp(inner, "count") ? inner["count"] : results.length;
+        const count = hasNumberProp(inner, "count") ? inner["count"] : results.length;
         const next = hasStringOrNullProp(inner, "next") ? inner["next"] : null;
-        const previous = hasStringOrNullProp(inner, "previous")
-          ? inner["previous"]
-          : null;
+        const previous = hasStringOrNullProp(inner, "previous") ? inner["previous"] : null;
         return {
           count,
           next,
@@ -213,12 +204,9 @@ export function useAteliersTRE(params: Partial<AtelierTREFiltresValues> = {}) {
           contentType:
             (res as { headers?: Record<string, unknown> }).headers &&
             isObject((res as { headers?: Record<string, unknown> }).headers) &&
-            typeof (res as { headers?: Record<string, unknown> }).headers![
-              "content-type"
-            ] === "string"
-              ? ((res as { headers?: Record<string, string> }).headers![
-                  "content-type"
-                ] as string)
+            typeof (res as { headers?: Record<string, unknown> }).headers!["content-type"] ===
+              "string"
+              ? ((res as { headers?: Record<string, string> }).headers!["content-type"] as string)
               : null,
         });
 
@@ -392,7 +380,10 @@ export function useAddCandidatsToAtelierTRE() {
       const r = await api.post<AtelierTRE>(`/ateliers-tre/${id}/add-candidats/`, {
         candidats,
       });
-      dbg("addCandidats.success", { id: r.data.id, nb_inscrits: r.data.nb_inscrits });
+      dbg("addCandidats.success", {
+        id: r.data.id,
+        nb_inscrits: r.data.nb_inscrits,
+      });
       return r.data;
     } catch (e) {
       if (isAxiosErr(e)) {
@@ -417,7 +408,10 @@ export function useRemoveCandidatsFromAtelierTRE() {
       const r = await api.post<AtelierTRE>(`/ateliers-tre/${id}/remove-candidats/`, {
         candidats,
       });
-      dbg("removeCandidats.success", { id: r.data.id, nb_inscrits: r.data.nb_inscrits });
+      dbg("removeCandidats.success", {
+        id: r.data.id,
+        nb_inscrits: r.data.nb_inscrits,
+      });
       return r.data;
     } catch (e) {
       if (isAxiosErr(e)) {
@@ -452,7 +446,10 @@ export function useAtelierTREMeta() {
         const res = await api.get<AtelierTREMeta>("/ateliers-tre/meta/", {
           signal: ctrl.signal,
         });
-        dbg("useAtelierTREMeta.success", { http: res.status, keys: Object.keys(res.data ?? {}) });
+        dbg("useAtelierTREMeta.success", {
+          http: res.status,
+          keys: Object.keys(res.data ?? {}),
+        });
         setMeta(res.data);
       } catch (e: unknown) {
         if (isAbort(e)) {
@@ -495,11 +492,7 @@ function pickChoices(meta: unknown, key: string): Choice[] {
   }
   if ("choices" in (meta as Record<string, unknown>)) {
     const choices = (meta as Record<string, unknown>).choices;
-    if (
-      choices &&
-      typeof choices === "object" &&
-      key in (choices as Record<string, unknown>)
-    ) {
+    if (choices && typeof choices === "object" && key in (choices as Record<string, unknown>)) {
       const v = (choices as Record<string, unknown>)[key];
       if (Array.isArray(v)) return v as Choice[];
     }
@@ -533,42 +526,37 @@ export function useExportAteliersTRE() {
    * en respectant les filtres actuels et les permissions du backend.
    */
   const exportXlsx = async (params?: Partial<AtelierTREFiltresValues>) => {
-    try {
-      const res = await api.get<Blob>("/ateliers-tre/export-xlsx/", {
-        params,
-        responseType: "blob",
-      });
+    const res = await api.get<Blob>("/ateliers-tre/export-xlsx/", {
+      params,
+      responseType: "blob",
+    });
 
-      // Récupère le nom de fichier depuis le header Content-Disposition
-      const disposition = res.headers["content-disposition"];
-      let filename = "ateliers_tre.xlsx";
-      if (disposition) {
-        const match = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
-        if (match && match[1]) {
-          filename = decodeURIComponent(match[1].replace(/['"]/g, ""));
-        }
+    // Récupère le nom de fichier depuis le header Content-Disposition
+    const disposition = res.headers["content-disposition"];
+    let filename = "ateliers_tre.xlsx";
+    if (disposition) {
+      const match = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+      if (match && match[1]) {
+        filename = decodeURIComponent(match[1].replace(/['"]/g, ""));
       }
-
-      // Crée le lien de téléchargement
-      const blob = new Blob([res.data], {
-        type:
-          res.headers["content-type"] ||
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const link = document.createElement("a");
-      const url = window.URL.createObjectURL(blob);
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-
-      return true;
-    } catch (e) {
-      console.error("❌ Erreur export ateliers TRE :", e);
-      throw e;
     }
+
+    // Crée le lien de téléchargement
+    const blob = new Blob([res.data], {
+      type:
+        res.headers["content-type"] ||
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const link = document.createElement("a");
+    const url = window.URL.createObjectURL(blob);
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+
+    return true;
   };
 
   return { exportXlsx };

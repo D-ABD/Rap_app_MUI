@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+// src/hooks/useAppairage.ts
+import { useState, useEffect, useMemo } from "react";
 import api from "../api/axios";
 import {
   Appairage,
@@ -12,21 +13,21 @@ import {
   CommentaireAppairage,
 } from "../types/appairage";
 
-export function useListAppairages(
-  params: AppairageFiltresValues = {},
-  reloadKey?: number
-) {
-  const [data, setData] = useState<PaginatedResults<AppairageListItem> | null>(
-    null
-  );
+/* ──────────────── Liste des appairages ──────────────── */
+/* ──────────────── Liste des appairages ──────────────── */
+export function useListAppairages(params: AppairageFiltresValues = {}, reloadKey?: number) {
+  const [data, setData] = useState<PaginatedResults<AppairageListItem> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // ✅ Clé stable pour détecter les changements de paramètres
+  const paramsKey = useMemo(() => JSON.stringify(params), [params]);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
 
-    // Nettoyage des params avant envoi
+    // Nettoyage des paramètres avant l’envoi
     const cleanParams = Object.fromEntries(
       Object.entries(params).filter(([_, v]) => v !== undefined && v !== null)
     );
@@ -37,24 +38,22 @@ export function useListAppairages(
         const actualData = res.data.data || res.data;
         setData(actualData as PaginatedResults<AppairageListItem>);
       })
-      .catch((err) => {
-        console.error("❌ [useListAppairages] Error:", err);
-        setError(err);
-      })
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
-  }, [JSON.stringify(params), reloadKey]); // 👈 stringify pour bien détecter tout changement
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paramsKey, reloadKey]); // ✅ pas de warning ESLint, dépendance stable
 
   return { data, loading, error };
 }
 
-/* ✅ Correction principale : id peut être null ou undefined */
+/* ──────────────── Détail d’un appairage ──────────────── */
 export function useAppairage(id?: number | null) {
   const [data, setData] = useState<Appairage | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // ⛔ Ignore si id invalide
     if (!id || id <= 0) {
       setData(null);
       setLoading(false);
@@ -66,19 +65,15 @@ export function useAppairage(id?: number | null) {
 
     api
       .get(`/appairages/${id}/`)
-      .then((res) => {
-        setData(res.data as Appairage);
-      })
-      .catch((err) => {
-        console.error("❌ [useAppairage] Error:", err);
-        setError(err);
-      })
+      .then((res) => setData(res.data as Appairage))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, [id]);
 
   return { data, loading, error };
 }
 
+/* ──────────────── Création ──────────────── */
 export function useCreateAppairage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -89,7 +84,6 @@ export function useCreateAppairage() {
       const res = await api.post("/appairages/", payload);
       return res.data as Appairage;
     } catch (err) {
-      console.error("❌ [useCreateAppairage] Error:", err);
       setError(err as Error);
       throw err;
     } finally {
@@ -100,6 +94,7 @@ export function useCreateAppairage() {
   return { create, loading, error };
 }
 
+/* ──────────────── Mise à jour ──────────────── */
 export function useUpdateAppairage(id: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -110,7 +105,6 @@ export function useUpdateAppairage(id: number) {
       const res = await api.patch(`/appairages/${id}/`, payload);
       return res.data as Appairage;
     } catch (err) {
-      console.error("❌ [useUpdateAppairage] Error:", err);
       setError(err as Error);
       throw err;
     } finally {
@@ -121,6 +115,7 @@ export function useUpdateAppairage(id: number) {
   return { update, loading, error };
 }
 
+/* ──────────────── Suppression ──────────────── */
 export function useDeleteAppairage(id: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -140,6 +135,7 @@ export function useDeleteAppairage(id: number) {
   return { remove, loading, error };
 }
 
+/* ──────────────── Métadonnées ──────────────── */
 export function useAppairageMeta() {
   const [data, setData] = useState<AppairageMeta | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,16 +151,14 @@ export function useAppairageMeta() {
         const metaData = res.data.data || res.data;
         setData(metaData as AppairageMeta);
       })
-      .catch((err) => {
-        console.error("❌ [useAppairageMeta] Error:", err);
-        setError(err);
-      })
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
 
   return { data, loading, error };
 }
 
+/* ──────────────── Historique ──────────────── */
 export function useAppairageHistoriques(appairageId: number) {
   const [data, setData] = useState<HistoriqueAppairage[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -176,19 +170,15 @@ export function useAppairageHistoriques(appairageId: number) {
 
     api
       .get(`/appairages/${appairageId}/historiques/`)
-      .then((res) => {
-        setData(res.data as HistoriqueAppairage[]);
-      })
-      .catch((err) => {
-        console.error("❌ [useAppairageHistoriques] Error:", err);
-        setError(err);
-      })
+      .then((res) => setData(res.data as HistoriqueAppairage[]))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, [appairageId]);
 
   return { data, loading, error };
 }
 
+/* ──────────────── Commentaires ──────────────── */
 export function useAppairageComments(appairageId: number) {
   const [data, setData] = useState<CommentaireAppairage[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -197,6 +187,7 @@ export function useAppairageComments(appairageId: number) {
   useEffect(() => {
     if (!appairageId) return;
     setLoading(true);
+
     api
       .get(`/appairages/${appairageId}/commentaires/`)
       .then((res) => setData(res.data))
@@ -205,10 +196,7 @@ export function useAppairageComments(appairageId: number) {
   }, [appairageId]);
 
   const addComment = async (payload: { body: string; is_internal?: boolean }) => {
-    const res = await api.post(
-      `/appairages/${appairageId}/commentaires/`,
-      payload
-    );
+    const res = await api.post(`/appairages/${appairageId}/commentaires/`, payload);
     setData((prev) => (prev ? [res.data, ...prev] : [res.data]));
     return res.data;
   };

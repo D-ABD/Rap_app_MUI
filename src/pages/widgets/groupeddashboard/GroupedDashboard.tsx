@@ -7,15 +7,14 @@ import AppairageGroupedTableWidget from "./AppairageGroupedTableWidget";
 import CandidatGroupedTableWidget from "./CandidatGroupedTableWidget";
 import AteliersTREGroupedWidget from "./AteliersTREGroupedWidget";
 
-
 export default function GroupedDashboard() {
   return (
     <Box
       display="flex"
-      flexDirection="column"   // 👈 un widget par ligne
+      flexDirection="column" // 👈 un widget par ligne
       gap={2}
       width="100%"
-      overflow="hidden"        // évite le scroll horizontal global
+      overflow="hidden" // évite le scroll horizontal global
     >
       {/* 🎯 Formation */}
       <FormationGroupedWidget />

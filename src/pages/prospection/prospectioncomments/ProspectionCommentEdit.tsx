@@ -1,12 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 
 import PageTemplate from "../../../components/PageTemplate";
 import ProspectionCommentForm from "./ProspectionCommentForm";
@@ -23,16 +17,13 @@ export default function ProspectionCommentEditPage() {
 
   const { data: initial, loading, error } = useProspectionComment(id ?? null);
   const { update, error: updateError } = useUpdateProspectionComment(id ?? "");
-  const { toggleArchive, loading: archiving } =
-    useArchiveProspectionComment(id ?? ""); // 🆕
+  const { toggleArchive, loading: archiving } = useArchiveProspectionComment(id ?? ""); // 🆕
 
   const numericId = id ? Number(id) : NaN;
   const hasValidId = !!id && Number.isFinite(numericId);
 
   const { user } = useAuth();
-  const canSetInternal = ["staff", "admin", "superadmin"].includes(
-    user?.role ?? ""
-  );
+  const canSetInternal = ["staff", "admin", "superadmin"].includes(user?.role ?? "");
 
   const handleSubmit = async (data: { body: string; is_internal?: boolean }) => {
     try {
@@ -52,9 +43,7 @@ export default function ProspectionCommentEditPage() {
       const isArchived = initial.activite === "archive";
       const newState = await toggleArchive(isArchived);
       toast.success(
-        newState === "archive"
-          ? "📦 Commentaire archivé"
-          : "♻️ Commentaire désarchivé"
+        newState === "archive" ? "📦 Commentaire archivé" : "♻️ Commentaire désarchivé"
       );
       // ✅ maj locale cohérente
       initial.activite = newState;
@@ -100,9 +89,7 @@ export default function ProspectionCommentEditPage() {
 
   return (
     <PageTemplate
-      title={`Commentaire #${numericId} — ${
-        isArchived ? "Archivé" : "Actif"
-      }`}
+      title={`Commentaire #${numericId} — ${isArchived ? "Archivé" : "Actif"}`}
       actions={
         <Stack direction="row" spacing={1}>
           {/* 🆕 Bouton Archiver / Désarchiver */}
@@ -112,25 +99,15 @@ export default function ProspectionCommentEditPage() {
             onClick={handleArchiveToggle}
             disabled={archiving}
           >
-            {archiving
-              ? "⏳ En cours…"
-              : isArchived
-              ? "♻️ Désarchiver"
-              : "📦 Archiver"}
+            {archiving ? "⏳ En cours…" : isArchived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
 
           {/* ✅ Boutons de navigation */}
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/prospection-commentaires")}
-          >
+          <Button variant="outlined" onClick={() => navigate("/prospection-commentaires")}>
             ← Retour
           </Button>
 
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/prospection-commentaires")}
-          >
+          <Button variant="outlined" onClick={() => navigate("/prospection-commentaires")}>
             Liste
           </Button>
         </Stack>
@@ -138,9 +115,7 @@ export default function ProspectionCommentEditPage() {
     >
       {updateError && (
         <Box mb={2}>
-          <Typography color="error">
-            ❌ Impossible de mettre à jour le commentaire.
-          </Typography>
+          <Typography color="error">❌ Impossible de mettre à jour le commentaire.</Typography>
         </Box>
       )}
 

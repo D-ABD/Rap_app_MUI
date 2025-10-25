@@ -52,15 +52,7 @@ export default function AteliersTrePage() {
   }, [showFilters]);
 
   // pagination
-  const {
-    page,
-    setPage,
-    pageSize,
-    setPageSize,
-    count,
-    setCount,
-    totalPages,
-  } = usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   type EffectiveFilters = AtelierTREFiltresValues & {
     page: number;
@@ -88,10 +80,7 @@ export default function AteliersTrePage() {
   const { options, loading: loadingOptions } = useAtelierTREFiltresOptions();
   const { remove } = useDeleteAtelierTRE();
 
-  const items: AtelierTRE[] = useMemo(
-    () => pageData?.results ?? [],
-    [pageData]
-  );
+  const items: AtelierTRE[] = useMemo(() => pageData?.results ?? [], [pageData]);
 
   useEffect(() => {
     const c = pageData?.count ?? 0;
@@ -145,10 +134,7 @@ export default function AteliersTrePage() {
       }}
       actions={
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
-          <Button
-            variant="outlined"
-            onClick={() => setShowFilters((v) => !v)}
-          >
+          <Button variant="outlined" onClick={() => setShowFilters((v) => !v)}>
             {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
             {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
           </Button>
@@ -168,10 +154,7 @@ export default function AteliersTrePage() {
             ))}
           </Select>
 
-          <Button
-            variant="contained"
-            onClick={() => navigate("/ateliers-tre/create")}
-          >
+          <Button variant="contained" onClick={() => navigate("/ateliers-tre/create")}>
             ➕ Nouvel atelier
           </Button>
 
@@ -193,9 +176,7 @@ export default function AteliersTrePage() {
             }}
           />
         ) : (
-          <Typography color="error">
-            ⚠️ Impossible de charger les filtres
-          </Typography>
+          <Typography color="error">⚠️ Impossible de charger les filtres</Typography>
         ))
       }
       footer={
@@ -222,9 +203,7 @@ export default function AteliersTrePage() {
       {loading ? (
         <CircularProgress />
       ) : error ? (
-        <Typography color="error">
-          ⚠️ Erreur de chargement des ateliers.
-        </Typography>
+        <Typography color="error">⚠️ Erreur de chargement des ateliers.</Typography>
       ) : !items.length ? (
         <Box textAlign="center" color="text.secondary" my={4}>
           <Typography>Aucun atelier trouvé.</Typography>
@@ -254,9 +233,7 @@ export default function AteliersTrePage() {
       <Dialog open={showConfirm} onClose={() => setShowConfirm(false)}>
         <DialogTitle>Confirmation</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Supprimer cet atelier ?
-          </DialogContentText>
+          <DialogContentText>Supprimer cet atelier ?</DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowConfirm(false)}>Annuler</Button>

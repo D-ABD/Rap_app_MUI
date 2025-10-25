@@ -12,14 +12,7 @@ import {
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SchoolIcon from "@mui/icons-material/School";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 import {
   Filters,
@@ -28,31 +21,21 @@ import {
   useFormationGrouped,
 } from "../../../types/formationStats";
 
-/* Utils */
+/* 🧮 Utils */
 function toFixed0(n?: number | null) {
   return n == null ? "—" : Math.round(n).toString();
 }
-function omit<T extends object, K extends keyof T>(
-  obj: T,
-  keys: K[]
-): Omit<T, K> {
+function omit<T extends object, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> {
   const clone: T = { ...obj };
   for (const k of keys) delete clone[k];
   return clone;
 }
 
-// 🎨 couleurs cohérentes avec MUI
+/* 🎨 Couleurs cohérentes */
 const COLORS = ["#4caf50", "#ff9800", "#2196f3"];
 
-// ✅ Label custom : juste le % au centre de la part
-const renderLabel = ({
-  cx,
-  cy,
-  midAngle,
-  innerRadius,
-  outerRadius,
-  percent,
-}: any) => {
+/* 🏷️ Label custom pourcentage */
+const renderLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
   const RADIAN = Math.PI / 180;
   const radius = innerRadius + (outerRadius - innerRadius) / 2;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -79,36 +62,26 @@ export default function FormationOverviewWidget({
   title?: string;
   filters?: Filters;
 }) {
-  const [localFilters, setLocalFilters] = React.useState<Filters>(
-    filters ?? {}
-  );
+  const [localFilters, setLocalFilters] = React.useState<Filters>(filters ?? {});
   const [includeArchived, setIncludeArchived] = React.useState(false);
 
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
-  // On fusionne les filtres avec le flag d’archives
+  // Applique le flag “archivées”
   const effectiveFilters = {
     ...localFilters,
     ...(includeArchived ? { avec_archivees: true } : {}),
   };
 
-  const centreQuery = useFormationGrouped(
-    "centre",
-    omit(localFilters, ["centre"])
-  );
-  const deptQuery = useFormationGrouped(
-    "departement",
-    omit(localFilters, ["departement"])
-  );
-("Filters envoyés :", effectiveFilters);
+  const centreQuery = useFormationGrouped("centre", omit(localFilters, ["centre"]));
+  const deptQuery = useFormationGrouped("departement", omit(localFilters, ["departement"]));
 
-  const { data, isLoading, error, refetch, isFetching } =
-    useFormationOverview(effectiveFilters);
+  const { data, isLoading, error, refetch, isFetching } = useFormationOverview(effectiveFilters);
   const k = data?.kpis;
 
-  // Options select
+  // Options filtres
   const centreOptions =
     centreQuery.data?.results
       ?.map((r: GroupRow) => {
@@ -133,18 +106,17 @@ export default function FormationOverviewWidget({
       })
       .filter(Boolean) ?? [];
 
-  // Données pour le camembert
-  const pieData =
-    k && [
-      { name: "Actives", value: k.nb_actives ?? 0 },
-      { name: "À venir", value: k.nb_a_venir ?? 0 },
-      { name: "Finies", value: k.nb_terminees ?? 0 },
-    ];
+  // Données du camembert
+  const pieData = k && [
+    { name: "Actives", value: k.nb_actives ?? 0 },
+    { name: "À venir", value: k.nb_a_venir ?? 0 },
+    { name: "Finies", value: k.nb_terminees ?? 0 },
+  ];
 
-  // 🔁 Rafraîchit automatiquement si on change l’état des archivées
+  // 🔁 Refetch si on bascule “archivées”
   React.useEffect(() => {
     refetch();
-  }, [includeArchived]);
+  }, [includeArchived, refetch]); // ✅ ajouté refetch dans les dépendances
 
   return (
     <Card
@@ -155,6 +127,7 @@ export default function FormationOverviewWidget({
         gap: 2,
         borderRadius: 2,
         height: "100%",
+        minHeight: 360, // ✅ stabilité de la hauteur
       }}
     >
       {/* Header */}
@@ -198,9 +171,7 @@ export default function FormationOverviewWidget({
             onChange={(e) =>
               setLocalFilters((f) => ({
                 ...f,
-                departement: e.target.value
-                  ? String(e.target.value)
-                  : undefined,
+                departement: e.target.value ? String(e.target.value) : undefined,
               }))
             }
             sx={{ minWidth: 100 }}
@@ -214,7 +185,7 @@ export default function FormationOverviewWidget({
             ))}
           </Select>
 
-          {/* 🔘 Bouton inclure archivées */}
+          {/* 🔘 Bouton archivées */}
           <Button
             size="small"
             variant={includeArchived ? "contained" : "outlined"}
@@ -224,6 +195,7 @@ export default function FormationOverviewWidget({
             {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
           </Button>
 
+          {/* 🔁 Rafraîchir */}
           <Button
             size="small"
             variant="outlined"
@@ -253,52 +225,51 @@ export default function FormationOverviewWidget({
         </Box>
       )}
 
-      {/* Camembert */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress size={20} />
-        </Box>
-      ) : error ? (
-        <Alert severity="error">{(error as Error).message}</Alert>
-      ) : pieData ? (
-        <Box sx={{ height: 240 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={pieData}
-                cx="50%"
-                cy="50%"
-                innerRadius="40%"
-                outerRadius="80%"
-                paddingAngle={3}
-                dataKey="value"
-                labelLine={false}
-                label={renderLabel}
-              >
-                {pieData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip formatter={(v) => `${v} formations`} />
-              <Legend
-                verticalAlign="bottom"
-                height={40}
-                iconType="circle"
-                wrapperStyle={{
-                  fontSize: 11,
-                  display: "flex",
-                  flexWrap: "wrap",
-                  justifyContent: "center",
-                  lineHeight: "14px",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        </Box>
-      ) : null}
+      {/* Graphique camembert */}
+      <Box sx={{ flex: 1, minHeight: 240 }}>
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={20} />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{(error as Error).message}</Alert>
+        ) : (
+          pieData && (
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius="40%"
+                  outerRadius="80%"
+                  paddingAngle={3}
+                  dataKey="value"
+                  labelLine={false}
+                  label={renderLabel}
+                >
+                  {pieData.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(v) => `${v} formations`} />
+                <Legend
+                  verticalAlign="bottom"
+                  height={40}
+                  iconType="circle"
+                  wrapperStyle={{
+                    fontSize: 11,
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                    lineHeight: "14px",
+                  }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )
+        )}
+      </Box>
     </Card>
   );
 }

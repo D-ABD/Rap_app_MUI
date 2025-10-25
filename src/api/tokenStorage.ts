@@ -10,8 +10,8 @@
  * @param refresh - Token de rafraîchissement (long terme)
  */
 export const storeTokens = (access: string, refresh: string) => {
-  localStorage.setItem('access', access);
-  localStorage.setItem('refresh', refresh);
+  localStorage.setItem("access", access);
+  localStorage.setItem("refresh", refresh);
 };
 
 /**
@@ -22,8 +22,8 @@ export const storeTokens = (access: string, refresh: string) => {
  * @returns Un objet contenant les tokens : { access, refresh }
  */
 export const getTokens = () => ({
-  access: localStorage.getItem('access'),
-  refresh: localStorage.getItem('refresh'),
+  access: localStorage.getItem("access"),
+  refresh: localStorage.getItem("refresh"),
 });
 
 /**
@@ -33,6 +33,6 @@ export const getTokens = () => ({
  * À appeler lors de la déconnexion de l’utilisateur.
  */
 export const clearTokens = () => {
-  localStorage.removeItem('access');
-  localStorage.removeItem('refresh');
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
 };

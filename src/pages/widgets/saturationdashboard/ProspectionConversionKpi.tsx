@@ -45,9 +45,7 @@ export default function ProspectionConversionKpi({
   title = "Prospections - Taux de transformation",
   initialFilters,
 }: Props) {
-  const [filters, setFilters] = React.useState<ProspectionFilters>(
-    initialFilters ?? {}
-  );
+  const [filters, setFilters] = React.useState<ProspectionFilters>(initialFilters ?? {});
   const [autoDepartement, setAutoDepartement] = React.useState(true);
   const includeArchived = Boolean(filters.avec_archivees);
 
@@ -69,7 +67,10 @@ export default function ProspectionConversionKpi({
             ? r.group_key
             : undefined);
         if (rawId == null) return null;
-        return { id: String(rawId), label: resolveProspectionGroupLabel(r, "centre") };
+        return {
+          id: String(rawId),
+          label: resolveProspectionGroupLabel(r, "centre"),
+        };
       })
       .filter(Boolean)
       .sort((a, b) => (a!.label || "").localeCompare(b!.label || "")) as Array<{
@@ -86,9 +87,7 @@ export default function ProspectionConversionKpi({
 
   React.useEffect(() => {
     if (!autoDepartement || !filters.centre) return;
-    const depRaw =
-      depForCentre?.results?.[0]?.departement ??
-      depForCentre?.results?.[0]?.group_key;
+    const depRaw = depForCentre?.results?.[0]?.departement ?? depForCentre?.results?.[0]?.group_key;
     const dep = depRaw != null ? String(depRaw) : undefined;
     if (dep && dep !== filters.departement) {
       setFilters((f) => ({ ...f, departement: dep }));

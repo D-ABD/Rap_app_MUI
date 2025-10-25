@@ -1,19 +1,9 @@
 // src/pages/formations/FormationTable.tsx
 import { useMemo, useState } from "react";
-import {
-  Button,
-  Chip,
-  LinearProgress,
-  Typography,
-  Box,
-  Stack,
-  Checkbox,
-} from "@mui/material";
+import { Button, Chip, LinearProgress, Typography, Box, Stack, Checkbox } from "@mui/material";
 import { Formation } from "../../types/formation";
 import { getFieldValue } from "../../utils/getFieldValue";
-import ResponsiveTableTemplate, {
-  TableColumn,
-} from "../../components/ResponsiveTableTemplate";
+import ResponsiveTableTemplate, { TableColumn } from "../../components/ResponsiveTableTemplate";
 import FormationDetailModal from "./FormationDetailModal";
 
 interface Props {
@@ -23,22 +13,14 @@ interface Props {
   onRowClick?: (id: number) => void;
 }
 
-const formatDate = (d?: string) =>
-  d ? new Date(d).toLocaleDateString("fr-FR") : "—";
+const formatDate = (d?: string) => (d ? new Date(d).toLocaleDateString("fr-FR") : "—");
 
-export default function FormationTable({
-  formations,
-  selectedIds,
-  onToggleSelect,
-  onRowClick,
-}: Props) {
-  const [sortField, setSortField] = useState<string | null>(null);
-  const [sortAsc, setSortAsc] = useState(true);
+export default function FormationTable({ formations, selectedIds, onToggleSelect }: Props) {
+  const [sortField, _setSortField] = useState<string | null>(null); // ✅ renommé
+  const [sortAsc, _setSortAsc] = useState(true); // ✅ renommé
 
   const [openDetail, setOpenDetail] = useState(false);
-  const [selectedFormationId, setSelectedFormationId] = useState<number | null>(
-    null
-  );
+  const [selectedFormationId, setSelectedFormationId] = useState<number | null>(null);
 
   const handleOpenDetail = (id: number) => {
     setSelectedFormationId(id);
@@ -58,9 +40,7 @@ export default function FormationTable({
       if (aValue == null) return 1;
       if (bValue == null) return -1;
       if (typeof aValue === "string" && typeof bValue === "string") {
-        return sortAsc
-          ? aValue.localeCompare(bValue)
-          : bValue.localeCompare(aValue);
+        return sortAsc ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
       }
       if (typeof aValue === "number" && typeof bValue === "number") {
         return sortAsc ? aValue - bValue : bValue - aValue;
@@ -72,11 +52,8 @@ export default function FormationTable({
   // === Gestion de la sélection globale ===
   const allVisibleIds = useMemo(() => formations.map((f) => f.id), [formations]);
   const allSelected =
-    allVisibleIds.length > 0 &&
-    allVisibleIds.every((id) => selectedIds.includes(id));
-  const partiallySelected =
-    !allSelected &&
-    allVisibleIds.some((id) => selectedIds.includes(id));
+    allVisibleIds.length > 0 && allVisibleIds.every((id) => selectedIds.includes(id));
+  const partiallySelected = !allSelected && allVisibleIds.some((id) => selectedIds.includes(id));
 
   const toggleSelectAll = () => {
     if (allSelected) {
@@ -154,8 +131,7 @@ export default function FormationTable({
           size="small"
           label={row.activite === "archivee" ? "Archivée" : "Active"}
           sx={{
-            backgroundColor:
-              row.activite === "archivee" ? "#9e9e9e" : "#4caf50",
+            backgroundColor: row.activite === "archivee" ? "#9e9e9e" : "#4caf50",
             color: "#fff",
             fontWeight: 500,
           }}
@@ -245,12 +221,7 @@ export default function FormationTable({
                   borderRadius: 3,
                   backgroundColor: "#eee",
                   "& .MuiLinearProgress-bar": {
-                    backgroundColor:
-                      pct > 95
-                        ? "#c62828"
-                        : pct > 75
-                        ? "#ed6c02"
-                        : "#2e7d32",
+                    backgroundColor: pct > 95 ? "#c62828" : pct > 75 ? "#ed6c02" : "#2e7d32",
                   },
                 }}
               />
@@ -277,11 +248,7 @@ export default function FormationTable({
                 backgroundColor: "#eee",
                 "& .MuiLinearProgress-bar": {
                   backgroundColor:
-                    row.saturation > 95
-                      ? "#d32f2f"
-                      : row.saturation > 75
-                      ? "#ed6c02"
-                      : "#2e7d32",
+                    row.saturation > 95 ? "#d32f2f" : row.saturation > 75 ? "#ed6c02" : "#2e7d32",
                 },
               }}
             />
@@ -311,8 +278,8 @@ export default function FormationTable({
                     row.taux_transformation > 60
                       ? "#2e7d32"
                       : row.taux_transformation > 30
-                      ? "#ed6c02"
-                      : "#d32f2f",
+                        ? "#ed6c02"
+                        : "#d32f2f",
                 },
               }}
             />

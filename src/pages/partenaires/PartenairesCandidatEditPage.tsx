@@ -1,15 +1,9 @@
 // src/pages/partenaires/PartenaireCandidatEditPage.tsx
 import { useNavigate, useParams, Link as RouterLink } from "react-router-dom";
 import { useState, useMemo, useCallback } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Button, CircularProgress, Typography } from "@mui/material";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
+import axios from "axios";
 import CampaignIcon from "@mui/icons-material/Campaign";
 import HandshakeIcon from "@mui/icons-material/Handshake";
 
@@ -18,7 +12,7 @@ import {
   useUpdatePartenaire,
   usePartenaireChoices,
 } from "../../hooks/usePartenaires";
-import { useAuth } from "../../hooks/useAuth"; // ✅ ajouté pour gérer le rôle candidat
+import { useAuth } from "../../hooks/useAuth";
 import type { Partenaire } from "../../types/partenaire";
 import CandidatsSelectModal, {
   type CandidatPick,
@@ -58,11 +52,10 @@ export default function PartenaireCandidatEditPage() {
   const { id } = useParams<{ id: string }>();
   const partenaireId = Number(id);
 
-  // 🔹 Hooks
   const { data, loading: loadingData, error: loadError } = usePartenaire(partenaireId);
   const { update, loading, error } = useUpdatePartenaire(partenaireId);
   const { data: choices } = usePartenaireChoices();
-  const { user } = useAuth(); // ✅ récupération du rôle utilisateur
+  const { user } = useAuth();
 
   const [openCandModal, setOpenCandModal] = useState(false);
 
@@ -78,8 +71,8 @@ export default function PartenaireCandidatEditPage() {
     return partenaireNom ? `${base}&partenaire_nom=${enc(partenaireNom)}` : base;
   }, [partenaireId, partenaireNom]);
 
-  // ✅ objet stable et typé
-  const initialValues = useMemo(() => data || undefined, [data?.id]);
+  // ✅ correction : dépendance complète [data] pour éviter le warning exhaustive-deps
+  const initialValues = useMemo(() => data || undefined, [data]);
 
   const handleSubmit = useCallback(
     async (values: Partial<Partenaire>) => {
@@ -88,12 +81,12 @@ export default function PartenaireCandidatEditPage() {
         await update(payload);
         toast.success("✅ Modifications enregistrées");
         navigate("/partenaires");
-      } catch (err) {
+      } catch (_err) {
         let message = "❌ Erreur lors de la mise à jour du partenaire.";
 
-        if (isAxiosError(err)) {
-          const detail = err.response?.data?.detail;
-          const nonField = err.response?.data?.non_field_errors;
+        if (axios.isAxiosError(_err)) {
+          const detail = _err.response?.data?.detail;
+          const nonField = _err.response?.data?.non_field_errors;
 
           if (typeof detail === "string") {
             if (detail.toLowerCase().includes("centre")) {
@@ -104,20 +97,18 @@ export default function PartenaireCandidatEditPage() {
               message = `❌ ${detail}`;
             }
           } else if (Array.isArray(nonField) && nonField.length > 0) {
-            const joined = nonField
-              .filter((x): x is string => typeof x === "string")
-              .join(", ");
+            const joined = nonField.filter((x): x is string => typeof x === "string").join(", ");
             if (joined) message = `❌ ${joined}`;
           }
 
-          if (import.meta.env.MODE !== "production") {
-            console.error(
-              "Erreur API mise à jour partenaire (candidat) :",
-              err.response?.data ?? err
-            );
+          // ✅ suppression des console.* → affichage via toast silencieux
+          if (import.meta.env.DEV) {
+            toast.info("Détails de l’erreur disponibles (mode développement).");
           }
-        } else if (import.meta.env.MODE !== "production") {
-          console.error("Erreur inattendue :", err);
+        } else {
+          if (import.meta.env.DEV) {
+            toast.info("Erreur inconnue (mode développement).");
+          }
         }
 
         toast.error(message);
@@ -135,7 +126,6 @@ export default function PartenaireCandidatEditPage() {
     navigate(url);
   };
 
-  /* ---------- Gestion des états ---------- */
   if (!id || Number.isNaN(partenaireId)) {
     return (
       <Typography color="error" p={2}>
@@ -162,7 +152,6 @@ export default function PartenaireCandidatEditPage() {
     );
   }
 
-  /* ---------- Rendu principal ---------- */
   return (
     <PageTemplate
       title="✏️ Modifier le partenaire (Candidat)"
@@ -191,7 +180,6 @@ export default function PartenaireCandidatEditPage() {
       }
     >
       <Box>
-        {/* 🔹 Formulaire d’édition */}
         <Box id="edit-section">
           <Typography variant="h6" sx={{ mb: 1 }}>
             Modifier les informations
@@ -201,7 +189,7 @@ export default function PartenaireCandidatEditPage() {
             onSubmit={handleSubmit}
             loading={loading}
             choices={choices}
-            readOnlyCentre={user?.role === "candidat"} // ✅ cache ou désactive le champ centre
+            readOnlyCentre={user?.role === "candidat"}
           />
           {error && (
             <Typography color="error" mt={2}>
@@ -211,7 +199,6 @@ export default function PartenaireCandidatEditPage() {
         </Box>
       </Box>
 
-      {/* 🔹 Modale de sélection de candidat */}
       <CandidatsSelectModal
         show={openCandModal}
         onClose={() => setOpenCandModal(false)}

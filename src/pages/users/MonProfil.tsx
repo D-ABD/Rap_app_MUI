@@ -1,3 +1,4 @@
+// src/pages/users/MonProfil.tsx
 import { useEffect, useState } from "react";
 import {
   TextField,
@@ -66,15 +67,14 @@ export default function MonProfil() {
             })()
           : formData;
 
-      const res = await api.patch("/users/me/", payload, {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _res = await api.patch("/users/me/", payload, {
         headers: avatarFile ? { "Content-Type": "multipart/form-data" } : {},
       });
 
       toast.success("✅ Profil mis à jour !");
-      ("Nouvel utilisateur :", res.data.data);
-    } catch (e) {
+    } catch (_e) {
       toast.error("❌ Erreur lors de la mise à jour");
-      console.error(e);
     } finally {
       setSaving(false);
     }
@@ -86,9 +86,8 @@ export default function MonProfil() {
       await api.delete("/users/delete-account/");
       toast.success("🗑️ Votre compte a été supprimé conformément au RGPD.");
       logout();
-    } catch (e) {
+    } catch (_e) {
       toast.error("❌ Erreur lors de la suppression du compte");
-      console.error(e);
     } finally {
       setDeleting(false);
       setOpenDeleteDialog(false);
@@ -208,12 +207,7 @@ export default function MonProfil() {
 
       {/* ✅ Actions */}
       <Box sx={{ mt: 3, display: "flex", gap: 2 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          disabled={saving}
-        >
+        <Button variant="contained" color="primary" onClick={handleSubmit} disabled={saving}>
           {saving ? "⏳ Sauvegarde..." : "💾 Enregistrer"}
         </Button>
 
@@ -233,9 +227,7 @@ export default function MonProfil() {
         onClose={() => setOpenDeleteDialog(false)}
         aria-labelledby="delete-account-dialog-title"
       >
-        <DialogTitle id="delete-account-dialog-title">
-          Suppression de votre compte
-        </DialogTitle>
+        <DialogTitle id="delete-account-dialog-title">Suppression de votre compte</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ whiteSpace: "pre-line" }}>
             ⚠️ Cette action est irréversible.
@@ -247,11 +239,7 @@ export default function MonProfil() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDeleteDialog(false)}>Annuler</Button>
-          <Button
-            onClick={handleDeleteAccount}
-            color="error"
-            disabled={deleting}
-          >
+          <Button onClick={handleDeleteAccount} color="error" disabled={deleting}>
             {deleting ? "Suppression..." : "Confirmer"}
           </Button>
         </DialogActions>
@@ -262,11 +250,10 @@ export default function MonProfil() {
         color="text.secondary"
         sx={{ mt: 3, fontSize: "0.85rem", lineHeight: 1.4 }}
       >
-        Conformément au RGPD, vous pouvez demander la suppression de votre compte.
-        Cela entraîne la désactivation de votre accès. Certaines données peuvent être
-        conservées temporairement pour des obligations légales ou statistiques.
-        Pour toute demande complémentaire (export ou effacement total des données),
-        veuillez contacter l’administrateur.
+        Conformément au RGPD, vous pouvez demander la suppression de votre compte. Cela entraîne la
+        désactivation de votre accès. Certaines données peuvent être conservées temporairement pour
+        des obligations légales ou statistiques. Pour toute demande complémentaire (export ou
+        effacement total des données), veuillez contacter l’administrateur.
       </Typography>
     </Box>
   );

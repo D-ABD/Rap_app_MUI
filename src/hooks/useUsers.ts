@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import api from '../api/axios';
+import { useEffect, useState } from "react";
+import api from "../api/axios";
 import {
   CustomUserRole,
   RoleChoice,
@@ -7,9 +7,7 @@ import {
   User,
   UserFiltresOptions,
   MeResponse,
-  RolesResponse,
-} from '../types/User';
-
+} from "../types/User";
 
 // 👤 Données de l’utilisateur connecté
 export function useMe() {
@@ -18,15 +16,15 @@ export function useMe() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get<MeResponse>('/users/me/')
-      .then(res => setUser(res.data.data))
-      .catch(err => setError(err))
+    api
+      .get<MeResponse>("/users/me/")
+      .then((res) => setUser(res.data.data))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
 
   return { user, loading, error };
 }
-
 
 // 📄 Tous les utilisateurs (liste complète)
 export function useUsers() {
@@ -35,15 +33,15 @@ export function useUsers() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get<{ results: User[] }>('/users/')
-      .then(res => setUsers(res.data.results || []))
-      .catch(err => setError(err))
+    api
+      .get<{ results: User[] }>("/users/")
+      .then((res) => setUsers(res.data.results || []))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
 
   return { users, loading, error };
 }
-
 
 // 📋 Liste simplifiée pour les selects
 export function useSimpleUsers() {
@@ -52,15 +50,15 @@ export function useSimpleUsers() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get<{ data: SimpleUser[] }>('/users/liste-simple/')
-      .then(res => setUsers(res.data.data))
-      .catch(err => setError(err))
+    api
+      .get<{ data: SimpleUser[] }>("/users/liste-simple/")
+      .then((res) => setUsers(res.data.data))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
 
   return { users, loading, error };
 }
-
 
 // 🧩 Rôles disponibles (valeur + label)
 export function useUserRoles() {
@@ -69,8 +67,9 @@ export function useUserRoles() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    api.get<{ data: Record<string, string> }>('/users/roles/')
-      .then(res => {
+    api
+      .get<{ data: Record<string, string> }>("/users/roles/")
+      .then((res) => {
         const entries = Object.entries(res.data.data);
         const formatted: RoleChoice[] = entries.map(([value, label]) => ({
           value: value as CustomUserRole,
@@ -78,13 +77,12 @@ export function useUserRoles() {
         }));
         setRoles(formatted);
       })
-      .catch(err => setError(err))
+      .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
 
   return { roles, loading, error };
 }
-
 
 // 🔎 Filtres utilisateurs pour <FiltresPanel />
 export default function useUserFiltres() {
@@ -98,8 +96,9 @@ export default function useUserFiltres() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get<{ data: UserFiltresOptions }>('/users/filtres/')
-      .then(res => {
+    api
+      .get<{ data: UserFiltresOptions }>("/users/filtres/")
+      .then((res) => {
         const data = res.data?.data || {};
         setFiltresOptions({
           role: data.role ?? [],

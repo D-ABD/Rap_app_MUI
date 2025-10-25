@@ -26,17 +26,17 @@ export interface AppairageCommentDTO {
   appairage_statut_display?: string | null;
 
   // ✅ Nouveaux champs alignés avec ProspectionComment
-  appairage_owner?: number | null;            // appairage.owner_id
-  appairage_owner_username?: string | null;   // appairage.owner.username
-  appairage_partenaire?: number | null;       // appairage.partenaire_id
-  appairage_statut?: string | null;           // appairage.statut brut (machine)
+  appairage_owner?: number | null; // appairage.owner_id
+  appairage_owner_username?: string | null; // appairage.owner.username
+  appairage_partenaire?: number | null; // appairage.partenaire_id
+  appairage_statut?: string | null; // appairage.statut brut (machine)
 
   // 🆕 Champs d’activité / archivage — identiques à ProspectionComment
-  statut_commentaire?: "actif" | "archive";   // backend exact
+  statut_commentaire?: "actif" | "archive"; // backend exact
   statut_commentaire_display?: string | null; // ex: "Actif", "Archivé"
-  activite?: "actif" | "archive";             // alias harmonisé
-  est_archive: boolean;                       // booléen pratique
-  statut_color?: string | null;               // couleur d’état (UI)
+  activite?: "actif" | "archive"; // alias harmonisé
+  est_archive: boolean; // booléen pratique
+  statut_color?: string | null; // couleur d’état (UI)
 }
 
 // ⚠️ Serializer attend appairage (clé FK directe)

@@ -44,18 +44,13 @@ export default function ProspectionPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   // ── pagination
-  const {
-    page,
-    setPage,
-    pageSize,
-    setPageSize,
-    count,
-    setCount,
-    totalPages,
-  } = usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   // ── filtres envoyés à l'API
-  type EffectiveFilters = ProspectionFiltresValues & { page: number; page_size: number };
+  type EffectiveFilters = ProspectionFiltresValues & {
+    page: number;
+    page_size: number;
+  };
   const effectiveFilters: EffectiveFilters = useMemo(() => {
     const base: EffectiveFilters = { ...filters, page, page_size: pageSize };
     const pairs = Object.entries(base).filter(([k, v]) => {
@@ -101,9 +96,7 @@ export default function ProspectionPage() {
   }, [prospections]);
 
   const toggleSelect = (id: number) =>
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   const clearSelection = () => setSelectedIds([]);
   const selectAll = () => setSelectedIds(prospections.map((p) => p.id));
 
@@ -185,11 +178,7 @@ export default function ProspectionPage() {
 
           {selectedIds.length > 0 && (
             <>
-              <Button
-                color="error"
-                variant="contained"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button color="error" variant="contained" onClick={() => setShowConfirm(true)}>
                 🗑️ Supprimer ({selectedIds.length})
               </Button>
               <Button variant="outlined" onClick={selectAll}>
@@ -204,25 +193,23 @@ export default function ProspectionPage() {
       }
       filters={
         showFilters &&
-          (filtresLoading ? (
-            <CircularProgress />
-          ) : filtres ? (
-            <FiltresProspectionsPanel
-              filtres={{
-                ...filtres,
-                owners: isCandidat ? [] : filtres.owners,
-              }}
-              values={effectiveFilters}
-              onChange={(newValues) => {
-                setFilters((f) => ({ ...f, ...newValues }));
-                setPage(1);
-              }}
-            />
-          ) : (
-            <Typography color="error">
-              ⚠️ Impossible de charger les filtres
-            </Typography>
-          ))
+        (filtresLoading ? (
+          <CircularProgress />
+        ) : filtres ? (
+          <FiltresProspectionsPanel
+            filtres={{
+              ...filtres,
+              owners: isCandidat ? [] : filtres.owners,
+            }}
+            values={effectiveFilters}
+            onChange={(newValues) => {
+              setFilters((f) => ({ ...f, ...newValues }));
+              setPage(1);
+            }}
+          />
+        ) : (
+          <Typography color="error">⚠️ Impossible de charger les filtres</Typography>
+        ))
       }
       footer={
         count > 0 && (
@@ -248,9 +235,7 @@ export default function ProspectionPage() {
       {loading ? (
         <CircularProgress />
       ) : error ? (
-        <Typography color="error">
-          Erreur lors du chargement des prospections.
-        </Typography>
+        <Typography color="error">Erreur lors du chargement des prospections.</Typography>
       ) : prospections.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
           <Box fontSize={48} mb={1}>
@@ -271,12 +256,7 @@ export default function ProspectionPage() {
       )}
 
       {/* ───────────── Confirmation suppression ───────────── */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

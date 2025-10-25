@@ -3,15 +3,7 @@ import { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../../hooks/useAuth";
-import {
-  Box,
-  Paper,
-  Typography,
-  TextField,
-  Button,
-  Alert,
-  Link,
-} from "@mui/material";
+import { Box, Paper, Typography, TextField, Button, Alert, Link } from "@mui/material";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -117,9 +109,9 @@ export default function LoginPage() {
           En vous connectant, vous acceptez nos{" "}
           <Link component={RouterLink} to="/politique-confidentialite" target="_blank">
             conditions de confidentialité
-          </Link>.
+          </Link>
+          .
         </Typography>
-
       </Paper>
     </Box>
   );

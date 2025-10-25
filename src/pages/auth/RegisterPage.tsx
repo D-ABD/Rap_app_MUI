@@ -104,12 +104,7 @@ export default function RegisterPage() {
           Création de compte
         </Typography>
 
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          align="center"
-          sx={{ mb: 3 }}
-        >
+        <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 3 }}>
           Créez votre compte pour accéder à votre espace personnel sécurisé.
         </Typography>
 
@@ -189,13 +184,9 @@ export default function RegisterPage() {
             sx={{ mt: 2 }}
           />
 
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ display: "block", mt: 1.5 }}
-          >
-            Vos données sont utilisées uniquement pour la gestion de votre compte
-            et ne seront jamais transmises à des tiers sans votre accord.
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1.5 }}>
+            Vos données sont utilisées uniquement pour la gestion de votre compte et ne seront
+            jamais transmises à des tiers sans votre accord.
           </Typography>
 
           {error && (
@@ -204,13 +195,7 @@ export default function RegisterPage() {
             </Alert>
           )}
 
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mt: 3 }}
-          >
+          <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 3 }}>
             Créer mon compte
           </Button>
         </Box>

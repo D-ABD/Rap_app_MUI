@@ -22,13 +22,9 @@ type Props = {
   endpointBase?: string;
 };
 
-function getFilenameFromDisposition(
-  disposition?: string | null,
-  fallback = "export"
-) {
+function getFilenameFromDisposition(disposition?: string | null, fallback = "export") {
   if (!disposition) return fallback;
-  const match =
-    /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
+  const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
   const raw = match?.[1] ?? match?.[2] ?? "";
   try {
     const name = decodeURIComponent(raw).trim();
@@ -80,14 +76,12 @@ export default function ExportButtonCandidat({
     try {
       setBusy(true);
 
-      const qs =
-        typeof window !== "undefined" ? window.location.search || "" : "";
+      const qs = typeof window !== "undefined" ? window.location.search || "" : "";
       const base = (endpointBase || "/candidats").replace(/\/$/, "");
       const url = `${base}/export-${exportFormat}${qs.startsWith("?") ? qs : ""}`;
 
       let res;
       if (selectedIds.length > 0) {
-        ("👉 POST avec ids =", selectedIds);
         res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
       } else {
         ("👉 GET sans sélection");
@@ -95,8 +89,7 @@ export default function ExportButtonCandidat({
       }
 
       const contentType = res.headers["content-type"] || "";
-      const fallbackMime =
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      const fallbackMime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
       const blob = new Blob([res.data], { type: contentType || fallbackMime });
 
@@ -124,7 +117,6 @@ export default function ExportButtonCandidat({
       );
       setShowModal(false);
     } catch (e: unknown) {
-      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -167,24 +159,17 @@ export default function ExportButtonCandidat({
 
           {typeof window !== "undefined" && window.location.search ? (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Les filtres/tri actuels (
-              <code>{window.location.search}</code>) seront appliqués si aucune
-              sélection n’est fournie.
+              Les filtres/tri actuels (<code>{window.location.search}</code>) seront appliqués si
+              aucune sélection n’est fournie.
             </Typography>
           ) : (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble
-              du jeu courant.
+              Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble du jeu courant.
             </Typography>
           )}
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -193,12 +178,7 @@ export default function ExportButtonCandidat({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

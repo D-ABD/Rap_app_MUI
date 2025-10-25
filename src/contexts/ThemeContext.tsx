@@ -17,6 +17,4 @@ export interface ThemeContextType {
 /**
  * 🧠 ThemeContext
  */
-export const ThemeContext = createContext<ThemeContextType | undefined>(
-  undefined
-);
+export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

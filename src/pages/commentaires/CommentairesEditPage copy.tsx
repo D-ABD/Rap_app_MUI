@@ -57,7 +57,8 @@ export default function CommentairesEditPage() {
       .get(`/commentaires/${id}/`)
       .then((res) => {
         const data = res.data?.data && typeof res.data.data === "object" ? res.data.data : res.data;
-        if (!data || typeof data !== "object" || !data.id) throw new Error("Réponse invalide du serveur");
+        if (!data || typeof data !== "object" || !data.id)
+          throw new Error("Réponse invalide du serveur");
 
         setValues({
           contenu: data.contenu ?? "",
@@ -67,8 +68,7 @@ export default function CommentairesEditPage() {
         setMeta(data);
         setIsArchived(data.statut_commentaire === "archive");
       })
-      .catch((err) => {
-        console.error("❌ Erreur lors du chargement du commentaire :", err);
+      .catch((_err) => {
         toast.error("Erreur lors du chargement du commentaire");
         navigate("/commentaires");
       })
@@ -96,8 +96,7 @@ export default function CommentairesEditPage() {
       });
       toast.success("✅ Commentaire mis à jour");
       setShowNavigationModal(true);
-    } catch (err) {
-      console.error("❌ Erreur lors de la modification :", err);
+    } catch (_err) {
       toast.error("Erreur lors de la modification");
     }
   };
@@ -119,12 +118,9 @@ export default function CommentairesEditPage() {
       setIsArchived(updated?.statut_commentaire === "archive");
 
       toast.success(
-        isArchived
-          ? "💬 Commentaire désarchivé avec succès"
-          : "📦 Commentaire archivé avec succès"
+        isArchived ? "💬 Commentaire désarchivé avec succès" : "📦 Commentaire archivé avec succès"
       );
-    } catch (err) {
-      console.error("❌ Erreur archivage :", err);
+    } catch (_err) {
       toast.error("Erreur lors du changement de statut");
     } finally {
       setBusyArchive(false);
@@ -146,11 +142,7 @@ export default function CommentairesEditPage() {
             disabled={busyArchive}
             onClick={handleArchiveToggle}
           >
-            {busyArchive
-              ? "⏳"
-              : isArchived
-              ? "♻️ Désarchiver"
-              : "📦 Archiver"}
+            {busyArchive ? "⏳" : isArchived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
         )
       }
@@ -169,10 +161,7 @@ export default function CommentairesEditPage() {
                 📍 Centre : <strong>{meta?.centre_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                📌 Statut :{" "}
-                <strong>
-                  {isArchived ? "Archivé" : meta?.statut_nom || "—"}
-                </strong>
+                📌 Statut : <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
                 🧩 Type d’offre : <strong>{meta?.type_offre_nom || "—"}</strong>
@@ -185,8 +174,7 @@ export default function CommentairesEditPage() {
                 <strong>{meta?.saturation_formation ?? "—"}%</strong>
               </Typography>
               <Typography variant="body2">
-                📈 Saturation actuelle :{" "}
-                <strong>{meta?.taux_saturation ?? "—"}%</strong>
+                📈 Saturation actuelle : <strong>{meta?.taux_saturation ?? "—"}%</strong>
               </Typography>
             </Box>
 
@@ -199,9 +187,7 @@ export default function CommentairesEditPage() {
               id="contenu"
               label="Modifier le contenu *"
               value={values.contenu}
-              onChange={(e) =>
-                setValues((prev) => ({ ...prev, contenu: e.target.value }))
-              }
+              onChange={(_e) => setValues((prev) => ({ ...prev, contenu: _e.target.value }))}
               error={Boolean(errors.contenu)}
               helperText={errors.contenu}
               fullWidth
@@ -237,21 +223,14 @@ export default function CommentairesEditPage() {
       >
         <DialogTitle>✅ Votre commentaire a bien été mis à jour</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Que souhaitez-vous faire ensuite ?
-          </DialogContentText>
+          <DialogContentText>Que souhaitez-vous faire ensuite ?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => navigate(`/formations/${values.formation}`)}
-            variant="outlined"
-          >
+          <Button onClick={() => navigate(`/formations/${values.formation}`)} variant="outlined">
             ← Retour à la formation
           </Button>
           <Button
-            onClick={() =>
-              navigate(`/formations/${values.formation}/commentaires`)
-            }
+            onClick={() => navigate(`/formations/${values.formation}/commentaires`)}
             variant="contained"
           >
             💬 Voir commentaires

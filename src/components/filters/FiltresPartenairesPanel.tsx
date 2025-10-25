@@ -1,12 +1,6 @@
 // src/components/partenaires/FiltresPartenairesPanel.tsx
 import React, { useCallback, useMemo } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, Typography } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 
 import FilterTemplate, { type FieldConfig } from "./FilterTemplate";
@@ -38,9 +32,8 @@ type Props = {
   onReset?: () => void;
 };
 
-const withPlaceholder = (
-  opts: Array<{ value: string | number; label: string }>
-) => (opts.length ? opts : [{ value: "", label: "—" }]);
+const withPlaceholder = (opts: Array<{ value: string | number; label: string }>) =>
+  opts.length ? opts : [{ value: "", label: "—" }];
 
 function buildReset(values: PartenaireFilters): PartenaireFilters {
   return {
@@ -68,26 +61,24 @@ export default function FiltresPartenairesPanel({
   onRefresh,
   onReset,
 }: Props) {
-  const onLocalSearchChange =
-    useCallback<React.ChangeEventHandler<HTMLInputElement>>(
-      (e) => {
-        onChange({ ...values, search: e.target.value, page: 1 });
-      },
-      [onChange, values]
-    );
+  const onLocalSearchChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>(
+    (e) => {
+      onChange({ ...values, search: e.target.value, page: 1 });
+    },
+    [onChange, values]
+  );
 
-  const onSearchKeyDown =
-    useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
-      (e) => {
-        if (e.key === "Escape") {
-          e.preventDefault();
-          if (values.search) {
-            onChange({ ...values, search: "", page: 1 });
-          }
+  const onSearchKeyDown = useCallback<React.KeyboardEventHandler<HTMLInputElement>>(
+    (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        if (values.search) {
+          onChange({ ...values, search: "", page: 1 });
         }
-      },
-      [onChange, values]
-    );
+      }
+    },
+    [onChange, values]
+  );
 
   const fields = useMemo<Array<FieldConfig<PartenaireFilters>>>(() => {
     const base: Array<FieldConfig<PartenaireFilters>> = [
@@ -128,9 +119,7 @@ export default function FiltresPartenairesPanel({
         key: "created_by" as const,
         label: "👤 Créateur",
         type: "select",
-        options: withPlaceholder(
-          users.map((u) => ({ value: Number(u.id), label: u.full_name }))
-        ),
+        options: withPlaceholder(users.map((u) => ({ value: Number(u.id), label: u.full_name }))),
       });
     }
 
@@ -176,17 +165,10 @@ export default function FiltresPartenairesPanel({
             mb={1.5}
             flexWrap={{ xs: "wrap", md: "nowrap" }}
           >
-            <label
-              htmlFor="partenaires-search-input"
-              style={visuallyHidden as React.CSSProperties}
-            >
+            <label htmlFor="partenaires-search-input" style={visuallyHidden as React.CSSProperties}>
               Rechercher des partenaires
             </label>
-            <Typography
-              component="span"
-              id="partenaires-search-help"
-              sx={visuallyHidden}
-            >
+            <Typography component="span" id="partenaires-search-help" sx={visuallyHidden}>
               Tapez votre recherche. Appuyez sur Échap pour effacer.
             </Typography>
 
@@ -207,9 +189,7 @@ export default function FiltresPartenairesPanel({
             {values.search && (
               <Button
                 variant="outlined"
-                onClick={() =>
-                  onChange({ ...values, search: "", page: 1 })
-                }
+                onClick={() => onChange({ ...values, search: "", page: 1 })}
               >
                 ✕
               </Button>

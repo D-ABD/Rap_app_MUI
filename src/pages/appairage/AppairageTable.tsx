@@ -31,8 +31,7 @@ type Props = {
 
 const STICKY_COL_1_PX = 36;
 
-const dtfFR =
-  typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
+const dtfFR = typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
 
 function formatDateFR(iso?: string | null): string {
   if (!iso) return "—";
@@ -41,10 +40,7 @@ function formatDateFR(iso?: string | null): string {
   return dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 }
 
-function resolveFormationLabel(
-  r: AppairageListItem,
-  formationMap: Map<number, string>
-): string {
+function resolveFormationLabel(r: AppairageListItem, formationMap: Map<number, string>): string {
   if (r.formation_nom) return r.formation_nom;
   const id = r.formation ?? null;
   if (id != null && formationMap.size) {
@@ -55,8 +51,7 @@ function resolveFormationLabel(
 }
 
 function resolveTypeOffre(r: AppairageListItem): string {
-  const maybe =
-    r.formation_detail?.type_offre ?? r.formation_type_offre ?? null;
+  const maybe = r.formation_detail?.type_offre ?? r.formation_type_offre ?? null;
   if (!maybe) return "—";
   if (typeof maybe === "string") return maybe;
   const obj = maybe as TypeOffreMini;
@@ -80,8 +75,7 @@ export default function AppairageTable({
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const pageIds = useMemo(() => items.map((i) => i.id), [items]);
-  const allChecked =
-    pageIds.length > 0 && pageIds.every((id) => selectedSet.has(id));
+  const allChecked = pageIds.length > 0 && pageIds.every((id) => selectedSet.has(id));
   const someChecked = pageIds.some((id) => selectedSet.has(id)) && !allChecked;
 
   const headerCbRef = useRef<HTMLInputElement | null>(null);
@@ -104,8 +98,7 @@ export default function AppairageTable({
       if (checked) {
         if (!selectedSet.has(id)) onSelectionChange([...selectedIds, id]);
       } else {
-        if (selectedSet.has(id))
-          onSelectionChange(selectedIds.filter((x) => x !== id));
+        if (selectedSet.has(id)) onSelectionChange(selectedIds.filter((x) => x !== id));
       }
     },
     [onSelectionChange, selectedIds, selectedSet]
@@ -113,10 +106,7 @@ export default function AppairageTable({
 
   if (!items.length) {
     return (
-      <Typography
-        variant="body2"
-        sx={{ p: 2, color: "text.secondary", textAlign: "center" }}
-      >
+      <Typography variant="body2" sx={{ p: 2, color: "text.secondary", textAlign: "center" }}>
         Aucun appairage.
       </Typography>
     );
@@ -178,14 +168,8 @@ export default function AppairageTable({
             const isChecked = selectedSet.has(r.id);
             const formationLib = resolveFormationLabel(r, formationMap);
             const typeOffreLib = resolveTypeOffre(r);
-            const numOffre =
-              r.formation_bref?.num_offre ??
-              r.formation_detail?.num_offre ??
-              "—";
-            const centreNom =
-              r.formation_bref?.centre_nom ??
-              r.formation_detail?.centre_nom ??
-              "—";
+            const numOffre = r.formation_bref?.num_offre ?? r.formation_detail?.num_offre ?? "—";
+            const centreNom = r.formation_bref?.centre_nom ?? r.formation_detail?.centre_nom ?? "—";
             const debut = formatDateFR(
               r.formation_bref?.start_date ?? r.formation_detail?.start_date
             );
@@ -248,9 +232,7 @@ export default function AppairageTable({
                 {/* ✅ Date + statut appairage */}
                 <TableCell>
                   <Box display="flex" flexDirection="column">
-                    <Typography variant="body2">
-                      {formatDateFR(r.date_appairage)}
-                    </Typography>
+                    <Typography variant="body2">{formatDateFR(r.date_appairage)}</Typography>
                     {r.statut_display && (
                       <Chip
                         size="small"
@@ -268,7 +250,9 @@ export default function AppairageTable({
                     <Chip
                       size="small"
                       label={r.activite_display}
-                      color={r.activite_display.toLowerCase().includes("archiv") ? "default" : "success"}
+                      color={
+                        r.activite_display.toLowerCase().includes("archiv") ? "default" : "success"
+                      }
                       sx={{
                         fontWeight: 600,
                         textTransform: "capitalize",
@@ -283,7 +267,6 @@ export default function AppairageTable({
                     </Typography>
                   )}
                 </TableCell>
-
 
                 {/* ✅ Partenaire */}
                 <TableCell sx={{ maxWidth: 220 }}>
@@ -352,7 +335,9 @@ export default function AppairageTable({
                       sx={{ mt: 0.3 }}
                     />
                   ) : (
-                    <Typography variant="caption" color="text.disabled">—</Typography>
+                    <Typography variant="caption" color="text.disabled">
+                      —
+                    </Typography>
                   )}
                 </TableCell>
 
@@ -381,7 +366,9 @@ export default function AppairageTable({
                       </Typography>
                     </Box>
                   ) : (
-                    <Typography variant="body2" color="text.disabled">—</Typography>
+                    <Typography variant="body2" color="text.disabled">
+                      —
+                    </Typography>
                   )}
                 </TableCell>
 
@@ -408,19 +395,11 @@ export default function AppairageTable({
                 {/* ✅ Actions */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Stack direction="row" spacing={1}>
-                    <Link
-                      component="button"
-                      color="primary"
-                      onClick={() => onRowClick(r.id)}
-                    >
+                    <Link component="button" color="primary" onClick={() => onRowClick(r.id)}>
                       Éditer
                     </Link>
                     {onDeleteClick && (
-                      <Link
-                        component="button"
-                        color="error"
-                        onClick={() => onDeleteClick(r.id)}
-                      >
+                      <Link component="button" color="error" onClick={() => onDeleteClick(r.id)}>
                         Supprimer
                       </Link>
                     )}

@@ -26,7 +26,7 @@ export type AppairageOverviewKpis = {
   statuts: AppairageStatusMap; // clés safe: "contrat_a_signer", "appairage_ok", ...
   /** Ajouté par le viewset : appairage_ok / total (en %) */
   taux_transformation?: number;
-    /** Inclure aussi les appairages archivés (false par défaut) */
+  /** Inclure aussi les appairages archivés (false par défaut) */
   avec_archivees?: boolean;
 };
 
@@ -36,12 +36,7 @@ export type AppairageOverviewResponse = {
   // le backend peut aussi renvoyer repartition.par_statut ; inutile de le typer si non utilisé
 };
 
-export type AppairageGroupBy =
-  | "centre"
-  | "departement"
-  | "statut"
-  | "formation"
-  | "partenaire";
+export type AppairageGroupBy = "centre" | "departement" | "statut" | "formation" | "partenaire";
 
 export type AppairageGroupRow = {
   // group id/label
@@ -49,7 +44,7 @@ export type AppairageGroupRow = {
   group_label?: string;
 
   // matières premières (selon group_by)
-  "formation__centre__nom"?: string | null;
+  formation__centre__nom?: string | null;
   formation__centre_id?: number | null;
   departement?: string | null;
   statut?: string | null;
@@ -66,11 +61,9 @@ export type AppairageGroupRow = {
 
   /** Ajout: taux_transformation par ligne (ok/total en %) */
   taux_transformation?: number;
-  
 
   // statuts dynamiques (ex: a_faire, transmis, appairage_ok, etc.)
   [statusKey: string]: number | string | null | undefined;
-  
 };
 
 export type AppairageGroupedResponse = {
@@ -92,14 +85,14 @@ export function getErrorMessage(err: unknown) {
   return "Erreur inconnue";
 }
 
-export function resolveAppairageGroupLabel(
-  row: AppairageGroupRow,
-  by: AppairageGroupBy
-): string {
+export function resolveAppairageGroupLabel(row: AppairageGroupRow, by: AppairageGroupBy): string {
   if (row.group_label) return String(row.group_label);
   switch (by) {
     case "centre":
-      return row["formation__centre__nom"] ?? (row.formation__centre_id ? `Centre #${row.formation__centre_id}` : "—");
+      return (
+        row["formation__centre__nom"] ??
+        (row.formation__centre_id ? `Centre #${row.formation__centre_id}` : "—")
+      );
     case "departement":
       return row.departement ?? "—";
     case "statut":

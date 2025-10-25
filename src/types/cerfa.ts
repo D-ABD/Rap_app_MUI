@@ -1,15 +1,11 @@
 // src/types/cerfa.ts
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosInstance } from "axios";
-import { useMutation, useQuery, UseQueryOptions, UseMutationOptions, QueryKey } from "@tanstack/react-query";
 
 /* ----------------------------------------
    🔧 Axios instance (personnalise BASE_URL) 
 ----------------------------------------- */
-export const BASE_URL =
-  import.meta?.env?.VITE_API_BASE_URL ??
-  process.env.NEXT_PUBLIC_API_BASE_URL ??
-  "http://127.0.0.1:8000";
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000";
 
 export const api: AxiosInstance = axios.create({
   baseURL: `${BASE_URL}/api`,
@@ -26,7 +22,13 @@ export type DRFListResponse<T> = {
   results: T[];
 };
 
-export type Ordering = "-created_at" | "created_at" | "-date_conclusion" | "date_conclusion" | "-date_debut_execution" | "date_debut_execution";
+export type Ordering =
+  | "-created_at"
+  | "created_at"
+  | "-date_conclusion"
+  | "date_conclusion"
+  | "-date_debut_execution"
+  | "date_debut_execution";
 
 export type CerfaQueryParams = {
   page?: number;
@@ -48,7 +50,7 @@ export type CerfaRemuneration = {
   id: number;
   annee: 1 | 2 | 3 | 4;
   date_debut: string | null; // ISO date
-  date_fin: string | null;   // ISO date
+  date_fin: string | null; // ISO date
   pourcentage: number | null;
   reference: "SMIC" | "SMC";
   montant_mensuel_estime: number | null;
@@ -66,9 +68,9 @@ export type CerfaContratBase = {
   auto_generated: boolean;
 
   // relations
-  candidat: number;          // FK -> Candidat (id)
-  formation: number | null;  // FK -> Formation (id)
-  employeur: number | null;  // FK -> Partenaire (id)
+  candidat: number; // FK -> Candidat (id)
+  formation: number | null; // FK -> Formation (id)
+  employeur: number | null; // FK -> Partenaire (id)
 
   // EMPLOYEUR
   employeur_prive: boolean;
@@ -225,14 +227,19 @@ export type CerfaContrat = CerfaContratBase & {
   pdf_url: string | null;
   pdf_status: "ready" | "missing";
 
-    // ⚠️ Champs manquants détectés par le backend (optionnel)
-  missing_fields?: string[]; 
+  // ⚠️ Champs manquants détectés par le backend (optionnel)
+  missing_fields?: string[];
 };
 
 /* ----------------------------------------
    ✍️ Create / Update payloads
 ----------------------------------------- */
-export type CerfaContratCreate = Partial<Omit<CerfaContratBase, "employeur_nom" | "apprenti_nom_naissance" | "apprenti_prenom" | "candidat">> & {
+export type CerfaContratCreate = Partial<
+  Omit<
+    CerfaContratBase,
+    "employeur_nom" | "apprenti_nom_naissance" | "apprenti_prenom" | "candidat"
+  >
+> & {
   // on garde candidat requis (contrainte minimale)
   candidat: number;
   // ces champs sont très souvent requis côté modèle ; si ton API les rend optionnels,
@@ -243,4 +250,3 @@ export type CerfaContratCreate = Partial<Omit<CerfaContratBase, "employeur_nom" 
 };
 
 export type CerfaContratUpdate = Partial<CerfaContratBase>;
-

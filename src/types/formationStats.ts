@@ -11,7 +11,7 @@ export type Filters = {
   departement?: string;
   type_offre?: string | number;
   statut?: string | number;
-    avec_archivees?: boolean;
+  avec_archivees?: boolean;
 };
 
 export type CandidatKpis = {
@@ -27,7 +27,7 @@ export type CandidatKpis = {
   nb_contrats_autres: number;
   // ↑ NEW
   nb_admissibles: number;
-    /** Inclure les formations archivées (true/false) */
+  /** Inclure les formations archivées (true/false) */
   avec_archivees?: boolean; // ← ✅ nouveau champ
 };
 
@@ -64,11 +64,16 @@ export type OverviewKpis = {
   total_dispo_mp: number;
   total_disponibles: number;
   taux_saturation: number;
-  repartition_financeur: { crif: number; mp: number; crif_pct: number; mp_pct: number };
+  repartition_financeur: {
+    crif: number;
+    mp: number;
+    crif_pct: number;
+    mp_pct: number;
+  };
   entrees_formation: number;
   candidats: CandidatKpis;
   appairages: AppairageKpis; // ← NEW
-    avec_archivees?: boolean;
+  avec_archivees?: boolean;
 };
 
 export type OverviewResponse = {
@@ -83,7 +88,7 @@ export type GroupRow = {
   nom?: string;
 
   centre_id?: number;
-  "centre__nom"?: string;
+  centre__nom?: string;
 
   // ↓ NEW (présents quand by=formation)
   num_offre?: string | number;
@@ -92,10 +97,10 @@ export type GroupRow = {
   departement?: string;
 
   type_offre_id?: number;
-  "type_offre__id"?: number;
+  type_offre__id?: number;
 
   statut_id?: number;
-  "statut__id"?: number;
+  statut__id?: number;
 
   group_key?: number | string;
   group_label?: string;
@@ -116,7 +121,12 @@ export type GroupRow = {
   total_disponibles: number;
   entrees_formation: number;
   taux_saturation: number;
-  repartition_financeur: { crif: number; mp: number; crif_pct: number; mp_pct: number };
+  repartition_financeur: {
+    crif: number;
+    mp: number;
+    crif_pct: number;
+    mp_pct: number;
+  };
 
   // candidats
   nb_candidats: number;
@@ -158,7 +168,7 @@ type TopBase = {
   id: number;
   nom: string;
   /** Nom du centre (clé telle que renvoyée par l'API) */
-  "centre__nom"?: string | null;
+  centre__nom?: string | null;
   /** Numéro d’offre si disponible côté backend */
   num_offre?: string | number | null;
 };
@@ -203,17 +213,23 @@ function pickLabel(obj: Record<string, unknown> | undefined, keys: string[]): st
 }
 
 export async function getOverview(filters: Filters) {
-  const { data } = await api.get<OverviewResponse>("/formation-stats/", { params: filters });
+  const { data } = await api.get<OverviewResponse>("/formation-stats/", {
+    params: filters,
+  });
   return data;
 }
 
 export async function getGrouped(by: GroupBy, filters: Filters) {
-  const { data } = await api.get<GroupedResponse>("/formation-stats/grouped/", { params: { ...filters, by } });
+  const { data } = await api.get<GroupedResponse>("/formation-stats/grouped/", {
+    params: { ...filters, by },
+  });
   return data;
 }
 
 export async function getTops(filters: Filters) {
-  const { data } = await api.get<TopsResponse>("/formation-stats/tops/", { params: filters });
+  const { data } = await api.get<TopsResponse>("/formation-stats/tops/", {
+    params: filters,
+  });
   return data;
 }
 
@@ -264,8 +280,7 @@ function buildMap(arr?: Option[]): Record<string | number, string> {
   const out: Record<string | number, string> = {};
   if (!arr) return out;
   for (const o of arr) {
-    const label =
-      pickLabel(o, ["nom", "name", "label", "libelle", "titre"]) ?? String(o.id);
+    const label = pickLabel(o, ["nom", "name", "label", "libelle", "titre"]) ?? String(o.id);
     out[o.id] = label;
   }
   return out;

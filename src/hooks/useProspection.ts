@@ -1,7 +1,7 @@
 // src/hooks/useProspection.ts
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import axios from 'axios';
-import api from '../api/axios';
+import { useState, useEffect, useCallback, useMemo } from "react";
+import axios from "axios";
+import api from "../api/axios";
 import type {
   Prospection,
   ProspectionFiltresValues,
@@ -16,7 +16,7 @@ import type {
   ProspectionMoyenContact,
   ProspectionChoicesResponse,
   ProspectionChangeStatutPayload,
-} from '../types/prospection';
+} from "../types/prospection";
 
 /* ────────────────────────────────────────────────────────────────────────────
    Helpers de parsing sûrs (sans any) + logs
@@ -25,30 +25,35 @@ import type {
 type DRFDetail<T> = { success?: boolean; message?: string; data: T };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null;
+  return typeof v === "object" && v !== null;
 }
 function hasKey<T extends string>(obj: unknown, key: T): obj is Record<T, unknown> {
   return isRecord(obj) && key in obj;
 }
 function isDRFDetail<T>(v: unknown): v is DRFDetail<T> {
-  return hasKey(v, 'data');
+  return hasKey(v, "data");
 }
 /** Forme "souple" de liste: on ne présume pas les types exacts, juste la présence de `results` */
-type ListLike = { count?: unknown; next?: unknown; previous?: unknown; results?: unknown };
+type ListLike = {
+  count?: unknown;
+  next?: unknown;
+  previous?: unknown;
+  results?: unknown;
+};
 function hasListShape(v: unknown): v is ListLike {
-  return isRecord(v) && 'results' in v;
+  return isRecord(v) && "results" in v;
 }
 
 function toNumber(v: unknown, fallback = 0): number {
-  if (typeof v === 'number') return v;
-  if (typeof v === 'string') {
+  if (typeof v === "number") return v;
+  if (typeof v === "string") {
     const n = Number(v);
     return Number.isFinite(n) ? n : fallback;
   }
   return fallback;
 }
 function toStringOrNull(v: unknown): string | null {
-  if (typeof v === 'string') return v;
+  if (typeof v === "string") return v;
   if (v === null) return null;
   return null;
 }
@@ -57,14 +62,13 @@ function toResultsArray<T>(v: unknown): T[] {
 }
 
 /** Détail: accepte {data:T} ou T directement */
-function safeGetDetail<T>(payload: unknown, tag: string): T {
+function safeGetDetail<T>(payload: unknown, _tag: string): T {
   if (isDRFDetail<T>(payload)) return payload.data;
   return payload as T;
 }
 
 /** Liste paginée: accepte {data:{...}} ou {...} ou objet DRF classique */
-function safeGetList<T>(payload: unknown, tag: string): PaginatedResults<T> {
-
+function safeGetList<T>(payload: unknown, _tag: string): PaginatedResults<T> {
   // Cas enveloppé: { data: {...} }
   if (isDRFDetail<unknown>(payload)) {
     const d = payload.data;
@@ -87,28 +91,25 @@ function safeGetList<T>(payload: unknown, tag: string): PaginatedResults<T> {
       results: toResultsArray<T>(payload.results),
     };
   }
-
-  console.error(`[${tag}] ❌ Format inattendu pour une liste.`, payload);
-  throw new Error('Format de réponse inattendu (liste).');
+  throw new Error("Format de réponse inattendu (liste).");
 }
 
 function logAxiosError(ns: string, err: unknown) {
   if (axios.isAxiosError(err)) {
-    console.error(
-      `[${ns}] ❌ AxiosError`,
-      {
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.error(`[${ns}] AxiosError :`, {
         message: err.message,
-        code: err.code,
-        url: err.config?.url,
-        method: err.config?.method,
-        params: err.config?.params,
-        data: err.config?.data,
         status: err.response?.status,
-        response: err.response?.data,
-      }
-    );
+        data: err.response?.data,
+        url: err.config?.url,
+      });
+    }
   } else {
-    console.error(`[${ns}] ❌ Error`, err);
+    if (import.meta.env.DEV) {
+      // eslint-disable-next-line no-console
+      console.error(`[${ns}] Erreur inconnue :`, err);
+    }
   }
 }
 
@@ -143,9 +144,7 @@ function normalizeFilters(params: ProspectionFiltresValues): Record<string, unkn
     else if (k === "avec_archivees" || k === "inclure_archives") {
       out["inclure_archives"] =
         v === true || v === "1" || v === "true" || v === "yes" ? "true" : "false";
-    }
-
-    else {
+    } else {
       out[k as string] = v;
     }
   }
@@ -171,13 +170,13 @@ export function useProspections(params: ProspectionFiltresValues = {}, reloadKey
     setError(null);
 
     api
-      .get<unknown>('/prospections/', { params: parsedParams })
+      .get<unknown>("/prospections/", { params: parsedParams })
       .then((res) => {
-        const list = safeGetList<Prospection>(res.data, 'useProspections');
+        const list = safeGetList<Prospection>(res.data, "useProspections");
         setPageData(list);
       })
       .catch((err) => {
-        logAxiosError('useProspections', err);
+        logAxiosError("useProspections", err);
         setError(err as Error);
         setPageData(null);
       })
@@ -203,7 +202,6 @@ export function useProspection(id: number | string | null) {
 
   useEffect(() => {
     if (id == null) {
-      
       setData(null);
       setLoading(false);
       setError(null);
@@ -218,11 +216,11 @@ export function useProspection(id: number | string | null) {
     api
       .get<unknown>(url)
       .then((res) => {
-        const detail = safeGetDetail<Prospection>(res.data, 'useProspection');
+        const detail = safeGetDetail<Prospection>(res.data, "useProspection");
         setData(detail);
       })
       .catch((err) => {
-        logAxiosError('useProspection', err);
+        logAxiosError("useProspection", err);
         setError(err as Error);
         setData(null);
       })
@@ -247,12 +245,12 @@ export function useCreateProspection() {
         Object.entries(payload).filter(([, v]) => v !== null && v !== undefined)
       );
 
-      const res = await api.post<unknown>('/prospections/', cleanPayload);
+      const res = await api.post<unknown>("/prospections/", cleanPayload);
 
-      const created = safeGetDetail<Prospection>(res.data, 'useCreateProspection');
+      const created = safeGetDetail<Prospection>(res.data, "useCreateProspection");
       return created;
     } catch (err) {
-      logAxiosError('useCreateProspection', err);
+      logAxiosError("useCreateProspection", err);
       setError(err as Error);
       throw err;
     } finally {
@@ -270,27 +268,30 @@ export function useUpdateProspection(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const update = useCallback(async (payload: ProspectionFormData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const cleanPayload = Object.fromEntries(
-        Object.entries(payload).filter(([, v]) => v !== null && v !== undefined)
-      );
-      const url = `/prospections/${id}/`;
+  const update = useCallback(
+    async (payload: ProspectionFormData) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const cleanPayload = Object.fromEntries(
+          Object.entries(payload).filter(([, v]) => v !== null && v !== undefined)
+        );
+        const url = `/prospections/${id}/`;
 
-      const res = await api.patch<unknown>(url, cleanPayload);
+        const res = await api.patch<unknown>(url, cleanPayload);
 
-      const updated = safeGetDetail<Prospection>(res.data, 'useUpdateProspection');
-      return updated;
-    } catch (err) {
-      logAxiosError('useUpdateProspection', err);
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+        const updated = safeGetDetail<Prospection>(res.data, "useUpdateProspection");
+        return updated;
+      } catch (err) {
+        logAxiosError("useUpdateProspection", err);
+        setError(err as Error);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { update, loading, error };
 }
@@ -307,9 +308,9 @@ export function useDeleteProspection(id: number | string) {
     setError(null);
     const url = `/prospections/${id}/`;
     try {
-      const res = await api.delete(url);
+      await api.delete(url); // ✅ res supprimé car inutilisé
     } catch (err) {
-      logAxiosError('useDeleteProspection', err);
+      logAxiosError("useDeleteProspection", err);
       setError(err as Error);
       throw err;
     } finally {
@@ -327,23 +328,26 @@ export function useChangerStatut(id: number | string) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const changeStatus = useCallback(async (payload: ProspectionChangeStatutPayload) => {
-    setLoading(true);
-    setError(null);
-    const url = `/prospections/${id}/changer-statut/`;
-    try {
-      const res = await api.post<unknown>(url, payload);
+  const changeStatus = useCallback(
+    async (payload: ProspectionChangeStatutPayload) => {
+      setLoading(true);
+      setError(null);
+      const url = `/prospections/${id}/changer-statut/`;
+      try {
+        const res = await api.post<unknown>(url, payload);
 
-      const updated = safeGetDetail<Prospection>(res.data, 'useChangerStatut');
-      return updated;
-    } catch (err) {
-      logAxiosError('useChangerStatut', err);
-      setError(err as Error);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+        const updated = safeGetDetail<Prospection>(res.data, "useChangerStatut");
+        return updated;
+      } catch (err) {
+        logAxiosError("useChangerStatut", err);
+        setError(err as Error);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { changeStatus, loading, error };
 }
@@ -372,11 +376,11 @@ export function useHistoriqueProspections(id: number | string | null) {
     api
       .get<unknown>(url)
       .then((res) => {
-        const arr = safeGetDetail<HistoriqueProspection[]>(res.data, 'useHistoriqueProspections');
+        const arr = safeGetDetail<HistoriqueProspection[]>(res.data, "useHistoriqueProspections");
         setData(arr);
       })
       .catch((err) => {
-        logAxiosError('useHistoriqueProspections', err);
+        logAxiosError("useHistoriqueProspections", err);
         setError(err as Error);
         setData(null);
       })
@@ -390,7 +394,7 @@ export function useHistoriqueProspections(id: number | string | null) {
    🔹 useProspectionChoices — listes de choix
    ──────────────────────────────────────────────────────────────────────────── */
 export function useProspectionChoices() {
-  const [choices, setChoices] = useState<ProspectionChoicesResponse['data'] | null>(null);
+  const [choices, setChoices] = useState<ProspectionChoicesResponse["data"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -398,22 +402,22 @@ export function useProspectionChoices() {
     setLoading(true);
     setError(null);
 
-    const url = '/prospections/choices/';
+    const url = "/prospections/choices/";
 
     api
       .get<unknown>(url)
       .then((res) => {
         // Réponses possibles: { success, message, data:{...} } OU {statut:[],...}
-        if (isDRFDetail<ProspectionChoicesResponse['data']>(res.data)) {
+        if (isDRFDetail<ProspectionChoicesResponse["data"]>(res.data)) {
           setChoices(res.data.data);
         } else if (isRecord(res.data)) {
-          setChoices(res.data as ProspectionChoicesResponse['data']);
+          setChoices(res.data as ProspectionChoicesResponse["data"]);
         } else {
-          throw new Error('Format de réponse inattendu (choices).');
+          throw new Error("Format de réponse inattendu (choices).");
         }
       })
       .catch((err) => {
-        logAxiosError('useProspectionChoices', err);
+        logAxiosError("useProspectionChoices", err);
         setError(err as Error);
         setChoices(null);
       })
@@ -452,7 +456,7 @@ export default function useFiltresProspections() {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const url = '/prospections/filtres/';
+    const url = "/prospections/filtres/";
     const fetchFiltres = async () => {
       try {
         setLoading(true);
@@ -466,15 +470,15 @@ export default function useFiltresProspections() {
         // 3) {...} directement
         if (isDRFDetail<Record<string, unknown>>(res.data)) {
           setFiltres(res.data.data as FiltresPayload);
-        } else if (isRecord(res.data) && hasKey(res.data, 'data') && isRecord(res.data.data)) {
+        } else if (isRecord(res.data) && hasKey(res.data, "data") && isRecord(res.data.data)) {
           setFiltres(res.data.data as FiltresPayload);
         } else if (isRecord(res.data)) {
           setFiltres(res.data as FiltresPayload);
         } else {
-          throw new Error('Format de réponse inattendu (filtres).');
+          throw new Error("Format de réponse inattendu (filtres).");
         }
       } catch (err) {
-        logAxiosError('useFiltresProspections', err);
+        logAxiosError("useFiltresProspections", err);
         setError(err as Error);
         setFiltres(null);
       } finally {

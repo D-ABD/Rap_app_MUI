@@ -1,3 +1,4 @@
+// src/pages/widgets/overviewDashboard/ProspectionOverviewWidget.tsx
 import * as React from "react";
 import {
   Box,
@@ -20,20 +21,12 @@ import {
   ProspectionGroupRow,
 } from "../../../types/prospectionStats";
 
-// ✅ Icônes
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ArchiveIcon from "@mui/icons-material/Archive";
 
-// ✅ Recharts
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
+/* 🎨 Couleurs cohérentes */
 const COLORS = [
   "#66bb6a", // success
   "#ffa726", // warning
@@ -53,22 +46,21 @@ export default function ProspectionOverviewWidget({
   title = "Overview Prospections",
   initialFilters,
 }: Props) {
-  const [filters, setFilters] = React.useState<ProspectionFilters>(
-    initialFilters ?? {}
-  );
+  const [filters, setFilters] = React.useState<ProspectionFilters>(initialFilters ?? {});
 
   const includeArchived = Boolean(filters.avec_archivees);
 
   const { data: overview, isLoading, error } = useProspectionOverview(filters);
-
-  const { data: centresGrouped, isLoading: loadingCentres } =
-    useProspectionGrouped("centre", { ...filters, centre: undefined });
-
+  const { data: centresGrouped, isLoading: loadingCentres } = useProspectionGrouped("centre", {
+    ...filters,
+    centre: undefined,
+  });
   const { data: depsGrouped } = useProspectionGrouped("departement", {
     ...filters,
     departement: undefined,
   });
 
+  /* ✅ Options filtres */
   const centreOptions =
     centresGrouped?.results
       ?.map((r: ProspectionGroupRow) => {
@@ -89,13 +81,11 @@ export default function ProspectionOverviewWidget({
         const code =
           (typeof r.departement === "string" && r.departement) ||
           (typeof r.group_key === "string" ? r.group_key : "");
-        return code
-          ? { code, label: resolveProspectionGroupLabel(r, "departement") }
-          : null;
+        return code ? { code, label: resolveProspectionGroupLabel(r, "departement") } : null;
       })
       .filter((d): d is { code: string; label: string } => d !== null) ?? [];
 
-  // ✅ Données camembert
+  /* ✅ Données camembert */
   const pieData =
     overview &&
     [
@@ -118,6 +108,7 @@ export default function ProspectionOverviewWidget({
         gap: 2,
         borderRadius: 2,
         height: "100%",
+        minHeight: 360, // ✅ stabilité d’affichage
       }}
     >
       {/* Header */}
@@ -147,9 +138,7 @@ export default function ProspectionOverviewWidget({
         <Select
           size="small"
           value={filters.centre ?? ""}
-          onChange={(e) =>
-            setFilters((f) => ({ ...f, centre: e.target.value || undefined }))
-          }
+          onChange={(e) => setFilters((f) => ({ ...f, centre: e.target.value || undefined }))}
           disabled={loadingCentres}
           sx={{ minWidth: 120 }}
           displayEmpty
@@ -200,33 +189,37 @@ export default function ProspectionOverviewWidget({
       </Box>
 
       {/* Graphique */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress size={22} />
-        </Box>
-      ) : error ? (
-        <Alert severity="error">{getErrorMessage(error)}</Alert>
-      ) : pieData && pieData.length > 0 ? (
-        <Box sx={{ height: 240 }}>
-          <ResponsiveContainer width="100%" height="100%">
+      <Box
+        sx={{
+          flex: 1,
+          width: "100%",
+          minWidth: 0, // ✅ empêche les tailles négatives
+          minHeight: 240, // ✅ stabilité du rendu
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={22} />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{getErrorMessage(error)}</Alert>
+        ) : pieData && pieData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
                 data={pieData}
                 cx="50%"
                 cy="50%"
-                outerRadius={90}
+                outerRadius="75%"
                 dataKey="value"
-                label={({ name, value }) => (
-                  <tspan style={{ fontSize: 11 }}>
-                    {name}: {String(value)}
-                  </tspan>
-                )}
+                label={({ name, value }) => `${name}: ${value}`}
+                labelLine={false}
               >
                 {pieData.map((_, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip formatter={(v) => `${v} prospections`} />
@@ -238,12 +231,12 @@ export default function ProspectionOverviewWidget({
               />
             </PieChart>
           </ResponsiveContainer>
-        </Box>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          Aucune donnée disponible
-        </Typography>
-      )}
+        ) : (
+          <Typography variant="body2" color="text.secondary" textAlign="center" p={2}>
+            Aucune donnée disponible
+          </Typography>
+        )}
+      </Box>
     </Card>
   );
 }

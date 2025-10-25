@@ -1,12 +1,7 @@
 // src/pages/formations/componentsFormations/FormationSection.tsx
-import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { ReactNode } from 'react';
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { ReactNode } from "react";
 
 interface Props {
   title?: string;
@@ -14,11 +9,7 @@ interface Props {
   defaultExpanded?: boolean;
 }
 
-export default function FormationSection({
-  title,
-  children,
-  defaultExpanded = false,
-}: Props) {
+export default function FormationSection({ title, children, defaultExpanded = false }: Props) {
   return (
     <Accordion defaultExpanded={defaultExpanded} sx={{ mt: 2 }}>
       {title && (

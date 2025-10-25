@@ -64,7 +64,12 @@ type CreatePartPayload = {
   description?: string | null;
 };
 
-type ListResponse<T> = { results: T[]; count?: number; next?: string | null; previous?: string | null };
+type ListResponse<T> = {
+  results: T[];
+  count?: number;
+  next?: string | null;
+  previous?: string | null;
+};
 type ApiListEnvelope<T> = { data: ListResponse<T> } | ListResponse<T> | T[];
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -89,7 +94,13 @@ function unwrap<T>(payload: ApiEnvelope<T>): T {
 }
 
 /* ---------- Component ---------- */
-export default function PartenaireSelectModal({ show, onClose, onSelect, onCreate, prospectionId }: Props) {
+export default function PartenaireSelectModal({
+  show,
+  onClose,
+  onSelect,
+  onCreate,
+  prospectionId,
+}: Props) {
   const [partenaires, setPartenaires] = useState<Partenaire[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -108,7 +119,9 @@ export default function PartenaireSelectModal({ show, onClose, onSelect, onCreat
     if (!show) return;
     setLoading(true);
     api
-      .get<ApiListEnvelope<Partenaire>>("/partenaires/", { params: { page_size: 100 } })
+      .get<ApiListEnvelope<Partenaire>>("/partenaires/", {
+        params: { page_size: 100 },
+      })
       .then((res) => {
         setPartenaires(toArray<Partenaire>(res.data));
         setError(false);
@@ -164,7 +177,6 @@ export default function PartenaireSelectModal({ show, onClose, onSelect, onCreat
       if (isAxiosError(err)) {
         const detail = err.response?.data?.detail;
         if (typeof detail === "string") {
-          // 🧩 Message contextualisé pour erreurs liées au centre
           if (detail.toLowerCase().includes("centre")) {
             toast.error(`❌ ${detail} — contactez votre administrateur.`);
           } else {
@@ -173,14 +185,8 @@ export default function PartenaireSelectModal({ show, onClose, onSelect, onCreat
         } else {
           toast.error("❌ Échec de la création du partenaire.");
         }
-        if (import.meta.env.MODE !== "production") {
-          console.error("Erreur API création partenaire :", err.response?.data ?? err);
-        }
       } else {
         toast.error("❌ Échec de la création du partenaire.");
-        if (import.meta.env.MODE !== "production") {
-          console.error("Création partenaire échouée :", err);
-        }
       }
     } finally {
       setCreating(false);
@@ -227,19 +233,44 @@ export default function PartenaireSelectModal({ show, onClose, onSelect, onCreat
             </Typography>
             <Grid container spacing={1}>
               <Grid item xs={12}>
-                <TextField fullWidth label="Nom *" value={nom} onChange={(e) => setNom(e.target.value)} />
+                <TextField
+                  fullWidth
+                  label="Nom *"
+                  value={nom}
+                  onChange={(e) => setNom(e.target.value)}
+                />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Type" value={type} onChange={(e) => setType(e.target.value)} />
+                <TextField
+                  fullWidth
+                  label="Type"
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Ville" value={city} onChange={(e) => setCity(e.target.value)} />
+                <TextField
+                  fullWidth
+                  label="Ville"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Code postal" value={zip} onChange={(e) => setZip(e.target.value)} />
+                <TextField
+                  fullWidth
+                  label="Code postal"
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Email contact" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <TextField
+                  fullWidth
+                  label="Email contact"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </Grid>
               <Grid item xs={12}>
                 <TextField

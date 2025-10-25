@@ -5,24 +5,8 @@ import {
   AppairageMeta,
   AppairageStatut,
 } from "../../types/appairage";
-import {
-  useEffect,
-  useMemo,
-  useState,
-  useRef,
-  useCallback,
-  MutableRefObject,
-} from "react";
-import {
-  Box,
-  Button,
-  Grid,
-  Stack,
-  TextField,
-  Typography,
-  MenuItem,
-  FormHelperText,
-} from "@mui/material";
+import { useEffect, useMemo, useState, useRef, useCallback, MutableRefObject } from "react";
+import { Box, Button, Stack, TextField, MenuItem, FormHelperText } from "@mui/material";
 
 import CandidatsSelectModal from "../../components/modals/CandidatsSelectModal";
 import PartenaireSelectModal from "../../components/modals/PartenairesSelectModal";
@@ -77,18 +61,17 @@ type PartnerPick = {
   name?: string | null;
 };
 
-function extractFormationFromCandidate(
-  c: CandidatePick
-): { id: number | null; nom: string | null } {
-  let id: number | null =
-    typeof c.formation_id === "number" ? c.formation_id : null;
+function extractFormationFromCandidate(c: CandidatePick): {
+  id: number | null;
+  nom: string | null;
+} {
+  let id: number | null = typeof c.formation_id === "number" ? c.formation_id : null;
   if (typeof c.formation === "number") id = c.formation;
   if (c.formation && typeof c.formation === "object") {
     if (typeof c.formation.id === "number") id = c.formation.id ?? id;
   }
   if (c.formation_obj && typeof c.formation_obj === "object") {
-    if (typeof c.formation_obj.id === "number")
-      id = c.formation_obj.id ?? id;
+    if (typeof c.formation_obj.id === "number") id = c.formation_obj.id ?? id;
   }
 
   let nom: string | null = c.formation_nom ?? null;
@@ -120,7 +103,7 @@ export default function AppairageForm({
       formation:
         typeof fixedFormationId === "number"
           ? fixedFormationId
-          : initialValues?.formation ?? null,
+          : (initialValues?.formation ?? null),
       statut: initialValues?.statut ?? "transmis",
       commentaire: initialValues?.commentaire ?? null,
       retour_partenaire: null,
@@ -135,9 +118,7 @@ export default function AppairageForm({
   const [candidatNom, setCandidatNom] = useState<string | null>(null);
   const [partenaireNom, setPartenaireNom] = useState<string | null>(null);
   const [formationLabel, setFormationLabel] = useState<string | null>(null);
-  const [errors, setErrors] = useState<
-    Partial<Record<"candidat" | "partenaire", string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<"candidat" | "partenaire", string>>>({});
   const [showCandidatModal, setShowCandidatModal] = useState(false);
   const [showPartenaireModal, setShowPartenaireModal] = useState(false);
 
@@ -148,9 +129,7 @@ export default function AppairageForm({
     const p = meta.partenaire_choices.find((x) => x.value === form.partenaire);
     if (p?.label) setPartenaireNom(p.label);
     const wantedId =
-      (typeof fixedFormationId === "number"
-        ? fixedFormationId
-        : form.formation) ?? null;
+      (typeof fixedFormationId === "number" ? fixedFormationId : form.formation) ?? null;
     if (wantedId != null) {
       const f = meta.formation_choices.find((x) => x.value === wantedId);
       if (f?.label) setFormationLabel(f.label);
@@ -160,9 +139,7 @@ export default function AppairageForm({
   const displayFormation = useMemo(() => {
     if (formationLabel && formationLabel.trim() !== "") return formationLabel;
     const wantedId =
-      (typeof fixedFormationId === "number"
-        ? fixedFormationId
-        : form.formation) ?? null;
+      (typeof fixedFormationId === "number" ? fixedFormationId : form.formation) ?? null;
     if (wantedId && meta?.formation_choices) {
       const found = meta.formation_choices.find((x) => x.value === wantedId);
       if (found?.label) return found.label;
@@ -179,8 +156,8 @@ export default function AppairageForm({
       resolvedDateType === "datetime-local"
         ? toDatetimeLocal(form.date_retour ?? null)
         : form.date_retour
-        ? new Date(form.date_retour).toISOString().slice(0, 10)
-        : "",
+          ? new Date(form.date_retour).toISOString().slice(0, 10)
+          : "",
     [form.date_retour, resolvedDateType]
   );
 
@@ -270,9 +247,7 @@ export default function AppairageForm({
             🔍 {candidatNom ? "Changer de candidat" : "Sélectionner un candidat"}
           </Button>
         )}
-        <FormHelperText>
-          Astuce : Ctrl/Cmd + Entrée pour valider
-        </FormHelperText>
+        <FormHelperText>Astuce : Ctrl/Cmd + Entrée pour valider</FormHelperText>
       </Box>
 
       {/* Partenaire */}
@@ -340,57 +315,48 @@ export default function AppairageForm({
         disabled={loading}
       />
 
-{/* Date de retour */}
-<TextField
-  label="Date de retour"
-  type={resolvedDateType}
-  value={dateRetourLocal}
-  onChange={(e) =>
-    handleChange(
-      "date_retour",
-      resolvedDateType === "datetime-local"
-        ? e.target.value
-          ? fromDatetimeLocal(e.target.value)
-          : null
-        : e.target.value
-        ? new Date(`${e.target.value}T00:00:00`).toISOString()
-        : null
-    )
-  }
-  fullWidth
-  disabled={loading}
-  InputLabelProps={{ shrink: true }}   // ✅ corrige le chevauchement label/valeur
-/>
+      {/* Date de retour */}
+      <TextField
+        label="Date de retour"
+        type={resolvedDateType}
+        value={dateRetourLocal}
+        onChange={(e) =>
+          handleChange(
+            "date_retour",
+            resolvedDateType === "datetime-local"
+              ? e.target.value
+                ? fromDatetimeLocal(e.target.value)
+                : null
+              : e.target.value
+                ? new Date(`${e.target.value}T00:00:00`).toISOString()
+                : null
+          )
+        }
+        fullWidth
+        disabled={loading}
+        InputLabelProps={{ shrink: true }} // ✅ corrige le chevauchement label/valeur
+      />
 
       {/* Submit */}
       {useOwnForm ? (
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={loading}
-        >
+        <Button type="submit" variant="contained" disabled={loading}>
           {loading
             ? mode === "create"
               ? "⏳ Création…"
               : "⏳ Sauvegarde…"
             : mode === "create"
-            ? "✅ Créer l’appairage"
-            : "✅ Enregistrer les modifications"}
+              ? "✅ Créer l’appairage"
+              : "✅ Enregistrer les modifications"}
         </Button>
       ) : (
-        <Button
-          type="button"
-          variant="contained"
-          onClick={doSubmit}
-          disabled={loading}
-        >
+        <Button type="button" variant="contained" onClick={doSubmit} disabled={loading}>
           {loading
             ? mode === "create"
               ? "⏳ Création…"
               : "⏳ Sauvegarde…"
             : mode === "create"
-            ? "✅ Créer l’appairage"
-            : "✅ Enregistrer"}
+              ? "✅ Créer l’appairage"
+              : "✅ Enregistrer"}
         </Button>
       )}
     </Stack>
@@ -422,17 +388,12 @@ export default function AppairageForm({
           setForm((f) => ({ ...f, candidat: c.id }));
           setErrors((e) => ({ ...e, candidat: undefined }));
           if (typeof fixedFormationId !== "number") {
-            const { id: candFormationId, nom: candFormationNom } =
-              extractFormationFromCandidate(c);
+            const { id: candFormationId, nom: candFormationNom } = extractFormationFromCandidate(c);
             if (candFormationId != null) {
               setForm((f) => ({ ...f, formation: candFormationId }));
               const metaLabel =
-                meta?.formation_choices.find(
-                  (x) => x.value === candFormationId
-                )?.label ?? null;
-              setFormationLabel(
-                metaLabel ?? candFormationNom ?? `#${candFormationId}`
-              );
+                meta?.formation_choices.find((x) => x.value === candFormationId)?.label ?? null;
+              setFormationLabel(metaLabel ?? candFormationNom ?? `#${candFormationId}`);
             } else if (candFormationNom) {
               setFormationLabel(candFormationNom);
             }

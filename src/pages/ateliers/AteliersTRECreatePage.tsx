@@ -8,10 +8,7 @@ import { CircularProgress, Typography, Box } from "@mui/material";
 import type { AtelierTREFormData, Choice } from "../../types/ateliersTre";
 
 import PostCreateChoiceModal from "../../components/modals/PostCreateChoiceModal";
-import {
-  useAtelierTREMeta,
-  useCreateAtelierTRE,
-} from "../../hooks/useAtelierTre";
+import { useAtelierTREMeta, useCreateAtelierTRE } from "../../hooks/useAtelierTre";
 import AtelierTREForm from "./AteliersTREForm";
 import PageTemplate from "../../components/PageTemplate";
 
@@ -29,9 +26,7 @@ export default function AtelierTRECreatePage() {
 
   // 🔹 Modale post-création
   const [choiceOpen, setChoiceOpen] = useState(false);
-  const [lastCreated, setLastCreated] = useState<CreatedAtelierLite | null>(
-    null
-  );
+  const [lastCreated, setLastCreated] = useState<CreatedAtelierLite | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Helpers typés pour parser proprement la réponse d'erreur
@@ -47,9 +42,7 @@ export default function AtelierTRECreatePage() {
       return maybeMessage;
     }
     const maybeErrors = (data as { errors?: unknown }).errors;
-    const errorsObj = isRecord(maybeErrors)
-      ? (maybeErrors as Record<string, unknown>)
-      : data;
+    const errorsObj = isRecord(maybeErrors) ? (maybeErrors as Record<string, unknown>) : data;
     const parts: string[] = [];
     for (const [field, val] of Object.entries(errorsObj)) {
       if (typeof val === "string") {
@@ -73,9 +66,7 @@ export default function AtelierTRECreatePage() {
     try {
       setSubmitting(true);
       const payload = Object.fromEntries(
-        Object.entries(values).map(([k, v]) =>
-          v === "" ? [k, undefined] : [k, v]
-        )
+        Object.entries(values).map(([k, v]) => (v === "" ? [k, undefined] : [k, v]))
       ) as AtelierTREFormData;
 
       const created = (await create(payload)) as CreatedAtelierLite;
@@ -86,20 +77,15 @@ export default function AtelierTRECreatePage() {
         id: created.id,
         type_atelier: created.type_atelier ?? values.type_atelier ?? null,
         date_atelier: created.date_atelier ?? values.date_atelier ?? null,
-        centre:
-          typeof created.centre === "number"
-            ? created.centre
-            : values.centre ?? null,
+        centre: typeof created.centre === "number" ? created.centre : (values.centre ?? null),
       });
       setChoiceOpen(true);
     } catch (error) {
       const axiosErr = error as AxiosError<unknown>;
       const data = axiosErr.response?.data;
       const parsed = data ? extractApiMessage(data) : null;
-      const msg =
-        parsed ?? axiosErr.message ?? "Erreur lors de la création de l’atelier";
+      const msg = parsed ?? axiosErr.message ?? "Erreur lors de la création de l’atelier";
       toast.error(msg);
-      console.error("Create atelier failed:", error);
     } finally {
       setSubmitting(false);
     }
@@ -115,18 +101,12 @@ export default function AtelierTRECreatePage() {
   }
 
   // Intitulé affiché dans la modale (type d’atelier, date)
-  const displayTitle = typeLabel
-    ? typeLabel
-    : lastCreated?.type_atelier ?? null;
+  const displayTitle = typeLabel ? typeLabel : (lastCreated?.type_atelier ?? null);
 
   // Liens de la modale post-création
-  const primaryHref = lastCreated?.id
-    ? `/ateliers-tre/${lastCreated.id}/edit`
-    : `/ateliers-tre`;
+  const primaryHref = lastCreated?.id ? `/ateliers-tre/${lastCreated.id}/edit` : `/ateliers-tre`;
 
-  const secondaryHref = lastCreated?.id
-    ? `/ateliers-tre/${lastCreated.id}`
-    : `/ateliers-tre`;
+  const secondaryHref = lastCreated?.id ? `/ateliers-tre/${lastCreated.id}` : `/ateliers-tre`;
 
   return (
     <PageTemplate title="➕ Nouvel atelier TRE" backButton onBack={() => navigate(-1)}>
@@ -150,11 +130,7 @@ export default function AtelierTRECreatePage() {
             <Typography variant="body2" sx={{ mt: 1 }}>
               <strong>{displayTitle}</strong>
               {lastCreated?.date_atelier ? (
-                <span>
-                  {" "}
-                  —{" "}
-                  {new Date(lastCreated.date_atelier).toLocaleString("fr-FR")}
-                </span>
+                <span> — {new Date(lastCreated.date_atelier).toLocaleString("fr-FR")}</span>
               ) : null}
             </Typography>
           ) : null

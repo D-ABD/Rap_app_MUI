@@ -46,10 +46,7 @@ export default function AppairageOverviewWidget({
   defaultFilters?: AppairageFilters;
   showFilters?: boolean;
 }) {
-  const [filters, setFilters] = React.useState<AppairageFilters>(
-    defaultFilters ?? {}
-  );
-
+  const [filters, setFilters] = React.useState<AppairageFilters>(defaultFilters ?? {});
   const [includeArchived, setIncludeArchived] = React.useState(false);
 
   // 🔁 Actualise les filtres quand on change le toggle
@@ -61,8 +58,10 @@ export default function AppairageOverviewWidget({
   }, [includeArchived]);
 
   const { data, isLoading, error } = useAppairageOverview(filters);
-  const { data: centresGrouped, isLoading: loadingCentres } =
-    useAppairageGrouped("centre", { ...filters, centre: undefined });
+  const { data: centresGrouped, isLoading: loadingCentres } = useAppairageGrouped("centre", {
+    ...filters,
+    centre: undefined,
+  });
   const { data: depsGrouped } = useAppairageGrouped("departement", {
     ...filters,
     departement: undefined,
@@ -75,9 +74,7 @@ export default function AppairageOverviewWidget({
         (typeof r.group_key === "number" || typeof r.group_key === "string"
           ? r.group_key
           : undefined);
-      return id != null
-        ? [{ id: String(id), label: resolveAppairageGroupLabel(r, "centre") }]
-        : [];
+      return id != null ? [{ id: String(id), label: resolveAppairageGroupLabel(r, "centre") }] : [];
     }) ?? [];
 
   const departementOptions =
@@ -85,9 +82,7 @@ export default function AppairageOverviewWidget({
       const code =
         (typeof r.departement === "string" && r.departement) ||
         (typeof r.group_key === "string" ? r.group_key : "");
-      return code
-        ? [{ code, label: resolveAppairageGroupLabel(r, "departement") }]
-        : [];
+      return code ? [{ code, label: resolveAppairageGroupLabel(r, "departement") }] : [];
     }) ?? [];
 
   const total = data?.kpis.appairages_total ?? 0;
@@ -108,6 +103,7 @@ export default function AppairageOverviewWidget({
         gap: 2,
         borderRadius: 2,
         height: "100%",
+        minHeight: 360, // ✅ assure un espace suffisant pour le graphique
       }}
     >
       {/* Header */}
@@ -186,15 +182,25 @@ export default function AppairageOverviewWidget({
       </Box>
 
       {/* Chart */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress size={22} />
-        </Box>
-      ) : error ? (
-        <Alert severity="error">{getErrorMessage(error)}</Alert>
-      ) : (
-        <Box sx={{ height: 240 }}>
-          <ResponsiveContainer width="100%" height="100%">
+      <Box
+        sx={{
+          flex: 1,
+          width: "100%",
+          minWidth: 0, // ✅ évite les tailles négatives calculées par Recharts
+          minHeight: 240, // ✅ garantit une surface calculable
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={22} />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{getErrorMessage(error)}</Alert>
+        ) : (
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={chartData} barSize={32}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="name" />
@@ -210,16 +216,12 @@ export default function AppairageOverviewWidget({
                 {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
-                <LabelList
-                  dataKey="value"
-                  position="top"
-                  style={{ fontSize: 11 }}
-                />
+                <LabelList dataKey="value" position="top" style={{ fontSize: 11 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
-        </Box>
-      )}
+        )}
+      </Box>
     </Card>
   );
 }

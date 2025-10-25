@@ -9,16 +9,16 @@ export type ProspectionFilters = {
   date_from?: string;
   date_to?: string;
   centre?: string | number;
-  departement?: string;        // "92", "75", ...
+  departement?: string; // "92", "75", ...
   formation?: string | number;
   partenaire?: string | number;
-  owner?: string | number;     // user id
-  statut?: string;             // ProspectionChoices
-  objectif?: string;           // ProspectionChoices
-  motif?: string;              // ProspectionChoices
-  type?: string;               // ProspectionChoices (type_prospection)
+  owner?: string | number; // user id
+  statut?: string; // ProspectionChoices
+  objectif?: string; // ProspectionChoices
+  motif?: string; // ProspectionChoices
+  type?: string; // ProspectionChoices (type_prospection)
   relance_due?: boolean | string | number; // true/false/1/0
-    /** ✅ Nouveau : inclure les prospections archivées */
+  /** ✅ Nouveau : inclure les prospections archivées */
   avec_archivees?: boolean | string | number;
 };
 
@@ -79,25 +79,25 @@ export type ProspectionGroupBy =
 export type ProspectionGroupRow = {
   // identifiants potentiellement renvoyés par l’API
   centre_id?: number;
-  "centre__nom"?: string;
+  centre__nom?: string;
 
   departement?: string;
 
   owner_id?: number;
-  "owner__first_name"?: string;
-  "owner__last_name"?: string;
-  "owner__email"?: string;
-  "owner__username"?: string;
+  owner__first_name?: string;
+  owner__last_name?: string;
+  owner__email?: string;
+  owner__username?: string;
 
   formation_id?: number;
-  "formation__nom"?: string;
+  formation__nom?: string;
 
   // ✅ champs formation additionnels (exposés quand by=formation)
-  "formation__num_offre"?: string | number | null;
-  "formation__centre__nom"?: string | null;
+  formation__num_offre?: string | number | null;
+  formation__centre__nom?: string | null;
 
   partenaire_id?: number;
-  "partenaire__nom"?: string;
+  partenaire__nom?: string;
 
   statut?: string | null;
   objectif?: string | null;
@@ -144,7 +144,10 @@ export function getErrorMessage(err: unknown) {
  * Normalisation légère des répartitions renvoyées par l’API pour les
  * clés autres que le statut (objectif/motif/type/moyen_contact).
  */
-function normalizeKeyCountArray<T extends Record<string, unknown>>(arr: T[], keyName: string): KeyCount[] {
+function normalizeKeyCountArray<T extends Record<string, unknown>>(
+  arr: T[],
+  keyName: string
+): KeyCount[] {
   if (!Array.isArray(arr)) return [];
   return arr.map((it) => {
     const raw = (it as Record<string, unknown>)[keyName];
@@ -159,7 +162,9 @@ function normalizeKeyCountArray<T extends Record<string, unknown>>(arr: T[], key
 // API
 // ────────────────────────────────────────────────────────────
 export async function getProspectionOverview(filters: ProspectionFilters) {
-  const { data } = await api.get<ProspectionOverviewResponse>("/prospection-stats/", { params: filters });
+  const { data } = await api.get<ProspectionOverviewResponse>("/prospection-stats/", {
+    params: filters,
+  });
 
   // On s’assure que la répartition ait une forme homogène côté front
   const rep = data?.repartition ?? {};
@@ -226,11 +231,15 @@ export function useProspectionGrouped(by: ProspectionGroupBy, filters: Prospecti
  * 3) Sinon fallback lisible
  */
 // ────────────────────────────────────────────────────────────
-export function resolveProspectionGroupLabel(row: ProspectionGroupRow, by: ProspectionGroupBy): string {
+export function resolveProspectionGroupLabel(
+  row: ProspectionGroupRow,
+  by: ProspectionGroupBy
+): string {
   if (typeof row.group_label === "string" && row.group_label.trim() !== "") return row.group_label;
 
   if (by === "centre") {
-    if (typeof row["centre__nom"] === "string" && row["centre__nom"].trim() !== "") return String(row["centre__nom"]);
+    if (typeof row["centre__nom"] === "string" && row["centre__nom"].trim() !== "")
+      return String(row["centre__nom"]);
     if (row.centre_id != null) return `Centre #${row.centre_id}`;
   }
 
@@ -249,12 +258,14 @@ export function resolveProspectionGroupLabel(row: ProspectionGroupRow, by: Prosp
   }
 
   if (by === "formation") {
-    if (typeof row["formation__nom"] === "string" && row["formation__nom"].trim() !== "") return String(row["formation__nom"]);
+    if (typeof row["formation__nom"] === "string" && row["formation__nom"].trim() !== "")
+      return String(row["formation__nom"]);
     if (row.formation_id != null) return `Formation #${row.formation_id}`;
   }
 
   if (by === "partenaire") {
-    if (typeof row["partenaire__nom"] === "string" && row["partenaire__nom"].trim() !== "") return String(row["partenaire__nom"]);
+    if (typeof row["partenaire__nom"] === "string" && row["partenaire__nom"].trim() !== "")
+      return String(row["partenaire__nom"]);
     if (row.partenaire_id != null) return `Partenaire #${row.partenaire_id}`;
   }
 

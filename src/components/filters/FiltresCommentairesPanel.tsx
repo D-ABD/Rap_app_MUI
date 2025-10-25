@@ -4,7 +4,7 @@
 // ======================================================
 
 import React, { useMemo, useCallback } from "react";
-import { Box, Button, FormControlLabel, Switch } from "@mui/material";
+import { Box } from "@mui/material";
 import FilterTemplate, { type FieldConfig } from "./FilterTemplate";
 import { CommentaireFiltresValues } from "../../types/commentaire";
 
@@ -25,7 +25,12 @@ interface FiltresPanelProps {
 
 /** util: supprime les doublons et formate en options {value,label} */
 function toOptionsUnique<
-  T extends { id?: number | string; value?: string | number; nom?: string; label?: string }
+  T extends {
+    id?: number | string;
+    value?: string | number;
+    nom?: string;
+    label?: string;
+  },
 >(arr: T[] = [], labelKey: "nom" | "label" = "nom") {
   const seen = new Set<string | number>();
   return arr.reduce<Array<{ value: string | number; label: string }>>((acc, item) => {
@@ -66,31 +71,19 @@ export default React.memo(function FiltresCommentairesPanel({
   // ------------------------------------------------------
   // 🔄 Gestion de la logique statut ↔ archivés
   // ------------------------------------------------------
-const handleStatutChange = useCallback(
-  (newStatutId: string | number | undefined) => {
-    const statut = String(newStatutId || "").toLowerCase();
+  const handleStatutChange = useCallback(
+    (newStatutId: string | number | undefined) => {
+      const statut = String(newStatutId || "").toLowerCase();
 
-    // 🔁 Synchronise automatiquement include_archived
-    const include_archived =
-      statut === "archive" || statut === "archived" || statut === "all";
+      // 🔁 Synchronise automatiquement include_archived
+      const include_archived = statut === "archive" || statut === "archived" || statut === "all";
 
-    const newValues = { ...values, statut_id: newStatutId, include_archived };
-    onChange(newValues);
-    if (onRefresh) onRefresh(newValues);
-  },
-  [onChange, onRefresh, values]
-);
-
-const toggleArchived = useCallback(
-  (checked: boolean) => {
-    const newValues = { ...values, include_archived: checked };
-    // Si on coche “archivé”, change le select en conséquence
-    newValues.statut_id = checked ? "archive" : "actif";
-    onChange(newValues);
-    if (onRefresh) onRefresh(newValues);
-  },
-  [onChange, onRefresh, values]
-);
+      const newValues = { ...values, statut_id: newStatutId, include_archived };
+      onChange(newValues);
+      if (onRefresh) onRefresh(newValues);
+    },
+    [onChange, onRefresh, values]
+  );
 
   // ------------------------------------------------------
   // 🧩 Définition dynamique des champs
@@ -117,11 +110,10 @@ const toggleArchived = useCallback(
         type: "select" as const,
         onChange: (val: CommentaireFiltresValues["statut_id"]) => handleStatutChange(val),
         options: withPlaceholder([
-        { value: "actif", label: "Actif" },
-        { value: "archive", label: "Archivé" },
-        { value: "all", label: "Tous" },
-      ]),
-
+          { value: "actif", label: "Actif" },
+          { value: "archive", label: "Archivé" },
+          { value: "all", label: "Tous" },
+        ]),
       },
       {
         key: "type_offre_id" as const,
@@ -212,8 +204,7 @@ const toggleArchived = useCallback(
           borderTop: "1px solid",
           borderColor: "divider",
         }}
-      >
-      </Box>
+      ></Box>
     </Box>
   );
 });

@@ -1,4 +1,4 @@
-// src/pages/prospection/ProspectionComment/ProspectionCommentCreate.tsx
+// src/pages/prospection/prospectioncomments/ProspectionCommentCreate.tsx
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -26,14 +26,10 @@ export default function ProspectionCommentCreatePage() {
   const isStaff = ["staff", "admin", "superadmin"].includes(user?.role ?? "");
 
   const prefilledProspectionId =
-    prospectionId && Number.isFinite(Number(prospectionId))
-      ? Number(prospectionId)
-      : undefined;
+    prospectionId && Number.isFinite(Number(prospectionId)) ? Number(prospectionId) : undefined;
 
   const [choiceOpen, setChoiceOpen] = useState(false);
-  const [lastCreated, setLastCreated] = useState<CreatedCommentLite | null>(
-    null
-  );
+  const [lastCreated, setLastCreated] = useState<CreatedCommentLite | null>(null);
 
   const handleCreate = async (input: ProspectionCommentCreateInput) => {
     try {
@@ -41,9 +37,9 @@ export default function ProspectionCommentCreatePage() {
       toast.success("💬 Commentaire créé avec succès");
       setLastCreated(created);
       setChoiceOpen(true);
-    } catch (error) {
+    } catch (_error) {
+      // ✅ renommé en _error pour éviter le warning ESLint
       toast.error("Erreur lors de la création du commentaire");
-      console.error(error);
     }
   };
 
@@ -67,10 +63,7 @@ export default function ProspectionCommentCreatePage() {
           <Button variant="outlined" onClick={() => navigate(-1)}>
             ← Retour
           </Button>
-          <Button
-            variant="outlined"
-            onClick={() => navigate("/prospection-commentaires")}
-          >
+          <Button variant="outlined" onClick={() => navigate("/prospection-commentaires")}>
             Liste
           </Button>
         </Stack>

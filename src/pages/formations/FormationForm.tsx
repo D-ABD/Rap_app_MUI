@@ -20,9 +20,7 @@ import {
   School as SchoolIcon,
   Business as BusinessIcon,
   Numbers as NumbersIcon,
-  Event as EventIcon,
   Assignment as AssignmentIcon,
-  People as PeopleIcon,
   TrendingUp as TrendingUpIcon,
 } from "@mui/icons-material";
 
@@ -81,9 +79,7 @@ export default function FormationForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any) => {
     const { name, value } = e.target;
     setValues((prev) => ({ ...prev, [name]: value }));
   };
@@ -105,7 +101,6 @@ export default function FormationForm({
     try {
       await onSubmit(values);
     } catch (err: any) {
-      console.error("Erreur lors de la soumission du formulaire :", err);
       if (err?.response?.data?.errors) {
         setErrors(err.response.data.errors);
       }
@@ -124,10 +119,7 @@ export default function FormationForm({
     title: string;
     children: React.ReactNode;
   }) => (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}
-    >
+    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
         {icon}
         <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
@@ -141,12 +133,7 @@ export default function FormationForm({
     </Paper>
   );
 
-  const Input = ({
-    label,
-    name,
-    type = "text",
-    ...props
-  }: any) => (
+  const Input = ({ label, name, type = "text", ...props }: any) => (
     <Grid item xs={12} sm={6}>
       <TextField
         fullWidth
@@ -230,12 +217,7 @@ export default function FormationForm({
           type="date"
           InputLabelProps={{ shrink: true }}
         />
-        <Input
-          label="Date de fin"
-          name="end_date"
-          type="date"
-          InputLabelProps={{ shrink: true }}
-        />
+        <Input label="Date de fin" name="end_date" type="date" InputLabelProps={{ shrink: true }} />
       </Section>
 
       <Section icon={<NumbersIcon color="primary" />} title="Numéros & assistante">
@@ -254,19 +236,25 @@ export default function FormationForm({
       </Section>
 
       <Section icon={<BusinessIcon color="primary" />} title="Places & inscrits">
-        {["prevus_crif", "prevus_mp", "inscrits_crif", "inscrits_mp", "cap"].map(
-          (field) => (
-            <Input key={field} label={field.replace("_", " ").toUpperCase()} name={field} type="number" />
-          )
-        )}
+        {["prevus_crif", "prevus_mp", "inscrits_crif", "inscrits_mp", "cap"].map((field) => (
+          <Input
+            key={field}
+            label={field.replace("_", " ").toUpperCase()}
+            name={field}
+            type="number"
+          />
+        ))}
       </Section>
 
       <Section icon={<TrendingUpIcon color="primary" />} title="Recrutement & statistiques">
-        {["entree_formation", "nombre_candidats", "nombre_entretiens"].map(
-          (field) => (
-            <Input key={field} label={field.replace("_", " ").toUpperCase()} name={field} type="number" />
-          )
-        )}
+        {["entree_formation", "nombre_candidats", "nombre_entretiens"].map((field) => (
+          <Input
+            key={field}
+            label={field.replace("_", " ").toUpperCase()}
+            name={field}
+            type="number"
+          />
+        ))}
 
         <Grid item xs={12}>
           <FormControlLabel

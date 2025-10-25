@@ -24,9 +24,7 @@ import type {
   PresenceStatut,
 } from "../../types/ateliersTre";
 import CentresSelectModal from "../../components/modals/CentresSelectModal";
-import CandidatsSelectModal, {
-  CandidatPick,
-} from "../../components/modals/CandidatsSelectModal";
+import CandidatsSelectModal, { CandidatPick } from "../../components/modals/CandidatsSelectModal";
 
 /* ====================== Fallbacks ====================== */
 const TYPE_CHOICES_FALLBACK: Choice[] = [
@@ -95,10 +93,7 @@ export default function AtelierTREForm({
   const [showCandidatsModal, setShowCandidatsModal] = useState(false);
 
   const typeChoices = useMemo(
-    () =>
-      meta?.type_atelier_choices?.length
-        ? meta.type_atelier_choices
-        : TYPE_CHOICES_FALLBACK,
+    () => (meta?.type_atelier_choices?.length ? meta.type_atelier_choices : TYPE_CHOICES_FALLBACK),
     [meta?.type_atelier_choices]
   );
   const centreChoices = useMemo(() => meta?.centre_choices ?? [], [meta?.centre_choices]);
@@ -325,7 +320,7 @@ export default function AtelierTREForm({
           setShowCandidatsModal(false);
           setForm((f) => {
             const exists = (f.candidats ?? []).includes(pick.id);
-            const nextIds = exists ? f.candidats ?? [] : [...(f.candidats ?? []), pick.id];
+            const nextIds = exists ? (f.candidats ?? []) : [...(f.candidats ?? []), pick.id];
             return { ...f, candidats: nextIds };
           });
           setCandPills((prev) => {

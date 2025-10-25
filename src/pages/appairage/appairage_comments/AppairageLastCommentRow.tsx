@@ -1,11 +1,5 @@
 // src/features/appairages/components/AppairageLastCommentRow.tsx
-import {
-  Box,
-  Button,
-  Paper,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Stack, Typography } from "@mui/material";
 import type { AppairageCommentDTO } from "../../../types/appairageComment";
 
 type Props = {

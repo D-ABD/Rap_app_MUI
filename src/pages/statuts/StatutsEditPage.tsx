@@ -74,16 +74,12 @@ export default function StatutsEditPage() {
   }, [fetchStatut]);
 
   const selectedChoice = choices.find((c) => c.value === values.nom);
-  const previewColor =
-    values.couleur || selectedChoice?.default_color || initialColor;
+  const previewColor = values.couleur || selectedChoice?.default_color || initialColor;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (
-      !values.nom.trim() ||
-      (values.nom === "autre" && !values.description_autre.trim())
-    ) {
+    if (!values.nom.trim() || (values.nom === "autre" && !values.description_autre.trim())) {
       toast.error("Tous les champs obligatoires doivent être remplis.");
       return;
     }
@@ -226,11 +222,7 @@ export default function StatutsEditPage() {
               <Button type="submit" variant="contained" color="primary">
                 💾 Enregistrer
               </Button>
-              <Button
-                type="button"
-                variant="outlined"
-                onClick={() => navigate("/statuts")}
-              >
+              <Button type="button" variant="outlined" onClick={() => navigate("/statuts")}>
                 Annuler
               </Button>
             </Stack>

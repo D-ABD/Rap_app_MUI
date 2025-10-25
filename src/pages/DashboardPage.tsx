@@ -40,13 +40,7 @@ import AppairageCommentStatsDashboard from "./widgets/commentsDahboard/Appairage
 import CommentaireStatsDashboard from "./widgets/commentsDahboard/CommentaireStatsDashboard";
 import ProspectionCommentStatsDashboard from "./widgets/commentsDahboard/ProspectionCommentStatsDashboard";
 
-type PaletteColorKey =
-  | "primary"
-  | "secondary"
-  | "success"
-  | "warning"
-  | "info"
-  | "error";
+type PaletteColorKey = "primary" | "secondary" | "success" | "warning" | "info" | "error";
 
 const DashboardPage = () => {
   const { user } = useAuth();
@@ -66,6 +60,8 @@ const DashboardPage = () => {
         overflow: "hidden",
         boxShadow: theme.shadows[1],
         "&:before": { display: "none" },
+        minWidth: 0,
+        minHeight: 0,
       }}
     >
       <AccordionSummary
@@ -82,7 +78,16 @@ const DashboardPage = () => {
           {title}
         </Typography>
       </AccordionSummary>
-      <AccordionDetails sx={{ backgroundColor: theme.palette.background.paper }}>
+      <AccordionDetails
+        sx={{
+          backgroundColor: theme.palette.background.paper,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          minWidth: 0,
+          minHeight: 0,
+        }}
+      >
         {children}
       </AccordionDetails>
     </Accordion>
@@ -90,117 +95,140 @@ const DashboardPage = () => {
 
   return (
     <PageWrapper maxWidth="lg">
-      {/* Header */}
-      <Box mb={3}>
-        <Typography variant="h5" fontWeight="bold" gutterBottom>
-          Bienvenue, {user?.email || "utilisateur"} 👋
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Ceci est votre tableau de bord.
-        </Typography>
+      {/* ✅ Conteneur principal */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minWidth: 0,
+          minHeight: 0,
+        }}
+      >
+        {/* 🧩 HEADER */}
+        {/* ---------------------- */}
+        <Box mb={3}>
+          <Typography variant="h5" fontWeight="bold" gutterBottom>
+            Bienvenue, {user?.email || "utilisateur"} 👋
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Ceci est votre tableau de bord.
+          </Typography>
 
-        <Button
-          variant="contained"
-          component={RouterLink}
-          to="/parametres"
-          sx={{ mt: 2 }}
-        >
-          Aller aux paramètres
-        </Button>
+          <Button variant="contained" component={RouterLink} to="/parametres" sx={{ mt: 2 }}>
+            Aller aux paramètres
+          </Button>
+        </Box>
+
+        {/* 🟦 SECTION 1 : Indicateurs clés */}
+        {/* ---------------------- */}
+        {styledAccordion(
+          <Grid container spacing={2} sx={{ minWidth: 0, minHeight: 0 }}>
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <FormationSaturationWidget title="Saturation Formations" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <ProspectionConversionKpi title="Tx transformation Prospections" />
+            </Grid>
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <AppairageConversionKpi title="Tx transformation Appairages" />
+            </Grid>
+          </Grid>,
+          "Indicateurs clés",
+          "primary",
+          true
+        )}
+
+        {/* 🟩 SECTION 2 : Stats Formations */}
+        {/* ---------------------- */}
+        {styledAccordion(
+          <Grid container spacing={2} sx={{ minWidth: 0, minHeight: 0 }}>
+            {/* 🧩 Widget 1 : FormationOverviewWidget */}
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <FormationOverviewWidget title="Répartition formations" />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <FormationOverviewWidget2 title="Types d’offres" />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <FormationPlacesWidget title="Places disponibles" />
+            </Grid>
+          </Grid>,
+          "Stats Formations",
+          "success"
+        )}
+
+        {/* 🟨 SECTION 3 : Stats Candidats */}
+        {styledAccordion(
+          <Grid container spacing={2} sx={{ minWidth: 0, minHeight: 0 }}>
+            {/* 🧩 Widget 1 : CandidatOverviewWidget */}
+
+            <Grid item xs={12} sm={6} sx={{ minWidth: 0, minHeight: 240 }}>
+              <CandidatOverviewWidget title="Statuts candidats" />
+            </Grid>
+
+            {/* 🧩 Widget 2 : CandidatContratOverviewWidget */}
+
+            <Grid item xs={12} sm={6} sx={{ minWidth: 0, minHeight: 240 }}>
+              <CandidatContratOverviewWidget title="Répartition contrats" />
+            </Grid>
+          </Grid>,
+          "Stats Candidats",
+          "warning"
+        )}
+
+        {/* 🟦 SECTION 4 : Suivi Prospection / Appairage / Ateliers */}
+        {styledAccordion(
+          <Grid container spacing={2} sx={{ minWidth: 0, minHeight: 0 }}>
+            {/* 🧩 Widget 1 : ProspectionOverviewWidget */}
+
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <ProspectionOverviewWidget title="Overview Prospections" />
+            </Grid>
+
+            {/* 🧩 Widget 2 : AppairageOverviewWidget */}
+
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <AppairageOverviewWidget />
+            </Grid>
+
+            {/* 🧩 Widget 3 : AteliersTREOverviewWidget */}
+
+            <Grid item xs={12} sm={6} md={4} sx={{ minWidth: 0, minHeight: 240 }}>
+              <AteliersTREOverviewWidget />
+            </Grid>
+          </Grid>,
+          "Suivi (Prospection/Appairage/Ateliers)",
+          "info"
+        )}
+
+        {styledAccordion(
+          <Box sx={{ minWidth: 0, minHeight: 0 }}>
+            <FormationGroupedWidget />
+            <CandidatGroupedTableWidget />
+            <AppairageGroupedTableWidget />
+            <ProspectionGroupedWidget />
+            <AteliersTREGroupedWidget />
+          </Box>,
+          "Analyse groupée",
+          "secondary"
+        )}
+
+        {styledAccordion(<CommentaireStatsDashboard />, "Derniers commentaires", "error", true)}
+
+        {styledAccordion(
+          <AppairageCommentStatsDashboard />,
+          "Derniers commentaires d’appairage",
+          "secondary"
+        )}
+
+        {styledAccordion(
+          <ProspectionCommentStatsDashboard />,
+          "Derniers commentaires de prospection",
+          "info"
+        )}
       </Box>
-
-      {/* Sections */}
-      {styledAccordion(
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={4}>
-            <FormationSaturationWidget title="Saturation Formations" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <ProspectionConversionKpi title="Tx transformation Prospections" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <AppairageConversionKpi title="Tx transformation Appairages" />
-          </Grid>
-        </Grid>,
-        "Indicateurs clés",
-        "primary",
-        true
-      )}
-
-      {styledAccordion(
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={4}>
-            <FormationOverviewWidget title="Répartition formations" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <FormationOverviewWidget2 title="Types d’offres" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <FormationPlacesWidget title="Places disponibles" />
-          </Grid>
-        </Grid>,
-        "Stats Formations",
-        "success"
-      )}
-
-      {styledAccordion(
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <CandidatOverviewWidget title="Statuts candidats" />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <CandidatContratOverviewWidget title="Répartition contrats" />
-          </Grid>
-        </Grid>,
-        "Stats Candidats",
-        "warning"
-      )}
-
-      {styledAccordion(
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6} md={4}>
-            <ProspectionOverviewWidget title="Overview Prospections" />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <AppairageOverviewWidget />
-          </Grid>
-          <Grid item xs={12} sm={6} md={4}>
-            <AteliersTREOverviewWidget />
-          </Grid>
-        </Grid>,
-        "Suivi (Prospection/Appairage/Ateliers)",
-        "info"
-      )}
-
-      {styledAccordion(
-        <>
-          <FormationGroupedWidget />
-          <CandidatGroupedTableWidget />
-          <AppairageGroupedTableWidget />
-          <ProspectionGroupedWidget />
-          <AteliersTREGroupedWidget />
-        </>,
-        "Analyse groupée",
-        "secondary"
-      )}
-
-      {/* Commentaires */}
-      {styledAccordion(
-        <CommentaireStatsDashboard />,
-        "Derniers commentaires",
-        "error",
-        true
-      )}
-      {styledAccordion(
-        <AppairageCommentStatsDashboard />,
-        "Derniers commentaires d’appairage",
-        "secondary"
-      )}
-      {styledAccordion(
-        <ProspectionCommentStatsDashboard />,
-        "Derniers commentaires de prospection",
-        "info"
-      )}
     </PageWrapper>
   );
 };

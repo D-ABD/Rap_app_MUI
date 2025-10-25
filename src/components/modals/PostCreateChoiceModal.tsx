@@ -6,7 +6,6 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Box,
   Typography,
 } from "@mui/material";
 
@@ -30,10 +29,10 @@ function NavButton({ href, label, variant = "primary", onClick }: NavButtonProps
         variant === "danger"
           ? "error"
           : variant === "success"
-          ? "success"
-          : variant === "warning"
-          ? "warning"
-          : "primary"
+            ? "success"
+            : variant === "warning"
+              ? "warning"
+              : "primary"
       }
       sx={{ textTransform: "none" }}
     >
@@ -103,13 +102,28 @@ export default function PostCreateChoiceModal({
       </DialogContent>
       <DialogActions sx={{ flexWrap: "wrap", gap: 1, justifyContent: "flex-end" }}>
         {hasPrimary && (
-          <NavButton href={primaryHref!} label={primaryLabel!} variant={primaryVariant} onClick={onClose} />
+          <NavButton
+            href={primaryHref!}
+            label={primaryLabel!}
+            variant={primaryVariant}
+            onClick={onClose}
+          />
         )}
         {hasSecondary && (
-          <NavButton href={secondaryHref!} label={secondaryLabel!} variant={secondaryVariant} onClick={onClose} />
+          <NavButton
+            href={secondaryHref!}
+            label={secondaryLabel!}
+            variant={secondaryVariant}
+            onClick={onClose}
+          />
         )}
         {hasTertiary && (
-          <NavButton href={tertiaryHref!} label={tertiaryLabel!} variant={tertiaryVariant} onClick={onClose} />
+          <NavButton
+            href={tertiaryHref!}
+            label={tertiaryLabel!}
+            variant={tertiaryVariant}
+            onClick={onClose}
+          />
         )}
         {cancelLabel && (
           <Button
@@ -119,10 +133,10 @@ export default function PostCreateChoiceModal({
               cancelVariant === "danger"
                 ? "error"
                 : cancelVariant === "success"
-                ? "success"
-                : cancelVariant === "warning"
-                ? "warning"
-                : "primary"
+                  ? "success"
+                  : cancelVariant === "warning"
+                    ? "warning"
+                    : "primary"
             }
             sx={{ textTransform: "none" }}
           >

@@ -18,10 +18,7 @@ type Props = {
   label?: string;
 };
 
-export default function ExportButtonPartenaires({
-  data,
-  label = "⬇️ Exporter",
-}: Props) {
+export default function ExportButtonPartenaires({ data, label = "⬇️ Exporter" }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -65,8 +62,7 @@ export default function ExportButtonPartenaires({
 
       toast.success(`XLSX prêt · ${total} partenaire(s) exporté(s).`);
       setShowModal(false);
-    } catch (e) {
-      console.error("❌ Erreur export :", e);
+    } catch (_e) {
       toast.error("Erreur lors de l’export.");
     } finally {
       setBusy(false);
@@ -98,12 +94,7 @@ export default function ExportButtonPartenaires({
           </Box>
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -112,12 +103,7 @@ export default function ExportButtonPartenaires({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

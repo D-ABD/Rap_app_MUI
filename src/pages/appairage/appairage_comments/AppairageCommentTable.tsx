@@ -29,7 +29,10 @@ interface Props {
 
 const dtfFR =
   typeof Intl !== "undefined"
-    ? new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" })
+    ? new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      })
     : undefined;
 
 const fmt = (iso: string) => {
@@ -104,9 +107,10 @@ export default function AppairageCommentTable({
               const etat =
                 r.activite ??
                 r.statut_commentaire ??
-                (r.statut_commentaire_display?.toLowerCase().includes("archiv") ? "archive" : "actif");
-              const color =
-                etat === "archive" ? "default" : "success";
+                (r.statut_commentaire_display?.toLowerCase().includes("archiv")
+                  ? "archive"
+                  : "actif");
+              const color = etat === "archive" ? "default" : "success";
 
               return (
                 <TableRow key={r.id} hover>
@@ -152,7 +156,12 @@ export default function AppairageCommentTable({
                     )}
 
                     {r.statut_snapshot && (
-                      <Chip size="small" variant="outlined" label={r.statut_snapshot} sx={{ mt: 0.5 }} />
+                      <Chip
+                        size="small"
+                        variant="outlined"
+                        label={r.statut_snapshot}
+                        sx={{ mt: 0.5 }}
+                      />
                     )}
                   </TableCell>
 

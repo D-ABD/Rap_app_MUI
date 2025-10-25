@@ -37,7 +37,9 @@ export default function UsersPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
   const [search, setSearch] = useState("");
-  const [filters, setFilters] = useState<UserFiltresValues>({ is_active: undefined });
+  const [filters, setFilters] = useState<UserFiltresValues>({
+    is_active: undefined,
+  });
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -46,14 +48,9 @@ export default function UsersPage() {
   const { filtresOptions, loading: loadingFiltres } = useUserFiltres();
   const { roles: availableRoles } = useUserRoles();
 
-  const {
-    page, setPage, count, setCount,
-    totalPages, pageSize, setPageSize,
-  } = usePagination();
+  const { page, setPage, count, setCount, totalPages, pageSize, setPageSize } = usePagination();
 
-  const {
-    data, loading, error, fetchData,
-  } = useFetch<PaginatedResponse<User>>(
+  const { data, loading, error, fetchData } = useFetch<PaginatedResponse<User>>(
     "/users/",
     { search, page, page_size: pageSize, ...filters },
     true
@@ -61,16 +58,18 @@ export default function UsersPage() {
 
   const users = data?.results ?? [];
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
   useEffect(() => {
     if (data?.count !== undefined) setCount(data.count);
   }, [data?.count, setCount]);
 
   const toggleSelect = useCallback((id: number) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   }, []);
   const clearSelection = () => setSelectedIds([]);
-  const selectAll = () => setSelectedIds(users.map(u => u.id));
+  const selectAll = () => setSelectedIds(users.map((u) => u.id));
 
   const handleDelete = async () => {
     const idsToDelete = selectedId ? [selectedId] : selectedIds;
@@ -78,7 +77,7 @@ export default function UsersPage() {
 
     try {
       const api = await import("../../api/axios");
-      await Promise.all(idsToDelete.map(id => api.default.delete(`/users/${id}/`)));
+      await Promise.all(idsToDelete.map((id) => api.default.delete(`/users/${id}/`)));
       toast.success(`🗑️ ${idsToDelete.length} utilisateur(s) supprimé(s)`);
       setShowConfirm(false);
       setSelectedId(null);
@@ -94,7 +93,7 @@ export default function UsersPage() {
     try {
       const api = await import("../../api/axios");
       await Promise.all(
-        selectedIds.map(id => api.default.patch(`/users/${id}/`, { is_active: true }))
+        selectedIds.map((id) => api.default.patch(`/users/${id}/`, { is_active: true }))
       );
       toast.success(`✅ ${selectedIds.length} utilisateur(s) activé(s)`);
       setSelectedIds([]);
@@ -109,7 +108,7 @@ export default function UsersPage() {
     try {
       const api = await import("../../api/axios");
       await Promise.all(
-        selectedIds.map(id => api.default.patch(`/users/${id}/`, { role: selectedRole }))
+        selectedIds.map((id) => api.default.patch(`/users/${id}/`, { role: selectedRole }))
       );
       toast.success(`👤 Rôle "${selectedRole}" appliqué à ${selectedIds.length} utilisateur(s)`);
       setSelectedIds([]);
@@ -127,25 +126,29 @@ export default function UsersPage() {
       refreshButton
       onRefresh={fetchData}
       actions={
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          flexWrap="wrap"
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
           <TextField
             size="small"
             value={search}
             placeholder="🔍 Rechercher..."
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             fullWidth={isMobile}
           />
           <Select
             size="small"
             value={pageSize}
-            onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+            onChange={(e) => {
+              setPageSize(Number(e.target.value));
+              setPage(1);
+            }}
           >
             {[5, 10, 20].map((n) => (
-              <MenuItem key={n} value={n}>{n} / page</MenuItem>
+              <MenuItem key={n} value={n}>
+                {n} / page
+              </MenuItem>
             ))}
           </Select>
           <Button
@@ -170,14 +173,20 @@ export default function UsersPage() {
                 onChange={(e) => setSelectedRole(e.target.value as CustomUserRole)}
               >
                 {availableRoles.map((r) => (
-                  <MenuItem key={r.value} value={r.value}>{r.label}</MenuItem>
+                  <MenuItem key={r.value} value={r.value}>
+                    {r.label}
+                  </MenuItem>
                 ))}
               </Select>
               <Button color="warning" variant="contained" onClick={handleChangeRole}>
                 🔄 Changer rôle
               </Button>
-              <Button variant="outlined" onClick={selectAll}>✅ Tout</Button>
-              <Button variant="outlined" onClick={clearSelection}>❌ Annuler</Button>
+              <Button variant="outlined" onClick={selectAll}>
+                ✅ Tout
+              </Button>
+              <Button variant="outlined" onClick={clearSelection}>
+                ❌ Annuler
+              </Button>
             </>
           )}
         </Stack>
@@ -187,7 +196,10 @@ export default function UsersPage() {
           values={filters}
           options={filtresOptions}
           loading={loadingFiltres}
-          onChange={(newFiltres) => { setFilters(newFiltres); setPage(1); }}
+          onChange={(newFiltres) => {
+            setFilters(newFiltres);
+            setPage(1);
+          }}
         />
       }
       footer={
@@ -218,7 +230,9 @@ export default function UsersPage() {
         <Typography color="error">Erreur lors du chargement des utilisateurs.</Typography>
       ) : users.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
-          <Box fontSize={48} mb={1}>📭</Box>
+          <Box fontSize={48} mb={1}>
+            📭
+          </Box>
           <Typography>Aucun utilisateur trouvé.</Typography>
         </Box>
       ) : (
@@ -231,12 +245,7 @@ export default function UsersPage() {
       )}
 
       {/* Confirmation dialog */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

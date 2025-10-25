@@ -37,20 +37,7 @@ function formatDate(value?: string | null): string {
 /** 🧩 Contenu HTML enrichi sécurisé */
 function CommentaireContent({ html }: { html: string }) {
   const sanitized = DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: [
-      "b",
-      "i",
-      "u",
-      "em",
-      "strong",
-      "p",
-      "br",
-      "ul",
-      "ol",
-      "li",
-      "span",
-      "a",
-    ],
+    ALLOWED_TAGS: ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "span", "a"],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
   });
 
@@ -120,10 +107,7 @@ export default function CommentairesTable({
               sx={{ cursor: "pointer" }}
             >
               <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                <Checkbox
-                  checked={isSelected}
-                  onChange={() => onToggleSelect(c.id)}
-                />
+                <Checkbox checked={isSelected} onChange={() => onToggleSelect(c.id)} />
               </TableCell>
 
               <TableCell sx={{ maxWidth: 340 }}>
@@ -151,8 +135,8 @@ export default function CommentairesTable({
                             c.saturation_formation < 50
                               ? "warning.main"
                               : c.saturation_formation < 80
-                              ? "info.main"
-                              : "success.main",
+                                ? "info.main"
+                                : "success.main",
                         },
                       }}
                     />
@@ -165,17 +149,11 @@ export default function CommentairesTable({
                 )}
                 {typeof c.saturation_commentaires === "number" && (
                   <Typography variant="caption" display="block">
-                    💬 Moy. des commentaires :{" "}
-                    <strong>{c.saturation_commentaires}%</strong>
+                    💬 Moy. des commentaires : <strong>{c.saturation_commentaires}%</strong>
                   </Typography>
                 )}
                 {c.centre_id && (
-                  <Typography
-                    variant="caption"
-                    display="block"
-                    color="text.secondary"
-                    mt={0.5}
-                  >
+                  <Typography variant="caption" display="block" color="text.secondary" mt={0.5}>
                     ID centre : {c.centre_id}
                   </Typography>
                 )}

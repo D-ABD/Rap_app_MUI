@@ -8,9 +8,7 @@ import type { SelectChangeEvent } from "@mui/material/Select";
  * - Checkbox, Switch
  * - MUI Select (SelectChangeEvent)
  */
-export default function useForm<T extends Record<string, unknown>>(
-  initialValues: T
-) {
+export default function useForm<T extends Record<string, unknown>>(initialValues: T) {
   const [values, setValues] = useState<T>(initialValues);
   const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
 
@@ -31,10 +29,7 @@ export default function useForm<T extends Record<string, unknown>>(
     const key = name || id;
     if (!key) return;
 
-    const newValue =
-      type === "checkbox"
-        ? (e.target as HTMLInputElement).checked
-        : value;
+    const newValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
     setValues((prev) => ({ ...prev, [key]: newValue }));
     setErrors((prev) => ({ ...prev, [key]: "" }));

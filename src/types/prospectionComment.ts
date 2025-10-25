@@ -26,11 +26,11 @@ export interface ProspectionCommentDTO {
   formation_type_offre_nom: string | null;
 
   // 🆕 Champs d’activité / statut — alignés avec backend
-  statut_commentaire?: "actif" | "archive";   // backend exact
+  statut_commentaire?: "actif" | "archive"; // backend exact
   statut_commentaire_display?: string | null; // ex: "Actif", "Archivé"
-  activite?: "actif" | "archive";             // harmonisé avec backend
-  est_archive: boolean;                       // booléen pratique
-  statut_color?: string | null;               // couleur (vert/gris)
+  activite?: "actif" | "archive"; // harmonisé avec backend
+  est_archive: boolean; // booléen pratique
+  statut_color?: string | null; // couleur (vert/gris)
 }
 
 // ⚠️ le serializer attend prospection_id (write-only -> source="prospection")
@@ -63,8 +63,8 @@ export interface ProspectionCommentListParams {
   prospection_partenaire?: number;
 
   // 🆕 filtres d’état / archivage
-  est_archive?: boolean | "both";           // 🟢 accepte "both" → inclus actifs + archivés
+  est_archive?: boolean | "both"; // 🟢 accepte "both" → inclus actifs + archivés
   activite?: "actif" | "archive";
   statut_commentaire?: "actif" | "archive";
-    inclure_archives?: boolean;
+  inclure_archives?: boolean;
 }

@@ -56,8 +56,8 @@ export default function CentresSelectModal({ show, onClose, onSelect }: Props) {
           const results = Array.isArray(payload?.results)
             ? payload.results
             : Array.isArray(payload)
-            ? payload
-            : [];
+              ? payload
+              : [];
           setItems(
             results.map((c: { id: number; nom?: string; label?: string }) => ({
               id: c.id,
@@ -67,14 +67,18 @@ export default function CentresSelectModal({ show, onClose, onSelect }: Props) {
         } catch {
           // fallback DRF standard
           const r = await api.get("/centres/", {
-            params: { search: dq || undefined, ordering: "nom", page_size: 200 },
+            params: {
+              search: dq || undefined,
+              ordering: "nom",
+              page_size: 200,
+            },
           });
           const payload = r.data;
           const results = Array.isArray(payload?.results)
             ? payload.results
             : Array.isArray(payload)
-            ? payload
-            : [];
+              ? payload
+              : [];
           setItems(
             results.map((c: { id: number; nom?: string; label?: string }) => ({
               id: c.id,
@@ -123,10 +127,7 @@ export default function CentresSelectModal({ show, onClose, onSelect }: Props) {
                 {filtered.map((c) => (
                   <ListItem key={c.id} disablePadding>
                     <ListItemButton onClick={() => onSelect(c)}>
-                      <ListItemText
-                        primary={c.label}
-                        secondary={`#${c.id}`}
-                      />
+                      <ListItemText primary={c.label} secondary={`#${c.id}`} />
                     </ListItemButton>
                   </ListItem>
                 ))}

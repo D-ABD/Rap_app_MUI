@@ -41,7 +41,7 @@ export default function ExportButtonAppairageComment({
 }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [exportFormat, setExportFormat] = useState<ExportFormat>("pdf");
-  const [includeArchived, setIncludeArchived] = useState(false); // 🆕
+  const [includeArchived, setIncludeArchived] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const total = data?.length ?? 0;
@@ -62,10 +62,7 @@ export default function ExportButtonAppairageComment({
     try {
       setBusy(true);
 
-      // ✅ Endpoint backend unifié
       const url = `/appairage-commentaires/export-${exportFormat}/`;
-
-      // 🧩 Paramètre pour inclure les archivés
       const params = includeArchived ? { include_archived: true } : undefined;
 
       let res;
@@ -82,9 +79,8 @@ export default function ExportButtonAppairageComment({
           : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
       const filename =
-        res.headers["content-disposition"]
-          ?.split("filename=")[1]
-          ?.replace(/"/g, "") || `commentaires_appairage.${exportFormat}`;
+        res.headers["content-disposition"]?.split("filename=")[1]?.replace(/"/g, "") ||
+        `commentaires_appairage.${exportFormat}`;
 
       const blob = new Blob([res.data], { type: contentType });
       const urlBlob = URL.createObjectURL(blob);
@@ -100,13 +96,10 @@ export default function ExportButtonAppairageComment({
       toast.success(
         `${exportFormat.toUpperCase()} prêt · ${
           selectedCount > 0 ? selectedCount : total
-        } commentaire(s) exporté(s)${
-          includeArchived ? " (avec archivés)" : ""
-        }.`
+        } commentaire(s) exporté(s)${includeArchived ? " (avec archivés)" : ""}.`
       );
       setShowModal(false);
-    } catch (e) {
-      console.error("❌ Erreur export :", e);
+    } catch (_e) {
       toast.error("Erreur lors de l’export.");
     } finally {
       setBusy(false);
@@ -115,7 +108,6 @@ export default function ExportButtonAppairageComment({
 
   return (
     <>
-      {/* 🔹 Bouton principal */}
       <Button
         variant="outlined"
         color="secondary"
@@ -126,15 +118,14 @@ export default function ExportButtonAppairageComment({
           total === 0
             ? "Aucun commentaire à exporter"
             : selectedCount > 0
-            ? `Exporter les ${selectedCount} sélection(s)`
-            : `Exporter les ${total} commentaire(s) visibles`
+              ? `Exporter les ${selectedCount} sélection(s)`
+              : `Exporter les ${total} commentaire(s) visibles`
         }
       >
         {busy ? "⏳ " : "⬇️ "}
         {label} {selectedCount > 0 ? `(${selectedCount})` : `(${total})`}
       </Button>
 
-      {/* 🔹 Modale d’export */}
       <Dialog open={showModal} onClose={closeModal} maxWidth="sm" fullWidth>
         <DialogTitle>Exporter les commentaires</DialogTitle>
         <DialogContent dividers>
@@ -148,7 +139,6 @@ export default function ExportButtonAppairageComment({
               />
             </Box>
 
-            {/* 🆕 Switch pour inclure les archivés */}
             <FormControlLabel
               control={
                 <Switch
@@ -162,12 +152,7 @@ export default function ExportButtonAppairageComment({
           </Box>
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -176,12 +161,7 @@ export default function ExportButtonAppairageComment({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

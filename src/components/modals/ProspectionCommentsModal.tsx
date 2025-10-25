@@ -25,6 +25,7 @@ import {
 import type { ProspectionCommentDTO } from "../../types/prospectionComment";
 import api from "../../api/axios";
 import ProspectionCommentForm from "../../pages/prospection/prospectioncomments/ProspectionCommentForm";
+import { toast } from "react-toastify";
 
 /* ---------- Types ---------- */
 type Props = {
@@ -32,7 +33,7 @@ type Props = {
   onClose: () => void;
   prospectionId: number;
   isStaff?: boolean;
-  onCommentAdded?: (newComment: ProspectionCommentDTO) => void; // ✅ ajouté
+  onCommentAdded?: (newComment: ProspectionCommentDTO) => void;
 };
 
 type ProspectionMeta = {
@@ -41,18 +42,22 @@ type ProspectionMeta = {
   label: string;
 };
 
-const dtf = new Intl.DateTimeFormat("fr-FR", { dateStyle: "short", timeStyle: "short" });
+const dtf = new Intl.DateTimeFormat("fr-FR", {
+  dateStyle: "short",
+  timeStyle: "short",
+});
 const fmtDate = (iso: string) => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "—" : dtf.format(d);
 };
 
+/* ---------- Component ---------- */
 export default function ProspectionCommentsModal({
   open,
   onClose,
   prospectionId,
   isStaff = false,
-  onCommentAdded, // ✅
+  onCommentAdded,
 }: Props) {
   const [reloadKey, setReloadKey] = useState(0);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -79,12 +84,15 @@ export default function ProspectionCommentsModal({
         const partenaire_nom: string | null = p?.partenaire_nom ?? null;
         const formation_nom: string | null = p?.formation_nom ?? null;
         const label =
-          [partenaire_nom, formation_nom].filter(Boolean).join(" • ") ||
-          `#${prospectionId}`;
+          [partenaire_nom, formation_nom].filter(Boolean).join(" • ") || `#${prospectionId}`;
         if (!cancelled) setMeta({ partenaire_nom, formation_nom, label });
       } catch {
         if (!cancelled) {
-          setMeta({ partenaire_nom: null, formation_nom: null, label: `#${prospectionId}` });
+          setMeta({
+            partenaire_nom: null,
+            formation_nom: null,
+            label: `#${prospectionId}`,
+          });
         }
       }
     })();
@@ -93,7 +101,8 @@ export default function ProspectionCommentsModal({
     };
   }, [open, prospectionId]);
 
-  const rows = data?.results ?? [];
+  // ✅ isolé pour éviter un recalcul dans useMemo suivant
+  const rows = useMemo(() => data?.results ?? [], [data]);
 
   const filteredRows = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -101,10 +110,7 @@ export default function ProspectionCommentsModal({
       if (visibility === "public" && c.is_internal) return false;
       if (visibility === "internal" && !c.is_internal) return false;
       if (!q) return true;
-      return (
-        c.body.toLowerCase().includes(q) ||
-        c.created_by_username.toLowerCase().includes(q)
-      );
+      return c.body.toLowerCase().includes(q) || c.created_by_username.toLowerCase().includes(q);
     });
   }, [rows, search, visibility]);
 
@@ -114,38 +120,29 @@ export default function ProspectionCommentsModal({
       setDeletingId(id);
       await api.delete(`/prospection-commentaires/${id}/`);
       setReloadKey((k) => k + 1);
-    } catch (err) {
-      alert("Suppression impossible.");
-      console.error("[ProspectionCommentsModal] DELETE ✗", err);
+    } catch {
+      toast.error("Suppression impossible.");
     } finally {
       setDeletingId(null);
     }
   };
 
-const handleAddComment = async (payload: { body: string; is_internal?: boolean }) => {
-  try {
-    // ✅ ajoute l’ID requis attendu par le hook
-    const input = { ...payload, prospection_id: prospectionId };
-    const created = await create(input);
-    setReloadKey((k) => k + 1);
-
-    if (onCommentAdded) onCommentAdded(created as ProspectionCommentDTO);
-  } catch (err) {
-    console.error("[ProspectionCommentsModal] CREATE ✗", err);
-  }
-};
-
-
+  const handleAddComment = async (payload: { body: string; is_internal?: boolean }) => {
+    try {
+      const input = { ...payload, prospection_id: prospectionId };
+      const created = await create(input);
+      setReloadKey((k) => k + 1);
+      onCommentAdded?.(created as ProspectionCommentDTO);
+    } catch {
+      toast.error("Impossible d’ajouter le commentaire.");
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>💬 Commentaires de prospection</DialogTitle>
       {meta && (
-        <Typography
-          variant="subtitle2"
-          color="text.secondary"
-          sx={{ px: 3, mt: -1, mb: 1 }}
-        >
+        <Typography variant="subtitle2" color="text.secondary" sx={{ px: 3, mt: -1, mb: 1 }}>
           Prospection #{prospectionId} — {meta.label}
         </Typography>
       )}
@@ -153,10 +150,7 @@ const handleAddComment = async (payload: { body: string; is_internal?: boolean }
       <DialogContent dividers>
         {/* Header badges & actions */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Chip
-            label={`${rows.length} commentaire${rows.length > 1 ? "s" : ""}`}
-            color="primary"
-          />
+          <Chip label={`${rows.length} commentaire${rows.length > 1 ? "s" : ""}`} color="primary" />
           <Box display="flex" gap={1}>
             <IconButton
               onClick={() => setReloadKey((k) => k + 1)}
@@ -175,7 +169,7 @@ const handleAddComment = async (payload: { body: string; is_internal?: boolean }
         <ProspectionCommentForm
           prospectionId={prospectionId}
           canSetInternal={isStaff}
-          onSubmit={handleAddComment} // ✅ simplifié
+          onSubmit={handleAddComment}
         />
 
         {/* Toolbar */}
@@ -191,9 +185,7 @@ const handleAddComment = async (payload: { body: string; is_internal?: boolean }
             <Select
               size="small"
               value={visibility}
-              onChange={(e) =>
-                setVisibility(e.target.value as "all" | "public" | "internal")
-              }
+              onChange={(e) => setVisibility(e.target.value as "all" | "public" | "internal")}
             >
               <MenuItem value="all">Tous</MenuItem>
               <MenuItem value="public">Public</MenuItem>

@@ -18,7 +18,7 @@ export default function ExportSelect({ value, onChange, options }: ExportSelectP
   };
 
   const visibleOptions = options
-    ? DEFAULT_OPTIONS.filter(opt => options.includes(opt.value))
+    ? DEFAULT_OPTIONS.filter((opt) => options.includes(opt.value))
     : DEFAULT_OPTIONS;
 
   return (
@@ -30,7 +30,7 @@ export default function ExportSelect({ value, onChange, options }: ExportSelectP
       size="small"
       sx={{ minWidth: 180 }}
     >
-      {visibleOptions.map(opt => (
+      {visibleOptions.map((opt) => (
         <MenuItem key={opt.value} value={opt.value}>
           {opt.label}
         </MenuItem>

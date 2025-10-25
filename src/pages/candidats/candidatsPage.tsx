@@ -53,8 +53,7 @@ export default function CandidatsPage() {
   }, [showFilters]);
 
   // Pagination
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   type EffectiveFilters = CandidatFiltresValues & {
     page: number;
@@ -114,29 +113,29 @@ export default function CandidatsPage() {
       toast.error("Erreur lors de la suppression");
     }
   };
-// ── Détail du candidat ─────────────────────────────────────────────
-const [showDetail, setShowDetail] = useState(false);
-const [selectedCandidat, setSelectedCandidat] = useState<Candidat | null>(null);
-const [loadingDetail, setLoadingDetail] = useState(false);
+  // ── Détail du candidat ─────────────────────────────────────────────
+  const [showDetail, setShowDetail] = useState(false);
+  const [selectedCandidat, setSelectedCandidat] = useState<Candidat | null>(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
-const handleRowClick = async (id: number) => {
-  setLoadingDetail(true);
-  setShowDetail(true);
-  try {
-    const api = (await import("../../api/axios")).default;
-    const { data } = await api.get<Candidat>(`/candidats/${id}/`);
-    setSelectedCandidat(data);
-  } catch {
-    toast.error("Erreur lors du chargement du candidat");
-    setShowDetail(false);
-  } finally {
-    setLoadingDetail(false);
-  }
-};
+  const handleRowClick = async (id: number) => {
+    setLoadingDetail(true);
+    setShowDetail(true);
+    try {
+      const api = (await import("../../api/axios")).default;
+      const { data } = await api.get<Candidat>(`/candidats/${id}/`);
+      setSelectedCandidat(data);
+    } catch {
+      toast.error("Erreur lors du chargement du candidat");
+      setShowDetail(false);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
 
-const handleEdit = (id: number) => {
-  navigate(`/candidats/${id}/edit`);
-};
+  const handleEdit = (id: number) => {
+    navigate(`/candidats/${id}/edit`);
+  };
 
   return (
     <PageTemplate
@@ -147,16 +146,8 @@ const handleEdit = (id: number) => {
         setFilters((f) => ({ ...f }));
       }}
       actions={
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          flexWrap="wrap"
-        >
-          <Button
-            variant="outlined"
-            onClick={() => setShowFilters((v) => !v)}
-            fullWidth={isMobile}
-          >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
+          <Button variant="outlined" onClick={() => setShowFilters((v) => !v)} fullWidth={isMobile}>
             {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
             {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
           </Button>
@@ -193,11 +184,7 @@ const handleEdit = (id: number) => {
 
           {selectedIds.length > 0 && (
             <>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button variant="contained" color="error" onClick={() => setShowConfirm(true)}>
                 🗑️ Supprimer ({selectedIds.length})
               </Button>
               <Button variant="outlined" onClick={selectAll}>
@@ -212,22 +199,20 @@ const handleEdit = (id: number) => {
       }
       filters={
         showFilters &&
-          (loadingOptions ? (
-            <CircularProgress />
-          ) : options ? (
-            <FiltresCandidatsPanel
-              options={options}
-              values={effectiveFilters}
-              onChange={(v) => {
-                setFilters((f) => ({ ...f, ...v }));
-                setPage(1);
-              }}
-            />
-          ) : (
-            <Typography color="error">
-              ⚠️ Impossible de charger les filtres
-            </Typography>
-          ))
+        (loadingOptions ? (
+          <CircularProgress />
+        ) : options ? (
+          <FiltresCandidatsPanel
+            options={options}
+            values={effectiveFilters}
+            onChange={(v) => {
+              setFilters((f) => ({ ...f, ...v }));
+              setPage(1);
+            }}
+          />
+        ) : (
+          <Typography color="error">⚠️ Impossible de charger les filtres</Typography>
+        ))
       }
       footer={
         count > 0 && (
@@ -258,26 +243,20 @@ const handleEdit = (id: number) => {
           <Typography>Aucun candidat trouvé.</Typography>
         </Box>
       ) : (
-<CandidatsTable
-  items={items}
-  selectedIds={selectedIds}
-  onSelectionChange={setSelectedIds}
-  onDelete={(id) => {
-    setSelectedId(id);
-    setShowConfirm(true);
-  }}
-  onRowClick={handleRowClick} // ✅ clic → ouvre la modale
-/>
-
+        <CandidatsTable
+          items={items}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          onDelete={(id) => {
+            setSelectedId(id);
+            setShowConfirm(true);
+          }}
+          onRowClick={handleRowClick} // ✅ clic → ouvre la modale
+        />
       )}
 
       {/* Confirmation dialog */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle>Confirmation</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -294,14 +273,13 @@ const handleEdit = (id: number) => {
         </DialogActions>
       </Dialog>
       {/* ───────────── Détail du candidat ───────────── */}
-<CandidatDetailModal
-  open={showDetail}
-  onClose={() => setShowDetail(false)}
-  candidat={selectedCandidat}
-  loading={loadingDetail}
-  onEdit={handleEdit}
-/>
-
+      <CandidatDetailModal
+        open={showDetail}
+        onClose={() => setShowDetail(false)}
+        candidat={selectedCandidat}
+        loading={loadingDetail}
+        onEdit={handleEdit}
+      />
     </PageTemplate>
   );
 }

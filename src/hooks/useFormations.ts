@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { AxiosError } from 'axios';
-import { toast } from 'react-toastify';
-import api from '../api/axios';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { AxiosError } from "axios";
+import { toast } from "react-toastify";
+import api from "../api/axios";
 
 import type {
   Formation,
@@ -12,11 +12,11 @@ import type {
   FormationStatsParMois,
   PaginatedResponse,
   NomId,
-} from '../types/formation';
-import type { Commentaire } from '../types/commentaire';
-import type { Evenement } from '../types/evenement';
-import type { Prospection } from '../types/prospection';
-import type { HistoriqueFormation } from '../types/historique';
+} from "../types/formation";
+import type { Commentaire } from "../types/commentaire";
+import type { Evenement } from "../types/evenement";
+import type { Prospection } from "../types/prospection";
+import type { HistoriqueFormation } from "../types/historique";
 
 interface ApiListResponse {
   results?: NomId[];
@@ -43,10 +43,10 @@ function extractResults(res: { data: ApiListResponse | NomId[] }): NomId[] {
   if (Array.isArray(res.data)) {
     return res.data;
   }
-  if ('results' in res.data && Array.isArray(res.data.results)) {
+  if ("results" in res.data && Array.isArray(res.data.results)) {
     return res.data.results;
   }
-  if ('data' in res.data && Array.isArray(res.data.data?.results)) {
+  if ("data" in res.data && Array.isArray(res.data.data?.results)) {
     return res.data.data.results ?? [];
   }
   return [];
@@ -62,16 +62,16 @@ export function useFormationChoices(): UseFormationChoicesResult {
     setLoading(true);
     try {
       const [centresRes, typesRes, statutsRes] = await Promise.all([
-        api.get('/centres/'),
-        api.get('/typeoffres/'),
-        api.get('/statuts/'),
+        api.get("/centres/"),
+        api.get("/typeoffres/"),
+        api.get("/statuts/"),
       ]);
 
       setCentres(extractResults(centresRes));
       setTypeOffres(extractResults(typesRes));
       setStatuts(extractResults(statutsRes));
     } catch {
-      toast.error('Erreur lors du chargement des choix de formulaire');
+      toast.error("Erreur lors du chargement des choix de formulaire");
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,7 @@ export function useFormationChoices(): UseFormationChoicesResult {
     loading,
     refresh: fetchChoices,
   };
-} 
+}
 
 interface UseFormationsOptions {
   search?: string;
@@ -99,8 +99,8 @@ interface UseFormationsOptions {
   type_offre?: number;
   start_date?: string;
   end_date?: string;
-  page_size?: number; 
-  avec_archivees?: boolean; 
+  page_size?: number;
+  avec_archivees?: boolean;
   activite?: string;
 }
 
@@ -115,9 +115,6 @@ interface ApiSuccessResponse<T> {
   data: T;
 }
 
-
-
-
 // ✅ Liste paginée
 export function useFormations(filters: UseFormationsOptions = {}) {
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
@@ -130,7 +127,7 @@ export function useFormations(filters: UseFormationsOptions = {}) {
     setLoading(true);
     try {
       const parsedFilters = JSON.parse(filtersKey);
-      const response = await api.get<PaginatedResponse<Formation>>('/formations/', {
+      const response = await api.get<PaginatedResponse<Formation>>("/formations/", {
         params: parsedFilters,
       });
       setData(response.data);
@@ -178,7 +175,7 @@ export function useCreateFormation() {
   const createFormation = async (formData: FormationFormData) => {
     setLoading(true);
     try {
-      const response = await api.post<WrappedResponse<Formation>>('/formations/', formData);
+      const response = await api.post<WrappedResponse<Formation>>("/formations/", formData);
       setError(null);
       return response.data.data;
     } catch (err) {
@@ -240,7 +237,10 @@ export function useFormationForm(initialValues: FormationFormData) {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState<FormationFormErrors>({});
 
-  const handleChange = <K extends keyof FormationFormData>(field: K, value: FormationFormData[K]) => {
+  const handleChange = <K extends keyof FormationFormData>(
+    field: K,
+    value: FormationFormData[K]
+  ) => {
     setValues((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
@@ -270,14 +270,7 @@ export function useFormationDetails(id: number) {
     const fetchAll = async () => {
       setLoading(true);
       try {
-        const [
-          fRes,
-          cRes,
-          dRes,
-          eRes,
-          prRes,
-          hRes,
-        ] = await Promise.all([
+        const [fRes, cRes, dRes, eRes, prRes, hRes] = await Promise.all([
           api.get<ApiSuccessResponse<Formation>>(`/formations/${id}/`),
           api.get<ApiSuccessResponse<Commentaire[]>>(`/formations/${id}/commentaires/`),
           api.get<ApiSuccessResponse<Document[]>>(`/formations/${id}/documents/`),
@@ -294,7 +287,6 @@ export function useFormationDetails(id: number) {
         setHistorique(hRes.data.data);
         setError(null);
       } catch (err) {
-        console.error('❌ Erreur chargement détails formation :', err);
         setError(err as AxiosError);
       } finally {
         setLoading(false);
@@ -325,7 +317,7 @@ export function useDupliquerFormation(id: number) {
     setLoading(true);
     try {
       const res = await api.post<{ data: Formation }>(`/formations/${id}/dupliquer/`);
-      toast.success('Formation dupliquée');
+      toast.success("Formation dupliquée");
       return res.data.data;
     } catch (err) {
       setError(err as AxiosError);
@@ -348,18 +340,20 @@ export function useExportFormation(id: number) {
     setLoading(true);
     try {
       const response = await api.get(`/formations/${id}/export_${format}/`, {
-        responseType: 'blob',
+        responseType: "blob",
       });
 
-      const blob = new Blob([response.data], { type: 'application/octet-stream' });
+      const blob = new Blob([response.data], {
+        type: "application/octet-stream",
+      });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', `formation_${id}.${format}`);
+      link.setAttribute("download", `formation_${id}.${format}`);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      toast.success('Export terminé');
+      toast.success("Export terminé");
     } catch (err) {
       setError(err as AxiosError);
       toast.error("Erreur lors de l'export");
@@ -379,7 +373,7 @@ export function useFormationMeta() {
 
   useEffect(() => {
     api
-      .get<{ data: FormationMeta }>('/formations/meta/')
+      .get<{ data: FormationMeta }>("/formations/meta/")
       .then((res) => setMeta(res.data.data))
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
@@ -396,7 +390,7 @@ export function useFormationStatsParMois() {
 
   useEffect(() => {
     api
-      .get<{ data: FormationStatsParMois }>('/formations/stats_par_mois/')
+      .get<{ data: FormationStatsParMois }>("/formations/stats_par_mois/")
       .then((res) => setStats(res.data.data))
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
@@ -405,30 +399,18 @@ export function useFormationStatsParMois() {
   return { stats, loading, error };
 }
 
-
 export function useHistoriqueFormation(formationId?: number) {
   const [data, setData] = useState<HistoriqueFormation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<AxiosError | null>(null);
 
   useEffect(() => {
-    const url = formationId
-      ? `/formations/${formationId}/historique/`
-      : `/formations/historique/`; // ✅ tu dois utiliser cette variable
+    const url = formationId ? `/formations/${formationId}/historique/` : `/formations/historique/`;
 
     api
       .get<{ data: HistoriqueFormation[] }>(url)
       .then((res) => {
-        res.data.data.forEach((item, i) => {
-          (`📝 Élement ${i + 1}:`, {
-            champ_modifie: item.champ_modifie,
-            saturation: item.saturation,
-            badge: item.saturation_badge,
-            taux: item.taux_transformation,
-            badge_taux: item.transformation_badge,
-          });
-        });
-
+        // ✅ suppression du forEach inutile
         setData(res.data.data);
       })
       .catch((err) => setError(err))
@@ -437,7 +419,6 @@ export function useHistoriqueFormation(formationId?: number) {
 
   return { data, loading, error };
 }
-
 
 export function useProspectionsByFormation(formationId: number) {
   const [prospections, setProspections] = useState<Prospection[]>([]);
@@ -455,8 +436,8 @@ export function useProspectionsByFormation(formationId: number) {
       .then((res) => {
         setProspections(res.data?.data?.results || []);
       })
-      .catch((err) => {
-        console.error('Erreur lors du chargement des prospections:', err);
+      .catch(() => {
+        // ✅ suppression du paramètre err inutilisé
         setProspections([]);
       })
       .finally(() => setLoading(false));
@@ -470,7 +451,6 @@ export function useProspectionsByFormation(formationId: number) {
 // (Options simples pour <select>)
 // =============================================
 
-
 export function useFormationsOptions() {
   const [options, setOptions] = useState<FormationOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -482,10 +462,13 @@ export function useFormationsOptions() {
       try {
         setLoading(true);
         // Adapte l'endpoint à ton backend (ex: /formations/liste-simple/)
-        const res = await api.get('/formations/liste-simple/');
+        const res = await api.get("/formations/liste-simple/");
         const data = res.data?.data || res.data || [];
         const opts: FormationOption[] = Array.isArray(data)
-          ? data.map((f: { id: number; nom: string }) => ({ value: f.id, label: f.nom }))
+          ? data.map((f: { id: number; nom: string }) => ({
+              value: f.id,
+              label: f.nom,
+            }))
           : [];
         if (!alive) return;
         setOptions(opts);
@@ -496,7 +479,9 @@ export function useFormationsOptions() {
         if (alive) setLoading(false);
       }
     })();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   return { options, loading, error };
@@ -512,7 +497,7 @@ export function useArchiverFormation(id: number) {
       const res = await api.post<{ status: string; detail?: string }>(
         `/formations/${id}/archiver/`
       );
-      toast.success('Formation archivée');
+      toast.success("Formation archivée");
       return res.data;
     } catch (err) {
       setError(err as AxiosError);
@@ -537,7 +522,7 @@ export function useDesarchiverFormation(id: number) {
       const res = await api.post<{ status: string; detail?: string }>(
         `/formations/${id}/desarchiver/`
       );
-      toast.success('Formation restaurée');
+      toast.success("Formation restaurée");
       return res.data;
     } catch (err) {
       setError(err as AxiosError);

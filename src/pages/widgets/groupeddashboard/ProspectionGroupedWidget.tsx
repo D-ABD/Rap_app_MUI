@@ -43,8 +43,7 @@ const isProspectionGroupBy = (v: string): v is ProspectionGroupBy =>
     "type",
   ].includes(v);
 
-const n = (x: unknown): number =>
-  (typeof x === "number" ? x : Number(x ?? 0)) || 0;
+const n = (x: unknown): number => (typeof x === "number" ? x : Number(x ?? 0)) || 0;
 
 const numOrU = (x: unknown): number | undefined => {
   if (typeof x === "number" && Number.isFinite(x)) return x;
@@ -52,17 +51,13 @@ const numOrU = (x: unknown): number | undefined => {
   return Number.isFinite(k) ? k : undefined;
 };
 
-const strOrU = (x: unknown): string | undefined =>
-  typeof x === "string" ? x : undefined;
+const strOrU = (x: unknown): string | undefined => (typeof x === "string" ? x : undefined);
 
 function normalizeRow(u: unknown): ProspectionGroupRow {
   const r = (u ?? {}) as Record<string, unknown>;
   const total = n(r["total"]);
   const acceptees = n(r["acceptees"]);
-  const tauxFromApi =
-    typeof r["taux_acceptation"] === "number"
-      ? r["taux_acceptation"]
-      : undefined;
+  const tauxFromApi = typeof r["taux_acceptation"] === "number" ? r["taux_acceptation"] : undefined;
   const tauxFallback = total > 0 ? (acceptees / total) * 100 : 0;
 
   return {
@@ -71,14 +66,14 @@ function normalizeRow(u: unknown): ProspectionGroupRow {
       (r["id"] as string | number | null | undefined),
     group_label: strOrU(r["group_label"]),
     centre_id: numOrU(r["centre_id"]),
-    "centre__nom": strOrU(r["centre__nom"]),
+    centre__nom: strOrU(r["centre__nom"]),
     departement: strOrU(r["departement"]),
     formation_id: numOrU(r["formation_id"]),
-    "formation__nom": strOrU(r["formation__nom"]),
-    "formation__num_offre": strOrU(r["formation__num_offre"]),
-    "formation__centre__nom": strOrU(r["formation__centre__nom"]),
+    formation__nom: strOrU(r["formation__nom"]),
+    formation__num_offre: strOrU(r["formation__num_offre"]),
+    formation__centre__nom: strOrU(r["formation__centre__nom"]),
     partenaire_id: numOrU(r["partenaire_id"]),
-    "partenaire__nom": strOrU(r["partenaire__nom"]),
+    partenaire__nom: strOrU(r["partenaire__nom"]),
     total,
     actives: n(r["actives"]),
     a_relancer: n(r["a_relancer"]),
@@ -107,16 +102,11 @@ export default function ProspectionGroupedWidget({
   initialFilters,
 }: Props) {
   const [by, setBy] = React.useState<ProspectionGroupBy>(initialBy);
-  const [filters, setFilters] = React.useState<ProspectionFilters>(
-    initialFilters ?? {}
-  );
+  const [filters, setFilters] = React.useState<ProspectionFilters>(initialFilters ?? {});
 
   const includeArchived = Boolean(filters.avec_archivees);
 
-  const { data: grouped, isLoading, error, refetch } = useProspectionGrouped(
-    by,
-    filters
-  );
+  const { data: grouped, isLoading, error, refetch } = useProspectionGrouped(by, filters);
 
   const rows = React.useMemo<ProspectionGroupRow[]>(
     () => (grouped?.results ?? []).map(normalizeRow),
@@ -126,9 +116,7 @@ export default function ProspectionGroupedWidget({
   // Ajout d'une ligne Total si absente
   const rowsWithTotal = React.useMemo(() => {
     if (!rows.length) return rows;
-    const hasTotal = rows.some(
-      (r) => String(r.group_key).toLowerCase() === "total"
-    );
+    const hasTotal = rows.some((r) => String(r.group_key).toLowerCase() === "total");
     if (hasTotal) return rows;
 
     const totalRow: ProspectionGroupRow = {
@@ -144,8 +132,11 @@ export default function ProspectionGroupedWidget({
       annulees: rows.reduce((a, r) => a + (r.annulees ?? 0), 0),
       non_renseigne: rows.reduce((a, r) => a + (r.non_renseigne ?? 0), 0),
       taux_acceptation:
-        rows.reduce((a, r) => a + (r.acceptees ?? 0), 0) /
-        Math.max(1, rows.reduce((a, r) => a + (r.total ?? 0), 0)) *
+        (rows.reduce((a, r) => a + (r.acceptees ?? 0), 0) /
+          Math.max(
+            1,
+            rows.reduce((a, r) => a + (r.total ?? 0), 0)
+          )) *
         100,
     } as ProspectionGroupRow;
     return [...rows, totalRow];
@@ -190,9 +181,7 @@ export default function ProspectionGroupedWidget({
             size="small"
             placeholder="Centre ID"
             value={filters.centre ?? ""}
-            onChange={(e) =>
-              setFilters((f) => ({ ...f, centre: e.target.value || undefined }))
-            }
+            onChange={(e) => setFilters((f) => ({ ...f, centre: e.target.value || undefined }))}
           />
           <TextField
             size="small"

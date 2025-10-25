@@ -8,10 +8,7 @@ type Props = {
   isStaff?: boolean;
 };
 
-export default function ProspectionCommentsBlock({
-  prospectionId,
-  isStaff = false,
-}: Props) {
+export default function ProspectionCommentsBlock({ prospectionId, isStaff = false }: Props) {
   const [open, setOpen] = useState(false);
 
   return (

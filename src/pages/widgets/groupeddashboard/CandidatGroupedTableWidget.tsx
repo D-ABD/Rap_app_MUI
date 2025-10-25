@@ -27,18 +27,21 @@ function sum(rows: Record<string, unknown>[], field: string) {
 
 /* Résolution du label */
 function resolveLabel(row: Record<string, unknown>, by: CandidatGroupBy): string {
-  if (row.group_label && String(row.group_label).trim() !== "")
-    return String(row.group_label);
+  if (row.group_label && String(row.group_label).trim() !== "") return String(row.group_label);
 
   switch (by) {
     case "centre":
-      return (row["formation__centre__nom"] as string) ??
-        (row["formation__centre_id"] != null ? `Centre #${row["formation__centre_id"]}` : "—");
+      return (
+        (row["formation__centre__nom"] as string) ??
+        (row["formation__centre_id"] != null ? `Centre #${row["formation__centre_id"]}` : "—")
+      );
     case "departement":
       return (row["departement"] as string) ?? "—";
     case "formation":
-      return (row["formation__nom"] as string) ??
-        (row["formation_id"] != null ? `Formation #${row["formation_id"]}` : "—");
+      return (
+        (row["formation__nom"] as string) ??
+        (row["formation_id"] != null ? `Formation #${row["formation_id"]}` : "—")
+      );
     case "statut":
       return (row["statut"] as string) ?? "—";
     case "type_contrat":
@@ -54,8 +57,12 @@ function resolveLabel(row: Record<string, unknown>, by: CandidatGroupBy): string
         ? `User #${row["responsable_placement_id"]}`
         : "—";
     case "entreprise":
-      return (row["entreprise_placement__nom"] as string) ??
-        (row["entreprise_placement_id"] != null ? `Entreprise #${row["entreprise_placement_id"]}` : "—");
+      return (
+        (row["entreprise_placement__nom"] as string) ??
+        (row["entreprise_placement_id"] != null
+          ? `Entreprise #${row["entreprise_placement_id"]}`
+          : "—")
+      );
     default:
       return "—";
   }
@@ -122,12 +129,7 @@ export default function CandidatGroupedTableWidget({
                 <MenuItem value="responsable">Par responsable</MenuItem>
                 <MenuItem value="entreprise">Par entreprise</MenuItem>
               </Select>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={handleReset}
-                disabled={!isDirty}
-              >
+              <Button size="small" variant="outlined" onClick={handleReset} disabled={!isDirty}>
                 Réinitialiser
               </Button>
             </Box>
@@ -140,12 +142,11 @@ export default function CandidatGroupedTableWidget({
         {isLoading ? (
           <Typography color="text.secondary">Chargement…</Typography>
         ) : error ? (
-          <Typography color="error.main">
-            Erreur: {getErrorMessage(error)}
-          </Typography>
+          <Typography color="error.main">Erreur: {getErrorMessage(error)}</Typography>
         ) : !data ? null : (
           <>
-            <Box component="table"
+            <Box
+              component="table"
               sx={{
                 minWidth: 1600,
                 borderCollapse: "collapse",
@@ -265,10 +266,7 @@ export default function CandidatGroupedTableWidget({
             </Box>
 
             {data.results.length === 0 && (
-              <Typography
-                sx={{ p: 2, fontSize: "0.9rem" }}
-                color="text.secondary"
-              >
+              <Typography sx={{ p: 2, fontSize: "0.9rem" }} color="text.secondary">
                 Aucun résultat pour les filtres sélectionnés.
               </Typography>
             )}

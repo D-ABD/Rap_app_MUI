@@ -52,7 +52,8 @@ export const getTheme = (mode: "light" | "dark") => {
         styleOverrides: {
           root: {
             borderRadius: 12,
-            boxShadow: mode === "light" ? "0 2px 8px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.6)",
+            boxShadow:
+              mode === "light" ? "0 2px 8px rgba(0,0,0,0.08)" : "0 2px 8px rgba(0,0,0,0.6)",
           },
         },
       },

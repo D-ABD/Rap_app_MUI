@@ -13,14 +13,10 @@ export default function Footer() {
         px: 3,
         textAlign: "center",
         backgroundColor:
-          theme.palette.mode === "light"
-            ? theme.palette.grey[100]
-            : theme.palette.grey[900],
+          theme.palette.mode === "light" ? theme.palette.grey[100] : theme.palette.grey[900],
         color: theme.palette.text.secondary,
         borderTop: `1px solid ${
-          theme.palette.mode === "light"
-            ? theme.palette.grey[300]
-            : theme.palette.grey[800]
+          theme.palette.mode === "light" ? theme.palette.grey[300] : theme.palette.grey[800]
         }`,
       }}
     >

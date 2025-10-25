@@ -1,12 +1,6 @@
 // src/components/dashboard/DashboardTemplateSaturation.tsx
 import * as React from "react";
-import {
-  Card,
-  Box,
-  Typography,
-  Divider,
-  LinearProgress,
-} from "@mui/material";
+import { Card, Box, Typography, Divider, LinearProgress } from "@mui/material";
 
 type Props = {
   title: string;
@@ -52,7 +46,11 @@ export default function DashboardTemplateSaturation({
         <Typography variant="subtitle1" fontWeight="bold" color={toneColor}>
           {title}
         </Typography>
-        {filters && <Box display="flex" gap={1} flexWrap="wrap">{filters}</Box>}
+        {filters && (
+          <Box display="flex" gap={1} flexWrap="wrap">
+            {filters}
+          </Box>
+        )}
       </Box>
 
       <Divider />

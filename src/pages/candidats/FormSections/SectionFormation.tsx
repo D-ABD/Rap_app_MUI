@@ -1,16 +1,8 @@
-import React from 'react';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Grid,
-  Box,
-  Button,
-  TextField,
-} from '@mui/material';
-import type { CandidatFormData } from '../../../types/candidat';
-import { formatFormation } from './utils';
-import { FormationPick } from '../../../components/modals/FormationSelectModal';
+import React from "react";
+import { Card, CardHeader, CardContent, Grid, Box, Button, TextField } from "@mui/material";
+import type { CandidatFormData } from "../../../types/candidat";
+import { formatFormation } from "./utils";
+import { FormationPick } from "../../../components/modals/FormationSelectModal";
 
 interface Props {
   form: CandidatFormData;
@@ -31,17 +23,15 @@ export default function SectionFormation({
   const formationLabel = formationInfo
     ? formatFormation(formationInfo)
     : form.formation
-    ? `#${form.formation}`
-    : '';
+      ? `#${form.formation}`
+      : "";
 
   return (
     <Card variant="outlined">
       <CardHeader
         title="Formation"
         subheader={
-          !canEditFormation
-            ? "La formation n’est pas modifiable pour votre rôle."
-            : undefined
+          !canEditFormation ? "La formation n’est pas modifiable pour votre rôle." : undefined
         }
       />
       <CardContent>
@@ -53,7 +43,7 @@ export default function SectionFormation({
               label="Formation sélectionnée"
               value={formationLabel}
               InputProps={{ readOnly: true }}
-              placeholder={canEditFormation ? '— Aucune sélection —' : 'Non modifiable'}
+              placeholder={canEditFormation ? "— Aucune sélection —" : "Non modifiable"}
             />
             {canEditFormation && (
               <Box display="flex" gap={1} mt={1}>
@@ -64,7 +54,7 @@ export default function SectionFormation({
                   <Button
                     color="error"
                     variant="outlined"
-                    onClick={() => setForm(f => ({ ...f, formation: undefined }))}
+                    onClick={() => setForm((f) => ({ ...f, formation: undefined }))}
                   >
                     ✖ Effacer
                   </Button>
@@ -80,7 +70,7 @@ export default function SectionFormation({
                 <TextField
                   fullWidth
                   label="Nom de la formation"
-                  value={formationInfo.nom ?? ''}
+                  value={formationInfo.nom ?? ""}
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
@@ -88,7 +78,7 @@ export default function SectionFormation({
                 <TextField
                   fullWidth
                   label="Centre"
-                  value={formationInfo.centre?.nom ?? ''}
+                  value={formationInfo.centre?.nom ?? ""}
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
@@ -96,7 +86,7 @@ export default function SectionFormation({
                 <TextField
                   fullWidth
                   label="Type d’offre"
-                  value={formationInfo.type_offre?.nom ?? ''}
+                  value={formationInfo.type_offre?.nom ?? ""}
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
@@ -104,7 +94,7 @@ export default function SectionFormation({
                 <TextField
                   fullWidth
                   label="N° d’offre"
-                  value={formationInfo.num_offre ?? ''}
+                  value={formationInfo.num_offre ?? ""}
                   InputProps={{ readOnly: true }}
                 />
               </Grid>

@@ -1,15 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  MenuItem,
-  Paper,
-  Typography,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, MenuItem, Paper } from "@mui/material";
 
 import api from "../../api/axios";
 import useForm from "../../hooks/useForm";
@@ -38,16 +30,12 @@ export default function StatutsCreatePage() {
   }, []);
 
   const selectedChoice = choices.find((c) => c.value === values.nom);
-  const previewColor =
-    values.couleur || selectedChoice?.default_color || "#d3d3d3";
+  const previewColor = values.couleur || selectedChoice?.default_color || "#d3d3d3";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (
-      !values.nom.trim() ||
-      (values.nom === "autre" && !values.description_autre.trim())
-    ) {
+    if (!values.nom.trim() || (values.nom === "autre" && !values.description_autre.trim())) {
       toast.error("Tous les champs obligatoires doivent être remplis.");
       return;
     }
@@ -137,11 +125,7 @@ export default function StatutsCreatePage() {
             <Button type="submit" variant="contained" color="success">
               💾 Créer
             </Button>
-            <Button
-              type="button"
-              variant="outlined"
-              onClick={() => navigate("/statuts")}
-            >
+            <Button type="button" variant="outlined" onClick={() => navigate("/statuts")}>
               Annuler
             </Button>
           </Stack>

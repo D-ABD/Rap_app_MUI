@@ -45,14 +45,8 @@ export default function ProspectionCreatePage() {
   const { create, loading: creating, error: createError } = useCreateProspection();
 
   const [searchParams] = useSearchParams();
-  const presetPartenaire = useMemo(
-    () => toNum(searchParams.get("partenaire")),
-    [searchParams]
-  );
-  const presetFormation = useMemo(
-    () => toNum(searchParams.get("formation")),
-    [searchParams]
-  );
+  const presetPartenaire = useMemo(() => toNum(searchParams.get("partenaire")), [searchParams]);
+  const presetFormation = useMemo(() => toNum(searchParams.get("formation")), [searchParams]);
 
   // 🔤 labels transmis en URL (affichage immédiat)
   const paramPartenaireNom = searchParams.get("partenaire_nom")?.trim() || null;
@@ -63,9 +57,7 @@ export default function ProspectionCreatePage() {
   const partenaireNom = paramPartenaireNom ?? partenaireData?.nom ?? null;
 
   // 🔎 nom (léger) de la formation: on part du param URL sinon fetch
-  const [formationNom, setFormationNom] = useState<string | null>(
-    paramFormationNom ?? null
-  );
+  const [formationNom, setFormationNom] = useState<string | null>(paramFormationNom ?? null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -137,9 +129,7 @@ export default function ProspectionCreatePage() {
       const created = await create(formData);
       toast.success("✅ Prospection créée avec succès");
 
-      const wantsComment = window.confirm(
-        "Souhaitez-vous ajouter un commentaire maintenant ?"
-      );
+      const wantsComment = window.confirm("Souhaitez-vous ajouter un commentaire maintenant ?");
       const createdId = extractCreatedId(created);
 
       if (wantsComment && createdId) {
@@ -153,15 +143,9 @@ export default function ProspectionCreatePage() {
   };
 
   return (
-    <PageTemplate
-      title="➕ Nouvelle prospection"
-      backButton
-      onBack={() => navigate(-1)}
-    >
+    <PageTemplate title="➕ Nouvelle prospection" backButton onBack={() => navigate(-1)}>
       {createError ? (
-        <Typography color="error">
-          ❌ Impossible d’initialiser le formulaire.
-        </Typography>
+        <Typography color="error">❌ Impossible d’initialiser le formulaire.</Typography>
       ) : (
         <ProspectionForm
           key={`create-${presetPartenaire ?? "none"}-${partenaireNom ?? ""}-${presetFormation ?? "none"}-${formationNom ?? ""}`}

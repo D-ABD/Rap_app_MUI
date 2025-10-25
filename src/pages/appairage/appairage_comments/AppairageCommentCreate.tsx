@@ -19,14 +19,10 @@ export default function AppairageCommentCreatePage() {
   const { create } = useCreateAppairageComment();
 
   const prefilledAppairageId =
-    appairageId && Number.isFinite(Number(appairageId))
-      ? Number(appairageId)
-      : undefined;
+    appairageId && Number.isFinite(Number(appairageId)) ? Number(appairageId) : undefined;
 
   const [choiceOpen, setChoiceOpen] = useState(false);
-  const [lastCreated, setLastCreated] = useState<AppairageCommentDTO | null>(
-    null
-  );
+  const [lastCreated, setLastCreated] = useState<AppairageCommentDTO | null>(null);
 
   const handleCreate = async (input: AppairageCommentCreateInput) => {
     try {
@@ -34,16 +30,13 @@ export default function AppairageCommentCreatePage() {
       toast.success("💬 Commentaire créé avec succès");
       setLastCreated(created);
       setChoiceOpen(true);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Erreur lors de la création du commentaire");
-      console.error(error);
     }
   };
 
   const appairageTarget =
-    lastCreated?.appairage != null
-      ? `/appairages/${lastCreated.appairage}/edit`
-      : "/appairages";
+    lastCreated?.appairage != null ? `/appairages/${lastCreated.appairage}/edit` : "/appairages";
 
   const commentsListTarget = "/appairage-commentaires";
   const dashboardTarget = "/dashboard";
@@ -63,9 +56,7 @@ export default function AppairageCommentCreatePage() {
       <Box mt={2}>
         <AppairageCommentForm
           appairageId={prefilledAppairageId}
-          onSubmit={(data) =>
-            handleCreate(data as AppairageCommentCreateInput)
-          }
+          onSubmit={(data) => handleCreate(data as AppairageCommentCreateInput)}
         />
       </Box>
 

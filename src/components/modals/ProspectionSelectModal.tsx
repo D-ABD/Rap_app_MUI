@@ -32,11 +32,7 @@ export interface ProspectionLite {
   date_prospection?: string;
 }
 
-export default function ProspectionSelectModal({
-  show,
-  onClose,
-  onSelect,
-}: Props) {
+export default function ProspectionSelectModal({ show, onClose, onSelect }: Props) {
   const [items, setItems] = useState<ProspectionLite[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -58,25 +54,15 @@ export default function ProspectionSelectModal({
               return {
                 id: Number(obj.id),
                 partenaire_nom:
-                  typeof obj.partenaire_nom === "string"
-                    ? obj.partenaire_nom
-                    : undefined,
+                  typeof obj.partenaire_nom === "string" ? obj.partenaire_nom : undefined,
                 formation_nom:
-                  typeof obj.formation_nom === "string"
-                    ? obj.formation_nom
-                    : undefined,
+                  typeof obj.formation_nom === "string" ? obj.formation_nom : undefined,
                 statut_display:
-                  typeof obj.statut_display === "string"
-                    ? obj.statut_display
-                    : undefined,
+                  typeof obj.statut_display === "string" ? obj.statut_display : undefined,
                 owner_username:
-                  typeof obj.owner_username === "string"
-                    ? obj.owner_username
-                    : undefined,
+                  typeof obj.owner_username === "string" ? obj.owner_username : undefined,
                 date_prospection:
-                  typeof obj.date_prospection === "string"
-                    ? obj.date_prospection
-                    : undefined,
+                  typeof obj.date_prospection === "string" ? obj.date_prospection : undefined,
               };
             })
             .filter((x) => Number.isFinite(x.id));
@@ -117,9 +103,7 @@ export default function ProspectionSelectModal({
             <CircularProgress />
           </Box>
         ) : error ? (
-          <Typography color="error">
-            ❌ Erreur lors du chargement des prospections.
-          </Typography>
+          <Typography color="error">❌ Erreur lors du chargement des prospections.</Typography>
         ) : (
           <>
             <TextField
@@ -144,9 +128,7 @@ export default function ProspectionSelectModal({
                           p.owner_username ? `• ${p.owner_username}` : ""
                         } ${
                           p.date_prospection
-                            ? `• ${new Date(
-                                p.date_prospection
-                              ).toLocaleDateString()}`
+                            ? `• ${new Date(p.date_prospection).toLocaleDateString()}`
                             : ""
                         }`}
                       />

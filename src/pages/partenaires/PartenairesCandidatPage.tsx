@@ -52,17 +52,15 @@ const defaultFilters: PartenaireFilters = {
   has_prospections: "",
 };
 
-function isPaginatedPartenaires(
-  d: unknown
-): d is { results: Partenaire[]; count: number } {
+function isPaginatedPartenaires(d: unknown): d is { results: Partenaire[]; count: number } {
   if (typeof d !== "object" || d === null) return false;
   const obj = d as Record<string, unknown>;
   return Array.isArray(obj.results) && typeof obj.count === "number";
 }
 
-function dedupeByValueLabel<T extends { value?: string | number | null; label?: string | number | null }>(
-  arr: T[] = []
-): T[] {
+function dedupeByValueLabel<
+  T extends { value?: string | number | null; label?: string | number | null },
+>(arr: T[] = []): T[] {
   const seen = new Set<string>();
   return arr.filter((o) => {
     const k = `${String(o.value ?? "")}::${String(o.label ?? "")}`;
@@ -94,8 +92,7 @@ export default function PartenairesCandidatPage() {
   const { data: partenaireChoices } = usePartenaireChoices();
   const { data: filterOptions, loading: filtersLoading } = usePartenaireFilters();
 
-  const isStaff =
-    Boolean(user?.is_staff) || Boolean(user?.is_superuser) || user?.role === "admin";
+  const isStaff = Boolean(user?.is_staff) || Boolean(user?.is_superuser) || user?.role === "admin";
 
   const [filters, setFilters] = useState<PartenaireFilters>(defaultFilters);
   const [showFilters, setShowFilters] = useState<boolean>(() => {
@@ -180,8 +177,14 @@ export default function PartenairesCandidatPage() {
   };
 
   const userOptions = useMemo(() => dedupeById(filterOptions?.users ?? []), [filterOptions]);
-  const cityOptions = useMemo(() => dedupeByValueLabel(filterOptions?.cities ?? []), [filterOptions]);
-  const secteurOptions = useMemo(() => dedupeByValueLabel(filterOptions?.secteurs ?? []), [filterOptions]);
+  const cityOptions = useMemo(
+    () => dedupeByValueLabel(filterOptions?.cities ?? []),
+    [filterOptions]
+  );
+  const secteurOptions = useMemo(
+    () => dedupeByValueLabel(filterOptions?.secteurs ?? []),
+    [filterOptions]
+  );
 
   // 🔹 Gestion de la modale de détail
   const [showDetail, setShowDetail] = useState(false);
@@ -266,7 +269,10 @@ export default function PartenairesCandidatPage() {
               <Button color="error" onClick={() => setShowConfirm(true)}>
                 Supprimer ({selectedIds.length})
               </Button>
-              <Button variant="outlined" onClick={() => setSelectedIds(partenaires.map((p) => p.id))}>
+              <Button
+                variant="outlined"
+                onClick={() => setSelectedIds(partenaires.map((p) => p.id))}
+              >
                 Tout sélectionner
               </Button>
               <Button variant="outlined" onClick={() => setSelectedIds([])}>
@@ -323,7 +329,9 @@ export default function PartenairesCandidatPage() {
         <Typography color="error">Erreur lors du chargement des partenaires.</Typography>
       ) : partenaires.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
-          <Box fontSize={48} mb={1}>📭</Box>
+          <Box fontSize={48} mb={1}>
+            📭
+          </Box>
           <Typography>Aucun partenaire trouvé.</Typography>
         </Box>
       ) : (

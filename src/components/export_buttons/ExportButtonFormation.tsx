@@ -24,13 +24,9 @@ type Props = {
 };
 
 // 🔹 Extrait le nom de fichier depuis Content-Disposition
-function getFilenameFromDisposition(
-  disposition?: string | null,
-  fallback = "formations.xlsx"
-) {
+function getFilenameFromDisposition(disposition?: string | null, fallback = "formations.xlsx") {
   if (!disposition) return fallback;
-  const match =
-    /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
+  const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
   const raw = match?.[1] ?? match?.[2] ?? "";
   try {
     const name = decodeURIComponent(raw).trim();
@@ -86,8 +82,7 @@ export default function ExportButtonFormations({
       setBusy(true);
 
       // Reprise des filtres de l’URL actuelle
-      const qsBase =
-        typeof window !== "undefined" ? window.location.search || "" : "";
+      const qsBase = typeof window !== "undefined" ? window.location.search || "" : "";
       const params = new URLSearchParams(qsBase);
 
       if (avecArchivees) params.set("avec_archivees", "true");
@@ -98,10 +93,12 @@ export default function ExportButtonFormations({
 
       let res;
       if (selectedIds.length > 0) {
-        ("👉 POST avec ids =", selectedIds);
         res = await api.post(
           url,
-          { ids: selectedIds, ...(avecArchivees ? { avec_archivees: true } : {}) },
+          {
+            ids: selectedIds,
+            ...(avecArchivees ? { avec_archivees: true } : {}),
+          },
           { responseType: "blob" }
         );
       } else {
@@ -111,9 +108,7 @@ export default function ExportButtonFormations({
 
       const contentType = res.headers["content-type"] || "";
       const blob = new Blob([res.data], {
-        type:
-          contentType ||
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type: contentType || "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
       const disposition = res.headers["content-disposition"] || null;
@@ -141,7 +136,6 @@ export default function ExportButtonFormations({
       );
       setShowModal(false);
     } catch (e: unknown) {
-      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -200,24 +194,17 @@ export default function ExportButtonFormations({
           {/* ℹ️ Informations sur les filtres actuels */}
           {typeof window !== "undefined" && window.location.search ? (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Les filtres/tri actuels (
-              <code>{window.location.search}</code>) seront appliqués si aucune
-              sélection n’est fournie.
+              Les filtres/tri actuels (<code>{window.location.search}</code>) seront appliqués si
+              aucune sélection n’est fournie.
             </Typography>
           ) : (
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-              Aucun filtre explicite dans l’URL : l’export portera sur
-              l’ensemble du jeu courant.
+              Aucun filtre explicite dans l’URL : l’export portera sur l’ensemble du jeu courant.
             </Typography>
           )}
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -227,12 +214,7 @@ export default function ExportButtonFormations({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

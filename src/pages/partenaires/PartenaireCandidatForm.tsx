@@ -44,10 +44,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}
-    >
+    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}>
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
         {icon}
         <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
@@ -75,10 +72,8 @@ export default function PartenaireCandidatForm({
     setForm(initialValues);
   }, [initialValues]);
 
-  const handleChange = <K extends keyof Partenaire>(
-    field: K,
-    value: Partenaire[K] | undefined
-  ) => setForm((prev) => ({ ...prev, [field]: value }));
+  const handleChange = <K extends keyof Partenaire>(field: K, value: Partenaire[K] | undefined) =>
+    setForm((prev) => ({ ...prev, [field]: value }));
 
   const count = (s?: string | null) => (s ? s.length : 0);
 
@@ -302,12 +297,7 @@ export default function PartenaireCandidatForm({
         >
           Réinitialiser
         </Button>
-        <Button
-          type="submit"
-          variant="contained"
-          startIcon={<SaveIcon />}
-          disabled={loading}
-        >
+        <Button type="submit" variant="contained" startIcon={<SaveIcon />} disabled={loading}>
           {loading ? "Enregistrement…" : "Enregistrer"}
         </Button>
       </Stack>

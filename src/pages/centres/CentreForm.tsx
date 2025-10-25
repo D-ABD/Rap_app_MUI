@@ -228,12 +228,7 @@ export default function CentreForm({
 
           {/* ───────── Boutons ───────── */}
           <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-            <Button
-              type="submit"
-              variant="contained"
-              color="success"
-              disabled={submitting}
-            >
+            <Button type="submit" variant="contained" color="success" disabled={submitting}>
               💾 {mode === "create" ? "Créer" : "Enregistrer"}
             </Button>
             <Button type="button" variant="outlined" onClick={resetForm}>

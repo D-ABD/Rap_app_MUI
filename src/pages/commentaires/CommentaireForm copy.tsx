@@ -2,15 +2,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  TextField,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Stack, TextField, Typography, Paper } from "@mui/material";
 
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
 import useForm from "../../hooks/useForm";
@@ -42,11 +34,10 @@ export default function CommentaireForm({
   const [loading, setLoading] = useState(!!formationId);
   const [showModal, setShowModal] = useState(false);
 
-  const { values, errors, setErrors, setValues } =
-    useForm<CommentaireFormData>({
-      formation: formationId || "",
-      contenu: "",
-    });
+  const { values, errors, setErrors, setValues } = useForm<CommentaireFormData>({
+    formation: formationId || "",
+    contenu: "",
+  });
 
   /* ---------- Chargement auto du nom formation ---------- */
   useEffect(() => {
@@ -95,9 +86,7 @@ export default function CommentaireForm({
         response?: { data?: Record<string, string[]> };
       };
       if (axiosError.response?.data) {
-        const formattedErrors: Partial<
-          Record<keyof CommentaireFormData, string>
-        > = {};
+        const formattedErrors: Partial<Record<keyof CommentaireFormData, string>> = {};
         for (const key in axiosError.response.data) {
           const val = axiosError.response.data[key];
           if (Array.isArray(val)) {
@@ -128,8 +117,7 @@ export default function CommentaireForm({
               }}
             >
               <Typography variant="body2">
-                📚 Commentaire pour la formation :{" "}
-                <strong>{formationNom}</strong>
+                📚 Commentaire pour la formation : <strong>{formationNom}</strong>
               </Typography>
             </Box>
           )}
@@ -137,22 +125,18 @@ export default function CommentaireForm({
           {/* 🔍 Sélection manuelle uniquement si non readonly */}
           {!readonlyFormation && (
             <>
-              <Button
-                variant="outlined"
-                onClick={() => setShowModal(true)}
-                sx={{ mb: 2 }}
-              >
-                🔍{" "}
-                {formationNom
-                  ? "Changer de formation"
-                  : "Rechercher une formation"}
+              <Button variant="outlined" onClick={() => setShowModal(true)} sx={{ mb: 2 }}>
+                🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
               </Button>
 
               <FormationSelectModal
                 show={showModal}
                 onClose={() => setShowModal(false)}
                 onSelect={(pick) => {
-                  setValues((prev) => ({ ...prev, formation: String(pick.id) }));
+                  setValues((prev) => ({
+                    ...prev,
+                    formation: String(pick.id),
+                  }));
                   setFormationNom(pick.nom ?? "");
                   setShowModal(false);
                 }}
@@ -164,9 +148,7 @@ export default function CommentaireForm({
           <TextField
             label="Contenu"
             value={values.contenu}
-            onChange={(e) =>
-              setValues((prev) => ({ ...prev, contenu: e.target.value }))
-            }
+            onChange={(e) => setValues((prev) => ({ ...prev, contenu: e.target.value }))}
             multiline
             rows={5}
             fullWidth

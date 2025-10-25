@@ -26,11 +26,7 @@ import FiltresFormationsPanel from "../../components/filters/FiltresFormationsPa
 import usePagination from "../../hooks/usePagination";
 import useFetch from "../../hooks/useFetch";
 import useFiltresFormations from "../../hooks/useFiltresFormations";
-import type {
-  Formation,
-  FiltresFormationsValues,
-  PaginatedResponse,
-} from "../../types/formation";
+import type { Formation, FiltresFormationsValues, PaginatedResponse } from "../../types/formation";
 import PageTemplate from "../../components/PageTemplate";
 import FormationExportButton from "../../components/export_buttons/ExportButtonFormation";
 
@@ -45,7 +41,9 @@ export default function FormationsPage() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   // ── filtres
-  const [filters, setFilters] = useState<FiltresFormationsValues>({ texte: "" });
+  const [filters, setFilters] = useState<FiltresFormationsValues>({
+    texte: "",
+  });
   const [showFilters, setShowFilters] = useState(false);
 
   // 🔢 badge filtres actifs (ignore le champ "texte")
@@ -62,15 +60,7 @@ export default function FormationsPage() {
   );
 
   // ── pagination
-  const {
-    page,
-    setPage,
-    count,
-    setCount,
-    totalPages,
-    pageSize,
-    setPageSize,
-  } = usePagination();
+  const { page, setPage, count, setCount, totalPages, pageSize, setPageSize } = usePagination();
 
   // ── meta filtres
   const { filtres, loading: filtresLoading } = useFiltresFormations();
@@ -81,12 +71,11 @@ export default function FormationsPage() {
     [filters, page, pageSize]
   );
 
-  const {
-    data,
-    loading,
-    error,
-    fetchData,
-  } = useFetch<PaginatedResponse<Formation>>("/formations/", effectiveFilters, true);
+  const { data, loading, error, fetchData } = useFetch<PaginatedResponse<Formation>>(
+    "/formations/",
+    effectiveFilters,
+    true
+  );
 
   // formations visibles
   const formations: Formation[] = useMemo(() => data?.results ?? [], [data]);
@@ -108,9 +97,7 @@ export default function FormationsPage() {
   }, [formations]);
 
   const toggleSelect = useCallback((id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   }, []);
 
   const clearSelection = () => setSelectedIds([]);
@@ -122,9 +109,7 @@ export default function FormationsPage() {
 
     try {
       const api = await import("../../api/axios");
-      await Promise.all(
-        idsToDelete.map((id) => api.default.delete(`/formations/${id}/`))
-      );
+      await Promise.all(idsToDelete.map((id) => api.default.delete(`/formations/${id}/`)));
       toast.success(`🗑️ ${idsToDelete.length} formation(s) supprimée(s)`);
       setShowConfirm(false);
       setSelectedId(null);
@@ -145,11 +130,7 @@ export default function FormationsPage() {
       refreshButton
       onRefresh={fetchData}
       actions={
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          flexWrap="wrap"
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
           <Button
             variant="outlined"
             onClick={() => setShowFilters((v) => !v)}
@@ -160,9 +141,7 @@ export default function FormationsPage() {
             {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
           </Button>
 
-          <FormationExportButton
-            selectedIds={selectedIds}
-          />
+          <FormationExportButton selectedIds={selectedIds} />
 
           <Select
             size="small"
@@ -189,11 +168,7 @@ export default function FormationsPage() {
 
           {selectedIds.length > 0 && (
             <Stack direction="row" spacing={1} flexWrap="wrap">
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button variant="contained" color="error" onClick={() => setShowConfirm(true)}>
                 🗑️ Supprimer ({selectedIds.length})
               </Button>
               <Button variant="outlined" onClick={selectAll}>
@@ -220,9 +195,7 @@ export default function FormationsPage() {
             }}
           />
         ) : (
-          <Typography color="error">
-            ⚠️ Impossible de charger les filtres
-          </Typography>
+          <Typography color="error">⚠️ Impossible de charger les filtres</Typography>
         ))
       }
       footer={
@@ -250,9 +223,7 @@ export default function FormationsPage() {
       {loading ? (
         <CircularProgress />
       ) : error ? (
-        <Typography color="error">
-          Erreur lors du chargement des formations.
-        </Typography>
+        <Typography color="error">Erreur lors du chargement des formations.</Typography>
       ) : formations.length === 0 ? (
         <Box textAlign="center" color="text.secondary" my={4}>
           <Box fontSize={48} mb={1}>
@@ -270,12 +241,7 @@ export default function FormationsPage() {
       )}
 
       {/* Confirmation suppression */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

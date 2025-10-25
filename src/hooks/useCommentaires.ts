@@ -70,7 +70,6 @@ export function useCommentaires(
       setCommentaires(data);
       setError(null);
     } catch (err) {
-      console.error("❌ Erreur lors du fetch des commentaires :", err);
       setError(err as AxiosError);
     } finally {
       setLoading(false);
@@ -121,9 +120,7 @@ export function useUpdateCommentaire(id: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AxiosError | null>(null);
 
-  const updateCommentaire = async (
-    payload: Partial<CommentaireFormData>
-  ): Promise<Commentaire> => {
+  const updateCommentaire = async (payload: Partial<CommentaireFormData>): Promise<Commentaire> => {
     setLoading(true);
     try {
       const res = await api.put<WrappedResponse<Commentaire>>(`/commentaires/${id}/`, payload);
@@ -143,11 +140,11 @@ export function useUpdateCommentaire(id: number) {
 /* ------------------------------
    🔹 Suppression d’un commentaire
 -------------------------------- */
-export function useDeleteCommentaire(id: number) {
+export function useDeleteCommentaire() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AxiosError | null>(null);
 
-  const deleteCommentaire = async (): Promise<boolean> => {
+  const deleteCommentaire = async (id: number): Promise<boolean> => {
     setLoading(true);
     try {
       await api.delete(`/commentaires/${id}/`);
@@ -155,6 +152,10 @@ export function useDeleteCommentaire(id: number) {
       return true;
     } catch (err) {
       setError(err as AxiosError);
+      if (import.meta.env.MODE !== "production") {
+        // eslint-disable-next-line no-console
+        console.error("Erreur API suppression commentaire :", err);
+      }
       return false;
     } finally {
       setLoading(false);
@@ -163,7 +164,6 @@ export function useDeleteCommentaire(id: number) {
 
   return { deleteCommentaire, loading, error };
 }
-
 /* ------------------------------
    🔹 Archivage / Désarchivage logique
 -------------------------------- */
@@ -229,7 +229,6 @@ export function useDernierCommentaire(formationId?: number, pollingMs?: number) 
       setDernier(data.length > 0 ? data[0] : null);
       setError(null);
     } catch (err) {
-      console.error("❌ Erreur lors du fetch du dernier commentaire :", err);
       setError(err as AxiosError);
     } finally {
       setLoading(false);
@@ -265,7 +264,6 @@ export function useCommentairesFiltres() {
       setFiltres(res.data.data);
       setError(null);
     } catch (err) {
-      console.error("❌ Erreur lors du chargement des filtres commentaires :", err);
       setError(err as AxiosError);
     } finally {
       setLoading(false);

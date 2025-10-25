@@ -73,8 +73,7 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
   // 🔹 Chargement état "inclure les archivées" depuis localStorage/sessionStorage
   useEffect(() => {
     const saved =
-      sessionStorage.getItem("inclure_archives") ||
-      localStorage.getItem("inclure_archives");
+      sessionStorage.getItem("inclure_archives") || localStorage.getItem("inclure_archives");
     setInclureArchives(saved === "true");
   }, []);
 
@@ -114,16 +113,13 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
 
       let res;
       if (selectedIds.length > 0) {
-        ("POST avec sélection :", selectedIds);
         res = await api.post(url, { ids: selectedIds }, { responseType: "blob" });
       } else {
-        ("GET sur le jeu filtré :", url);
         res = await api.get(url, { responseType: "blob" });
       }
 
       const contentType = res.headers["content-type"] || "";
-      const fallbackMime =
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      const fallbackMime = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
       const blob = new Blob([res.data], { type: contentType || fallbackMime });
 
@@ -146,7 +142,6 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
       );
       setShowModal(false);
     } catch (e: unknown) {
-      console.error("❌ Erreur export :", e);
       const msg = getErrorMessage(e) || "Erreur lors de l’export.";
       toast.error(msg);
     } finally {
@@ -177,8 +172,7 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
         <DialogContent dividers>
           <Box sx={{ display: "grid", gap: 1.5 }}>
             <Typography>
-              Le fichier sera exporté uniquement au format{" "}
-              <strong>Excel (.xlsx)</strong>.
+              Le fichier sera exporté uniquement au format <strong>Excel (.xlsx)</strong>.
             </Typography>
 
             {/* ✅ Nouveau bouton d’inclusion des archivées */}
@@ -196,12 +190,7 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
           </Box>
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -210,12 +199,7 @@ export default function ExportButtonProspection({ data, selectedIds }: Props) {
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

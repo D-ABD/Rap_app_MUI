@@ -69,7 +69,7 @@ export type PartenaireGroupRow = {
   type?: string | null;
   secteur_activite?: string | null;
   default_centre_id?: number | null;
-  "default_centre__nom"?: string | null;
+  default_centre__nom?: string | null;
   departement?: string | null;
   actions?: string | null;
 

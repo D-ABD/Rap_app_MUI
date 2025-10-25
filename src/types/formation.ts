@@ -126,12 +126,7 @@ export interface Formation {
   a_recruter?: number;
   is_a_recruter?: boolean;
   status_temporel?: "active" | "past" | "future" | "unknown";
-
 }
-
-
-
-
 
 // =====================================
 // 🔷 Formulaire de création / d’édition
@@ -170,7 +165,6 @@ export interface FormationFormData {
   nombre_entretiens?: number;
   nombre_evenements?: number;
   dernier_commentaire?: string;
-  
 }
 
 export type FormationFormDataRaw = {
@@ -260,13 +254,9 @@ export interface FormationsListAPIResponse {
 }
 
 // Archiver / désarchiver
-export type ArchiverResponse =
-  | { status: "archived" }
-  | { detail: string }; // "Déjà archivée."
+export type ArchiverResponse = { status: "archived" } | { detail: string }; // "Déjà archivée."
 
-export type DesarchiverResponse =
-  | { status: "unarchived" }
-  | { detail: string }; // "Déjà active."
+export type DesarchiverResponse = { status: "unarchived" } | { detail: string }; // "Déjà active."
 
 // ========================
 // 🔷 Statistiques mensuelles

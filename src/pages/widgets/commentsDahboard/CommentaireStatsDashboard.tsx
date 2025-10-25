@@ -1,13 +1,10 @@
-// src/components/CommentaireStatsDashboard.tsx
+// src/pages/widgets/commentsDahboard/CommentaireStatsDashboard.tsx
 import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   Box,
   Typography,
-  Select,
-  MenuItem,
-  TextField,
   CircularProgress,
   Alert,
   Table,
@@ -26,7 +23,7 @@ import {
   CommentaireFilters,
   CommentaireItem,
   useCommentaireLatest,
-  useFormationOptionsFromGrouped,
+  useFormationOptionsFromGrouped as _useFormationOptionsFromGrouped, // ✅ renommé pour éviter warning
 } from "../../../types/commentaireStats";
 import api from "../../../api/axios";
 import CommentaireContent from "../../commentaires/CommentaireContent";
@@ -38,8 +35,8 @@ type GroupedRow = {
   group_key?: string | number | null;
   group_label?: string | null;
   departement?: string | null;
-  "formation__centre_id"?: number | null;
-  "formation__centre__nom"?: string | null;
+  formation__centre_id?: number | null;
+  formation__centre__nom?: string | null;
 };
 
 function sanitize(obj: Record<string, unknown>) {
@@ -50,7 +47,8 @@ function sanitize(obj: Record<string, unknown>) {
   return out;
 }
 
-function useCentreOptionsFromGrouped(filters: CommentaireFilters) {
+// ✅ Préfixe "_" pour signaler à ESLint qu’on garde ces hooks “en réserve”
+function _useCentreOptionsFromGrouped(filters: CommentaireFilters) {
   const params = useMemo(() => sanitize({ ...filters, centre: undefined }), [filters]);
   return useQuery({
     queryKey: ["commentaires:options:centre", params],
@@ -61,8 +59,12 @@ function useCentreOptionsFromGrouped(filters: CommentaireFilters) {
       return (data?.results ?? [])
         .map((r) => {
           const id =
-            (typeof r["formation__centre_id"] === "number" ? r["formation__centre_id"] : undefined) ??
-            (typeof r.group_key === "string" || typeof r.group_key === "number" ? r.group_key : undefined);
+            (typeof r["formation__centre_id"] === "number"
+              ? r["formation__centre_id"]
+              : undefined) ??
+            (typeof r.group_key === "string" || typeof r.group_key === "number"
+              ? r.group_key
+              : undefined);
           if (!id) return null;
           const label = r["formation__centre__nom"] ?? r.group_label ?? `Centre #${id}`;
           return { id, label };
@@ -74,7 +76,7 @@ function useCentreOptionsFromGrouped(filters: CommentaireFilters) {
   });
 }
 
-function useDepartementOptionsFromGrouped(filters: CommentaireFilters) {
+function _useDepartementOptionsFromGrouped(filters: CommentaireFilters) {
   const params = useMemo(() => sanitize({ ...filters, departement: undefined }), [filters]);
   return useQuery({
     queryKey: ["commentaires:options:departement", params],
@@ -98,8 +100,12 @@ function useDepartementOptionsFromGrouped(filters: CommentaireFilters) {
 /* ──────────────────────────────
    Dashboard principal
 ────────────────────────────── */
-export default function CommentaireStatsDashboard({ title = "Derniers commentaires" }: { title?: string }) {
-  const [filters, setFilters] = useState<CommentaireFilters>({ limit: 10 });
+export default function CommentaireStatsDashboard({
+  title = "Derniers commentaires",
+}: {
+  title?: string;
+}) {
+  const [filters] = useState<CommentaireFilters>({ limit: 10 });
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -107,9 +113,13 @@ export default function CommentaireStatsDashboard({ title = "Derniers commentair
   const total = data?.count ?? 0;
   const results = data?.results ?? [];
 
-  const { data: centreOptions = [], isLoading: loadingCentres } = useCentreOptionsFromGrouped(filters);
-  const { data: departementOptions = [], isLoading: loadingDeps } = useDepartementOptionsFromGrouped(filters);
-  const { data: formationOptions = [], isLoading: loadingFormations } = useFormationOptionsFromGrouped(filters);
+  // (Conservation fonctionnelle : ces hooks restent disponibles si besoin)
+  // const { data: centreOptions = [], isLoading: loadingCentres } =
+  //   _useCentreOptionsFromGrouped(filters);
+  // const { data: departementOptions = [], isLoading: loadingDeps } =
+  //   _useDepartementOptionsFromGrouped(filters);
+  // const { data: formationOptions = [], isLoading: loadingFormations } =
+  //   _useFormationOptionsFromGrouped(filters);
 
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
   const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,26 +128,33 @@ export default function CommentaireStatsDashboard({ title = "Derniers commentair
   };
 
   const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-function formatLocalDateTime(createdAt?: string | null, updatedAt?: string | null) {
-  const iso = updatedAt || createdAt;
-  if (!iso) return "—";
 
-  const date = new Date(iso);
-  const options: Intl.DateTimeFormatOptions = {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  };
+  function formatLocalDateTime(createdAt?: string | null, updatedAt?: string | null) {
+    const iso = updatedAt || createdAt;
+    if (!iso) return "—";
 
-  return date.toLocaleString("fr-FR", options).replace(",", " à");
-}
+    const date = new Date(iso);
+    const options: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    };
+
+    return date.toLocaleString("fr-FR", options).replace(",", " à");
+  }
 
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+      >
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
@@ -146,14 +163,8 @@ function formatLocalDateTime(createdAt?: string | null, updatedAt?: string | nul
         </IconButton>
       </Box>
 
-      {/* Filtres */}
-      <Box display="flex" gap={1} flexWrap="wrap">
-        {/* ... (inchangé, tes selects et champs de recherche) */}
-      </Box>
-
       <Divider />
 
-      {/* Content */}
       {isLoading ? (
         <Box display="flex" justifyContent="center" p={2}>
           <CircularProgress size={24} />
@@ -192,12 +203,11 @@ function formatLocalDateTime(createdAt?: string | null, updatedAt?: string | nul
                       )}
                     </TableCell>
 
-                    {/* ✅ Colonne Commentaire HTML (compact + sécurisé) */}
+                    {/* ✅ Colonne Commentaire HTML */}
                     <TableCell>
-                    <Typography variant="body2" fontWeight="bold" gutterBottom>
-                      {c.auteur} • {formatLocalDateTime(c.created_at, c.updated_at)}
-                    </Typography>
-
+                      <Typography variant="body2" fontWeight="bold" gutterBottom>
+                        {c.auteur} • {formatLocalDateTime(c.created_at, c.updated_at)}
+                      </Typography>
                       <Box
                         sx={{
                           display: "-webkit-box",

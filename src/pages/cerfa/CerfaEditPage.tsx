@@ -1,3 +1,4 @@
+// src/pages/cerfa/CerfaEditPage.tsx
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { Box, CircularProgress, Typography, Button } from "@mui/material";
@@ -25,13 +26,11 @@ export default function CerfaEditPage() {
 
   // ✅ Gestion homogène des erreurs backend (même logique que dans CerfaPage)
   const handleSubmit = async (data: CerfaContratCreate) => {
-    ("✏️ Données envoyées (update):", data);
     try {
       await updateCerfa(data);
       toast.success("✅ Contrat CERFA mis à jour avec succès !");
       navigate("/cerfa");
     } catch (err: any) {
-      console.error("❌ Erreur backend (update):", err);
       const errorData = err?.response?.data;
       let message = "❌ Erreur lors de la mise à jour du contrat.";
 
@@ -56,9 +55,11 @@ export default function CerfaEditPage() {
 
       // 🔍 Log complet pour debug (uniquement en dev)
       if (import.meta.env.MODE !== "production" && errorData) {
+        /* eslint-disable no-console */
         console.group("📨 Détails complets de l’erreur backend (update)");
-        (errorData);
+        console.log(errorData);
         console.groupEnd();
+        /* eslint-enable no-console */
       }
     }
   };
@@ -67,11 +68,7 @@ export default function CerfaEditPage() {
     <PageTemplate
       title="✏️ Modifier un CERFA"
       actions={
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate("/cerfa")}
-          variant="outlined"
-        >
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/cerfa")} variant="outlined">
           Retour
         </Button>
       }
@@ -96,4 +93,3 @@ export default function CerfaEditPage() {
     </PageTemplate>
   );
 }
- 

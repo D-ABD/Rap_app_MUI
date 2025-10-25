@@ -12,11 +12,7 @@ import {
   useAppairageMeta,
 } from "../../hooks/useAppairage";
 
-import type {
-  Appairage,
-  AppairageFormData,
-  AppairageUpdatePayload,
-} from "../../types/appairage";
+import type { Appairage, AppairageFormData, AppairageUpdatePayload } from "../../types/appairage";
 import type { AppairageCommentDTO } from "../../types/appairageComment";
 import { isAppairageArchived } from "../../types/appairage";
 
@@ -31,8 +27,7 @@ export default function AppairagesEditPage() {
   const location = useLocation();
 
   const [openComments, setOpenComments] = useState(false);
-  const [localLastComment, setLocalLastComment] =
-    useState<AppairageCommentDTO | null>(null);
+  const [localLastComment, setLocalLastComment] = useState<AppairageCommentDTO | null>(null);
   const [localCount, setLocalCount] = useState<number>(0);
   const [localDetail, setLocalDetail] = useState<Appairage | null>(null);
 
@@ -46,8 +41,7 @@ export default function AppairagesEditPage() {
   const { data: detail, loading, error } = useAppairage(appairageId);
   const { update, loading: saving } = useUpdateAppairage(appairageId ?? 0);
   const { remove, loading: removing } = useDeleteAppairage(appairageId ?? 0);
-  const { data: meta, loading: metaLoading, error: metaError } =
-    useAppairageMeta();
+  const { data: meta, loading: metaLoading, error: metaError } = useAppairageMeta();
 
   useEffect(() => {
     const sp = new URLSearchParams(location.search);
@@ -70,10 +64,7 @@ export default function AppairagesEditPage() {
 
   const handleDelete = async () => {
     if (!appairageId) return;
-    if (
-      !window.confirm(`Supprimer définitivement l’appairage #${appairageId} ?`)
-    )
-      return;
+    if (!window.confirm(`Supprimer définitivement l’appairage #${appairageId} ?`)) return;
     try {
       await remove();
       toast.success("🗑️ Appairage supprimé");
@@ -136,9 +127,7 @@ export default function AppairagesEditPage() {
   if (error || metaError || !detail || !meta) {
     return (
       <PageTemplate title={`Appairage #${appairageId}`}>
-        <Typography color="error">
-          ❌ Impossible de charger l’appairage.
-        </Typography>
+        <Typography color="error">❌ Impossible de charger l’appairage.</Typography>
       </PageTemplate>
     );
   }
@@ -176,12 +165,9 @@ export default function AppairagesEditPage() {
 
   const comments = appairageDetail.commentaires ?? [];
   const lastRealComment: AppairageCommentDTO | null =
-    comments.length > 0
-      ? (comments[comments.length - 1] as AppairageCommentDTO)
-      : null;
+    comments.length > 0 ? (comments[comments.length - 1] as AppairageCommentDTO) : null;
 
-  const effectiveLastComment: AppairageCommentDTO | null =
-    localLastComment ?? lastRealComment;
+  const effectiveLastComment: AppairageCommentDTO | null = localLastComment ?? lastRealComment;
 
   const effectiveCount = localCount || comments.length;
   const archived = isAppairageArchived(appairageDetail);
@@ -207,12 +193,7 @@ export default function AppairagesEditPage() {
             {archived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
 
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleDelete}
-            disabled={removing}
-          >
+          <Button variant="outlined" color="error" onClick={handleDelete} disabled={removing}>
             {removing ? "Suppression…" : "Supprimer"}
           </Button>
         </Box>
@@ -262,17 +243,14 @@ export default function AppairagesEditPage() {
           <div>
             <strong>📌 Créé le :</strong>{" "}
             {appairageDetail.created_at
-              ? new Date(appairageDetail.created_at).toLocaleDateString(
-                  "fr-FR",
-                  {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }
-                )
+              ? new Date(appairageDetail.created_at).toLocaleDateString("fr-FR", {
+                  weekday: "long",
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
               : "—"}
           </div>
           {appairageDetail.updated_at && (

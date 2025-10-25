@@ -113,13 +113,10 @@ export default function ExportButtonCommentaires({
       toast.success(
         `${exportFormat.toUpperCase()} prêt · ${
           scope === "selected" && selectedCount > 0 ? selectedCount : total
-        } commentaire(s) exporté(s)${
-          includeArchived ? " (avec archivés)" : ""
-        }.`
+        } commentaire(s) exporté(s)${includeArchived ? " (avec archivés)" : ""}.`
       );
       setShowModal(false);
-    } catch (e) {
-      console.error("❌ Erreur export :", e);
+    } catch (_e) {
       toast.error("Erreur lors de l’export des commentaires.");
     } finally {
       setBusy(false);
@@ -164,11 +161,7 @@ export default function ExportButtonCommentaires({
                   value={scope}
                   onChange={(e) => setScope(e.target.value as "all" | "selected")}
                 >
-                  <FormControlLabel
-                    value="all"
-                    control={<Radio />}
-                    label={`Tout (${total})`}
-                  />
+                  <FormControlLabel value="all" control={<Radio />} label={`Tout (${total})`} />
                   <FormControlLabel
                     value="selected"
                     control={<Radio />}
@@ -191,12 +184,7 @@ export default function ExportButtonCommentaires({
           </Box>
 
           {busy && (
-            <Typography
-              variant="body2"
-              sx={{ mt: 2 }}
-              aria-live="polite"
-              aria-busy="true"
-            >
+            <Typography variant="body2" sx={{ mt: 2 }} aria-live="polite" aria-busy="true">
               ⏳ Export en cours…
             </Typography>
           )}
@@ -206,12 +194,7 @@ export default function ExportButtonCommentaires({
           <Button onClick={closeModal} disabled={busy}>
             Annuler
           </Button>
-          <Button
-            onClick={handleExport}
-            disabled={busy}
-            variant="contained"
-            color="primary"
-          >
+          <Button onClick={handleExport} disabled={busy} variant="contained" color="primary">
             Exporter
           </Button>
         </DialogActions>

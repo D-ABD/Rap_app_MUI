@@ -30,23 +30,22 @@ export type AppairageCommentItem = {
   formation_nom?: string | null;
   partenaire_nom?: string | null;
 
-  num_offre?: string | null;       // 🔹 ajouté
-  type_offre_nom?: string | null;  // 🔹 ajouté
+  num_offre?: string | null; // 🔹 ajouté
+  type_offre_nom?: string | null; // 🔹 ajouté
 
   statut_snapshot?: string | null;
 
   body: string; // aperçu
 
   auteur: string;
-  date: string;   // "DD/MM/YYYY"
-  heure: string;  // "HH:MM"
+  date: string; // "DD/MM/YYYY"
+  heure: string; // "HH:MM"
   created_at: string;
   updated_at: string | null;
 
   is_recent: boolean;
   is_edited: boolean;
 };
-
 
 export type AppairageCommentLatestResponse = {
   count: number;
@@ -65,8 +64,8 @@ export type AppairageCommentGroupRow = {
   total: number;
 
   // Champs bruts possibles (suivant le by)
-  "appairage__formation__centre_id"?: number | null;
-  "appairage__formation__centre__nom"?: string | null;
+  appairage__formation__centre_id?: number | null;
+  appairage__formation__centre__nom?: string | null;
   departement?: string | null;
 };
 

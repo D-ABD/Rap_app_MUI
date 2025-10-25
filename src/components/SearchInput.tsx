@@ -18,8 +18,7 @@ export default function SearchInput(props: TextFieldProps) {
         // focus ring accessible (utilise palette.primary)
         "& .MuiOutlinedInput-root.Mui-focused fieldset": {
           borderColor: (theme) => theme.palette.primary.main,
-          boxShadow: (theme) =>
-            `0 0 0 3px ${theme.palette.primary.main}33`, // 20% opacity
+          boxShadow: (theme) => `0 0 0 3px ${theme.palette.primary.main}33`, // 20% opacity
         },
         // placeholder lisible
         "& .MuiInputBase-input::placeholder": {

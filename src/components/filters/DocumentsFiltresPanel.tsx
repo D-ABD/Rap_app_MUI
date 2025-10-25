@@ -9,7 +9,7 @@ import {
   SelectChangeEvent,
   Stack,
 } from "@mui/material";
-import type { FiltresValues } from "../../types/Filtres";
+import { FiltresValues } from "../../types/Filtres";
 
 // 🔧 Supprime les doublons par ID ou value
 function uniqueById<T extends { id?: number; value?: string | number }>(arr: T[] = []): T[] {
@@ -50,8 +50,7 @@ export default function DocumentsFiltresPanel({
   const handleChange = useCallback(
     (e: SelectChangeEvent<string | number>) => {
       const { name, value } = e.target;
-      const parsed =
-        value === "" ? undefined : Number.isNaN(Number(value)) ? value : Number(value);
+      const parsed = value === "" ? undefined : Number.isNaN(Number(value)) ? value : Number(value);
       const key = name as keyof FiltresValues;
       onChange({ ...values, [key]: parsed } as FiltresValues);
     },

@@ -1,5 +1,5 @@
 // src/layout/MainLayout.tsx
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import {
   AppBar,
   Toolbar,
@@ -36,7 +36,6 @@ import FolderIcon from "@mui/icons-material/Folder";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import InfoIcon from "@mui/icons-material/Info";
 import HomeIcon from "@mui/icons-material/Home";
 
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
@@ -78,7 +77,11 @@ export default function MainLayout() {
     setSubmenuOpen((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
-  const isActive = (path?: string) => !!path && location.pathname.startsWith(path);
+  // ✅ Correction du warning ESLint — fonction mémorisée
+  const isActive = useCallback(
+    (path?: string) => !!path && location.pathname.startsWith(path),
+    [location.pathname]
+  );
 
   // Auto-ouverture des sous-menus si actif
   useEffect(() => {
@@ -89,7 +92,7 @@ export default function MainLayout() {
       }
     });
     setSubmenuOpen((prev) => ({ ...prev, ...newState }));
-  }, [location.pathname]);
+  }, [location.pathname, isActive]);
 
   const handleLogout = () => {
     logout();
@@ -117,9 +120,7 @@ export default function MainLayout() {
           zIndex: (theme) => theme.zIndex.drawer + 1,
           backdropFilter: "blur(8px)",
           background: (theme) =>
-            theme.palette.mode === "light"
-              ? "rgba(25, 118, 210, 0.9)"
-              : "rgba(18,18,18,0.9)",
+            theme.palette.mode === "light" ? "rgba(25, 118, 210, 0.9)" : "rgba(18,18,18,0.9)",
         }}
       >
         <Toolbar sx={{ px: { xs: 1, sm: 2 }, minHeight: 56 }}>
@@ -150,57 +151,95 @@ export default function MainLayout() {
           {/* 🔹 Menu Desktop */}
           {!isMobile && (
             <Stack direction="row" spacing={1} alignItems="center">
-              <Button color="inherit" component={Link} to="/">Accueil</Button>
-              <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
+              <Button color="inherit" component={Link} to="/">
+                Accueil
+              </Button>
+              <Button color="inherit" component={Link} to="/dashboard">
+                Dashboard
+              </Button>
 
               {/* CRM */}
-              <Button color="inherit" onClick={(e) => setAnchorCrm(e.currentTarget)} endIcon={<SearchIcon />}>
+              <Button
+                color="inherit"
+                onClick={(e) => setAnchorCrm(e.currentTarget)}
+                endIcon={<SearchIcon />}
+              >
                 CRM
               </Button>
-<Menu
-  anchorEl={anchorCrm}
-  open={Boolean(anchorCrm)}
-  onClose={() => setAnchorCrm(null)}
-  PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
->
-  <MenuItem component={Link} to="/prospections">Prospections</MenuItem>
-  <MenuItem component={Link} to="/prospection-commentaires">Prospections commentaires</MenuItem>
-  <MenuItem component={Link} to="/partenaires">Partenaires</MenuItem>
-  {/*
+              <Menu
+                anchorEl={anchorCrm}
+                open={Boolean(anchorCrm)}
+                onClose={() => setAnchorCrm(null)}
+                PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
+              >
+                <MenuItem component={Link} to="/prospections">
+                  Prospections
+                </MenuItem>
+                <MenuItem component={Link} to="/prospection-commentaires">
+                  Prospections commentaires
+                </MenuItem>
+                <MenuItem component={Link} to="/partenaires">
+                  Partenaires
+                </MenuItem>
+                {/*
   <MenuItem component={Link} to="/cerfa">Contrats CERFA</MenuItem> 
   */}
-  
-  {canSeeAdvanced && (
-    <>
-      <MenuItem component={Link} to="/appairages">Appairage</MenuItem>
-      <MenuItem component={Link} to="/appairage-commentaires">Appairages commentaires</MenuItem>
-      <MenuItem component={Link} to="/candidats">Candidats</MenuItem>
-      <MenuItem component={Link} to="/ateliers-tre">Ateliers TRE</MenuItem>
-    </>
-  )}
-</Menu>
+
+                {canSeeAdvanced && (
+                  <>
+                    <MenuItem component={Link} to="/appairages">
+                      Appairage
+                    </MenuItem>
+                    <MenuItem component={Link} to="/appairage-commentaires">
+                      Appairages commentaires
+                    </MenuItem>
+                    <MenuItem component={Link} to="/candidats">
+                      Candidats
+                    </MenuItem>
+                    <MenuItem component={Link} to="/ateliers-tre">
+                      Ateliers TRE
+                    </MenuItem>
+                  </>
+                )}
+              </Menu>
 
               {/* Revue d’offres */}
               {canSeeAdvanced && (
                 <>
-                  <Button color="inherit" onClick={(e) => setAnchorRevue(e.currentTarget)} endIcon={<FolderIcon />}>
+                  <Button
+                    color="inherit"
+                    onClick={(e) => setAnchorRevue(e.currentTarget)}
+                    endIcon={<FolderIcon />}
+                  >
                     Revue d&apos;offres
                   </Button>
                   <Menu
                     anchorEl={anchorRevue}
                     open={Boolean(anchorRevue)}
                     onClose={() => setAnchorRevue(null)}
-                    PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
+                    PaperProps={{
+                      sx: { borderRadius: 2, boxShadow: 3, mt: 1 },
+                    }}
                   >
-                    <MenuItem component={Link} to="/formations">Formations</MenuItem>
-                    <MenuItem component={Link} to="/commentaires">Commentaires</MenuItem>
-                    <MenuItem component={Link} to="/documents">Documents</MenuItem>
+                    <MenuItem component={Link} to="/formations">
+                      Formations
+                    </MenuItem>
+                    <MenuItem component={Link} to="/commentaires">
+                      Commentaires
+                    </MenuItem>
+                    <MenuItem component={Link} to="/documents">
+                      Documents
+                    </MenuItem>
                   </Menu>
                 </>
               )}
 
-              <Button color="inherit" component={Link} to="/about">À propos</Button>
-              <Button color="inherit" component={Link} to="/parametres">Paramètres</Button>
+              <Button color="inherit" component={Link} to="/about">
+                À propos
+              </Button>
+              <Button color="inherit" component={Link} to="/parametres">
+                Paramètres
+              </Button>
             </Stack>
           )}
 
@@ -221,15 +260,8 @@ export default function MainLayout() {
                 onClose={() => setAnchorUser(null)}
                 PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
               >
-                <MenuItem disabled>
-                  {user?.username || user?.email}
-                </MenuItem>
-                {/* 🔹 Rôle affiché */}
-                {user?.role && (
-                  <MenuItem disabled>
-                    🎭 Rôle : {user.role}
-                  </MenuItem>
-                )}
+                <MenuItem disabled>{user?.username || user?.email}</MenuItem>
+                {user?.role && <MenuItem disabled>🎭 Rôle : {user.role}</MenuItem>}
                 <MenuItem component={Link} to="/mon-profil" onClick={() => setAnchorUser(null)}>
                   <AccountCircle fontSize="small" /> &nbsp;Mon profil
                 </MenuItem>
@@ -300,8 +332,7 @@ export default function MainLayout() {
               >
                 <ListItemIcon>{item.icon}</ListItemIcon>
                 <ListItemText primary={item.label} />
-                {item.children &&
-                  (submenuOpen[item.label] ? <ExpandLess /> : <ExpandMore />)}
+                {item.children && (submenuOpen[item.label] ? <ExpandLess /> : <ExpandMore />)}
               </ListItemButton>
 
               {item.children && (
@@ -335,8 +366,7 @@ export default function MainLayout() {
           flex: 1,
           p: { xs: 2, sm: 3 },
           mt: { xs: 7, sm: 8 },
-          backgroundColor: (theme) =>
-            theme.palette.mode === "light" ? "#f9f9f9" : "#121212",
+          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#f9f9f9" : "#121212"),
           transition: "background-color 0.3s ease",
         }}
       >
@@ -347,15 +377,11 @@ export default function MainLayout() {
             mb: 2,
             p: 1,
             borderRadius: 1,
-            bgcolor: (theme) =>
-              theme.palette.mode === "light" ? "#fff" : "#1e1e1e",
+            bgcolor: (theme) => (theme.palette.mode === "light" ? "#fff" : "#1e1e1e"),
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
           }}
         >
-          <Breadcrumbs
-            aria-label="breadcrumb"
-            separator={<NavigateNextIcon fontSize="small" />}
-          >
+          <Breadcrumbs aria-label="breadcrumb" separator={<NavigateNextIcon fontSize="small" />}>
             <MuiLink component={Link} to="/" underline="hover" color="inherit">
               <HomeIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
               Accueil
@@ -364,8 +390,7 @@ export default function MainLayout() {
               const to = `/${pathnames.slice(0, index + 1).join("/")}`;
               const isLast = index === pathnames.length - 1;
               const label =
-                breadcrumbLabels[value] ??
-                value.charAt(0).toUpperCase() + value.slice(1);
+                breadcrumbLabels[value] ?? value.charAt(0).toUpperCase() + value.slice(1);
 
               return isLast ? (
                 <Typography key={to} color="text.primary">
@@ -390,8 +415,7 @@ export default function MainLayout() {
           py: 2,
           textAlign: "center",
           borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          backgroundColor: (theme) =>
-            theme.palette.mode === "light" ? "#fafafa" : "#1a1a1a",
+          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#fafafa" : "#1a1a1a"),
         }}
       >
         <Typography variant="caption" color="text.secondary">

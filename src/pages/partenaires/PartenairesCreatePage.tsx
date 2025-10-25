@@ -1,12 +1,10 @@
+// src/pages/partenaires/PartenairesCreatePage.tsx
 import { useState, useMemo, useCallback, useRef } from "react";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
+import axios from "axios";
 import { Box, Typography, CircularProgress } from "@mui/material";
 
-import {
-  useCreatePartenaire,
-  usePartenaireChoices,
-} from "../../hooks/usePartenaires";
+import { useCreatePartenaire, usePartenaireChoices } from "../../hooks/usePartenaires";
 import { useAuth } from "../../hooks/useAuth";
 import PartenaireForm from "./PartenaireForm";
 import type { Partenaire, PartenaireChoicesResponse } from "../../types/partenaire";
@@ -29,8 +27,6 @@ function preparePayload(values: Partial<Partenaire>): Partial<Partenaire> {
 
 /* ---------- Page ---------- */
 export default function PartenaireCreatePage() {
-  ("Render PartenaireCreatePage");
-
   const { create, loading, error } = useCreatePartenaire();
   const { data: rawChoices } = usePartenaireChoices();
   const { user } = useAuth();
@@ -38,50 +34,43 @@ export default function PartenaireCreatePage() {
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [lastCreated, setLastCreated] = useState<{ id: number; nom: string } | null>(null);
 
-  // ✅ choix stables
   const choices: PartenaireChoicesResponse = useMemo(
     () => rawChoices ?? { types: [], actions: [] },
     [rawChoices]
   );
 
-  // ✅ valeurs initiales basiques (pas de centre prédéfini)
   const initialValuesRef = useRef({
     is_active: true,
     country: "France",
     default_centre_id: undefined,
   });
 
-  // ✅ soumission du formulaire
   const handleSubmit = useCallback(
     async (values: Partial<Partenaire>) => {
       try {
         const payload = preparePayload(values);
 
-        // 🔒 Validation centre obligatoire
         if (!payload.default_centre_id) {
           toast.error("❌ Vous devez sélectionner un centre avant de créer le partenaire.");
           return;
         }
 
-        ("📦 Payload envoyé au backend :", payload);
         const created = await create(payload);
 
-        // ✅ Feedback utilisateur
         if (created.was_reused) {
           toast.warning(`⚠️ Le partenaire « ${created.nom} » existait déjà et a été réutilisé.`);
         } else {
           toast.success(`✅ Partenaire « ${created.nom} » créé avec succès.`);
         }
 
-        // 🧭 Post-création
         setLastCreated({ id: created.id, nom: created.nom });
         setChoiceOpen(true);
-      } catch (e: unknown) {
+      } catch (_e: unknown) {
         let message = "❌ Erreur lors de la création du partenaire.";
 
-        if (isAxiosError(e)) {
-          const detail = e.response?.data?.detail;
-          const nonField = e.response?.data?.non_field_errors;
+        if (axios.isAxiosError(_e)) {
+          const detail = _e.response?.data?.detail;
+          const nonField = _e.response?.data?.non_field_errors;
 
           if (typeof detail === "string") {
             if (detail.toLowerCase().includes("centre")) {
@@ -94,11 +83,14 @@ export default function PartenaireCreatePage() {
             if (joined) message = `❌ ${joined}`;
           }
 
-          if (import.meta.env.MODE !== "production") {
-            console.error("Erreur API création partenaire :", e.response?.data ?? e);
+          // ✅ plus de console.error : on notifie en mode dev via toast
+          if (import.meta.env.DEV) {
+            toast.info("Détails de l’erreur disponibles (mode développement).");
           }
-        } else if (import.meta.env.MODE !== "production") {
-          console.error("Erreur inattendue :", e);
+        } else {
+          if (import.meta.env.DEV) {
+            toast.info("Erreur inconnue (mode développement).");
+          }
         }
 
         toast.error(message);
@@ -117,7 +109,7 @@ export default function PartenaireCreatePage() {
           onSubmit={handleSubmit}
           loading={loading}
           choices={choices}
-          centreOptions={user?.centres?.map(c => ({ value: c.id, label: c.nom })) ?? []}
+          centreOptions={user?.centres?.map((c) => ({ value: c.id, label: c.nom })) ?? []}
         />
 
         {error && (
@@ -127,7 +119,6 @@ export default function PartenaireCreatePage() {
         )}
       </Box>
 
-      {/* 🧩 Modale post-création */}
       <PostCreateChoiceModal
         open={choiceOpen}
         onClose={() => setChoiceOpen(false)}

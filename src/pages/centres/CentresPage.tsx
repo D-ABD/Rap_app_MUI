@@ -40,8 +40,7 @@ export default function CentresPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
-  const { page, setPage, count, setCount, totalPages, pageSize, setPageSize } =
-    usePagination(1, 5);
+  const { page, setPage, count, setCount, totalPages, pageSize, setPageSize } = usePagination(1, 5);
 
   const navigate = useNavigate();
   const theme = useTheme();
@@ -65,9 +64,7 @@ export default function CentresPage() {
   }, [data?.count, setCount]);
 
   const toggleSelect = (id: number) => {
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
   const clearSelection = () => setSelectedIds([]);
@@ -99,11 +96,7 @@ export default function CentresPage() {
       refreshButton
       onRefresh={() => setReloadKey((k) => k + 1)}
       actions={
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          flexWrap="wrap"
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1} flexWrap="wrap">
           <Select
             size="small"
             value={pageSize}
@@ -129,11 +122,7 @@ export default function CentresPage() {
 
           {selectedIds.length > 0 && (
             <>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setShowConfirm(true)}
-              >
+              <Button variant="contained" color="error" onClick={() => setShowConfirm(true)}>
                 🗑️ Supprimer ({selectedIds.length})
               </Button>
               <Button variant="outlined" onClick={selectAll}>
@@ -204,7 +193,7 @@ export default function CentresPage() {
                 p: 2,
                 cursor: "pointer",
               }}
-            onClick={() => navigate(`/centres/${centre.id}/edit`)}
+              onClick={() => navigate(`/centres/${centre.id}/edit`)}
             >
               <Stack direction="row" alignItems="center" spacing={2}>
                 <Checkbox
@@ -239,12 +228,7 @@ export default function CentresPage() {
       )}
 
       {/* Confirmation dialog */}
-      <Dialog
-        open={showConfirm}
-        onClose={() => setShowConfirm(false)}
-        fullWidth
-        maxWidth="xs"
-      >
+      <Dialog open={showConfirm} onClose={() => setShowConfirm(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <WarningAmberIcon color="warning" />
           Confirmation

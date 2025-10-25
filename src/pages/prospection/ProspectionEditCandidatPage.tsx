@@ -87,8 +87,7 @@ export default function ProspectionEditPage() {
   const { remove, loading: removing } = useDeleteProspection(prospectionId ?? 0);
 
   const [detail, setDetail] = useState<ProspectionDetailDTO | null>(null);
-  const [formationFallback, setFormationFallback] =
-    useState<FormationLight | null>(null);
+  const [formationFallback, setFormationFallback] = useState<FormationLight | null>(null);
 
   useEffect(() => {
     if (hookDetail) setDetail(hookDetail as ProspectionDetailDTO);
@@ -153,7 +152,12 @@ export default function ProspectionEditPage() {
 
   if (loading || (!detail && !error)) {
     return (
-      <PageTemplate title={`Prospection #${prospectionId}`} backButton onBack={() => navigate(-1)} centered>
+      <PageTemplate
+        title={`Prospection #${prospectionId}`}
+        backButton
+        onBack={() => navigate(-1)}
+        centered
+      >
         <CircularProgress />
       </PageTemplate>
     );
@@ -161,7 +165,12 @@ export default function ProspectionEditPage() {
 
   if (error) {
     return (
-      <PageTemplate title={`Prospection #${prospectionId}`} backButton onBack={() => navigate(-1)} centered>
+      <PageTemplate
+        title={`Prospection #${prospectionId}`}
+        backButton
+        onBack={() => navigate(-1)}
+        centered
+      >
         <Typography color="error">❌ Impossible de charger la prospection.</Typography>
       </PageTemplate>
     );
@@ -169,17 +178,20 @@ export default function ProspectionEditPage() {
 
   if (!detail) {
     return (
-      <PageTemplate title={`Prospection #${prospectionId}`} backButton onBack={() => navigate(-1)} centered>
+      <PageTemplate
+        title={`Prospection #${prospectionId}`}
+        backButton
+        onBack={() => navigate(-1)}
+        centered
+      >
         <Typography color="error">❌ Données indisponibles.</Typography>
       </PageTemplate>
     );
   }
 
   const formationNom = detail.formation_nom ?? formationFallback?.nom ?? null;
-  const formationDateDebut =
-    detail.formation_date_debut ?? formationFallback?.start_date ?? null;
-  const formationDateFin =
-    detail.formation_date_fin ?? formationFallback?.end_date ?? null;
+  const formationDateDebut = detail.formation_date_debut ?? formationFallback?.start_date ?? null;
+  const formationDateFin = detail.formation_date_fin ?? formationFallback?.end_date ?? null;
   const numOffre = detail.num_offre ?? formationFallback?.num_offre ?? null;
 
   const initialValues: ProspectionFormData = {
@@ -203,10 +215,7 @@ export default function ProspectionEditPage() {
 
     last_comment: detail.last_comment ?? null,
     last_comment_at: detail.last_comment_at ?? null,
-    comments_count:
-      typeof detail.comments_count === "number"
-        ? detail.comments_count
-        : undefined,
+    comments_count: typeof detail.comments_count === "number" ? detail.comments_count : undefined,
   };
 
   const isStaff = ["admin", "staff", "superuser"].includes(
@@ -243,27 +252,21 @@ export default function ProspectionEditPage() {
           <Grid item xs={12} md={4}>
             <Typography variant="subtitle2">Partenaire</Typography>
             <Typography>{detail.partenaire_nom || "—"}</Typography>
-            <Typography color="text.secondary">
-              {detail.partenaire_ville || "—"}
-            </Typography>
+            <Typography color="text.secondary">{detail.partenaire_ville || "—"}</Typography>
           </Grid>
 
           <Grid item xs={12} md={4}>
             <Typography variant="subtitle2">Contacts</Typography>
             <Typography>
               {detail.partenaire_tel ? (
-                <Link href={`tel:${detail.partenaire_tel}`}>
-                  {detail.partenaire_tel}
-                </Link>
+                <Link href={`tel:${detail.partenaire_tel}`}>{detail.partenaire_tel}</Link>
               ) : (
                 "Téléphone —"
               )}
             </Typography>
             <Typography>
               {detail.partenaire_email ? (
-                <Link href={`mailto:${detail.partenaire_email}`}>
-                  {detail.partenaire_email}
-                </Link>
+                <Link href={`mailto:${detail.partenaire_email}`}>{detail.partenaire_email}</Link>
               ) : (
                 "Email —"
               )}
@@ -308,12 +311,7 @@ export default function ProspectionEditPage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDelete(false)}>Annuler</Button>
-          <Button
-            onClick={handleDelete}
-            color="error"
-            variant="contained"
-            autoFocus
-          >
+          <Button onClick={handleDelete} color="error" variant="contained" autoFocus>
             Supprimer
           </Button>
         </DialogActions>

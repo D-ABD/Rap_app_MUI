@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import InventoryIcon from "@mui/icons-material/Inventory";
-import ArchiveIcon from "@mui/icons-material/Archive"; // ← nouveau
+import ArchiveIcon from "@mui/icons-material/Archive";
 import {
   BarChart,
   Bar,
@@ -32,14 +32,11 @@ import {
   useFormationOverview,
 } from "../../../types/formationStats";
 
-/* Utils */
+/* 🧮 Utils */
 function toFixed0(n?: number | null) {
   return n == null ? "—" : Math.round(n).toString();
 }
-function omit<T extends object, K extends keyof T>(
-  obj: T,
-  keys: readonly K[]
-): Omit<T, K> {
+function omit<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): Omit<T, K> {
   const clone = { ...obj };
   for (const k of keys) delete clone[k];
   return clone;
@@ -52,37 +49,28 @@ export default function FormationPlacesWidget({
   title?: string;
   filters?: Filters;
 }) {
-  const [localFilters, setLocalFilters] = React.useState<Filters>(
-    filters ?? {}
-  );
-  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
-    !!filters?.avec_archivees
-  );
+  const [localFilters, setLocalFilters] = React.useState<Filters>(filters ?? {});
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
 
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
-  // ⚙️ Fusion des filtres + flag archivées
+  // ⚙️ Filtres complets
   const effectiveFilters = React.useMemo(
     () => ({ ...localFilters, avec_archivees: includeArchived }),
     [localFilters, includeArchived]
   );
 
-  const centreQuery = useFormationGrouped(
-    "centre",
-    omit(effectiveFilters, ["centre"] as const)
-  );
+  const centreQuery = useFormationGrouped("centre", omit(effectiveFilters, ["centre"] as const));
   const deptQuery = useFormationGrouped(
     "departement",
     omit(effectiveFilters, ["departement"] as const)
   );
-
-  const { data, isLoading, error, refetch, isFetching } =
-    useFormationOverview(effectiveFilters);
+  const { data, isLoading, error, refetch, isFetching } = useFormationOverview(effectiveFilters);
   const k = data?.kpis;
 
-  // Options filtres
+  // ✅ Options filtres
   const centreOptions =
     centreQuery.data?.results?.flatMap((r: GroupRow) => {
       const label =
@@ -103,22 +91,21 @@ export default function FormationPlacesWidget({
       return value && label ? [{ label, value }] : [];
     }) ?? [];
 
-  // Données pour le graphique
-  const chartData =
-    k && [
-      {
-        name: "CRIF",
-        Places: k.total_places_crif ?? 0,
-        Inscrits: k.total_inscrits_crif ?? 0,
-        Dispo: k.total_dispo_crif ?? 0,
-      },
-      {
-        name: "MP",
-        Places: k.total_places_mp ?? 0,
-        Inscrits: k.total_inscrits_mp ?? 0,
-        Dispo: k.total_dispo_mp ?? 0,
-      },
-    ];
+  // ✅ Données du graphique
+  const chartData = k && [
+    {
+      name: "CRIF",
+      Places: k.total_places_crif ?? 0,
+      Inscrits: k.total_inscrits_crif ?? 0,
+      Dispo: k.total_dispo_crif ?? 0,
+    },
+    {
+      name: "MP",
+      Places: k.total_places_mp ?? 0,
+      Inscrits: k.total_inscrits_mp ?? 0,
+      Dispo: k.total_dispo_mp ?? 0,
+    },
+  ];
 
   return (
     <Card
@@ -128,7 +115,8 @@ export default function FormationPlacesWidget({
         flexDirection: "column",
         gap: 1.5,
         borderRadius: 2,
-        height: "100%", // ✅ homogénéité avec les autres widgets
+        height: "100%",
+        minHeight: 360, // ✅ stabilité d’affichage
       }}
     >
       {/* Header */}
@@ -138,7 +126,7 @@ export default function FormationPlacesWidget({
         </Typography>
 
         <Box display="flex" flexWrap="wrap" gap={1} alignItems="center">
-          {/* Bouton Archivées */}
+          {/* Bouton archivées */}
           <Button
             size="small"
             variant={includeArchived ? "contained" : "outlined"}
@@ -149,7 +137,7 @@ export default function FormationPlacesWidget({
             {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
           </Button>
 
-          {/* Bouton Rafraîchir */}
+          {/* Rafraîchir */}
           <Button
             size="small"
             variant="outlined"
@@ -236,39 +224,41 @@ export default function FormationPlacesWidget({
       )}
 
       {/* Graphique */}
-      {isLoading ? (
-        <Box display="flex" justifyContent="center" p={3}>
-          <CircularProgress size={20} />
-        </Box>
-      ) : error ? (
-        <Alert severity="error">{(error as Error).message}</Alert>
-      ) : chartData ? (
-        <Box sx={{ height: 220 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              barSize={30}
-              margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" allowDecimals={false} />
-              <YAxis dataKey="name" type="category" width={50} />
-              <Tooltip />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Places" fill="#42a5f5">
-                <LabelList dataKey="Places" position="right" fontSize={11} />
-              </Bar>
-              <Bar dataKey="Inscrits" fill="#66bb6a">
-                <LabelList dataKey="Inscrits" position="right" fontSize={11} />
-              </Bar>
-              <Bar dataKey="Dispo" fill="#ffa726">
-                <LabelList dataKey="Dispo" position="right" fontSize={11} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Box>
-      ) : null}
+      <Box sx={{ flex: 1, minHeight: 240 }}>
+        {isLoading ? (
+          <Box display="flex" justifyContent="center" p={3}>
+            <CircularProgress size={20} />
+          </Box>
+        ) : error ? (
+          <Alert severity="error">{(error as Error).message}</Alert>
+        ) : (
+          chartData && (
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart
+                data={chartData}
+                layout="vertical"
+                barSize={30}
+                margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" allowDecimals={false} />
+                <YAxis dataKey="name" type="category" width={50} />
+                <Tooltip />
+                <Legend wrapperStyle={{ fontSize: 11 }} />
+                <Bar dataKey="Places" fill="#42a5f5">
+                  <LabelList dataKey="Places" position="right" fontSize={11} />
+                </Bar>
+                <Bar dataKey="Inscrits" fill="#66bb6a">
+                  <LabelList dataKey="Inscrits" position="right" fontSize={11} />
+                </Bar>
+                <Bar dataKey="Dispo" fill="#ffa726">
+                  <LabelList dataKey="Dispo" position="right" fontSize={11} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )
+        )}
+      </Box>
     </Card>
   );
 }

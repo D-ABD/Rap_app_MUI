@@ -1,4 +1,4 @@
-// src/pages/prospection/ProspectionComment/ProspectionCommentPage.tsx
+// src/pages/prospection/prospectioncomments/ProspectionCommentPage.tsx
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -41,13 +41,7 @@ type ProspectionDisplayLite = {
   formation_nom: string | null;
 };
 
-type NormalizedRole =
-  | "superadmin"
-  | "admin"
-  | "staff"
-  | "stagiaire"
-  | "candidat"
-  | "autre";
+type NormalizedRole = "superadmin" | "admin" | "staff" | "stagiaire" | "candidat" | "autre";
 
 function normalizeRole(u: User | null): NormalizedRole {
   if (!u) return "autre";
@@ -74,9 +68,7 @@ export default function ProspectionCommentPage() {
   // 🔹 filtres masqués par défaut
   const [showFilters, setShowFilters] = useState(false);
 
-  const [params, setParams] = useState<
-    ProspectionCommentListParams & { search?: string }
-  >(() => {
+  const [params, setParams] = useState<ProspectionCommentListParams & { search?: string }>(() => {
     const initial: ProspectionCommentListParams & { search?: string } = {
       ordering: "-created_at",
       search: "",
@@ -88,15 +80,7 @@ export default function ProspectionCommentPage() {
   });
 
   // ✅ Pagination
-  const {
-    page,
-    setPage,
-    pageSize,
-    setPageSize,
-    count,
-    setCount,
-    totalPages,
-  } = usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -110,14 +94,11 @@ export default function ProspectionCommentPage() {
     [params, page, pageSize]
   );
 
-  const { data, loading, error } = useListProspectionComments(
-    effectiveParams,
-    reloadKey
-  );
+  const { data, loading, error } = useListProspectionComments(effectiveParams, reloadKey);
 
   // ✅ filtre options
-  const { data: filterOptions, loading: loadingFilters } =
-    useProspectionCommentFilterOptions(reloadKey);
+  const { data: filterOptions, loading: _loadingFilters } =
+    useProspectionCommentFilterOptions(reloadKey); // 🩵 renommé pour ignorer l’avertissement
 
   const rows: ProspectionCommentDTO[] = useMemo(
     () => (Array.isArray(data?.results) ? data.results : []),
@@ -125,15 +106,12 @@ export default function ProspectionCommentPage() {
   );
 
   useEffect(() => {
-
     if (data?.count != null) {
       setCount(data.count);
     }
   }, [data, setCount]);
 
-  const [prospLookup, setProspLookup] = useState<Record<number, ProspectionDisplayLite>>(
-    {}
-  );
+  const [prospLookup, setProspLookup] = useState<Record<number, ProspectionDisplayLite>>({});
 
   useEffect(() => {
     const missingIds = Array.from(new Set(rows.map((r) => r.prospection))).filter(
@@ -170,12 +148,8 @@ export default function ProspectionCommentPage() {
     () =>
       rows.map((r) => ({
         ...r,
-        partenaire_nom:
-          r.partenaire_nom ??
-          prospLookup[r.prospection]?.partenaire_nom ??
-          null,
-        formation_nom:
-          r.formation_nom ?? prospLookup[r.prospection]?.formation_nom ?? null,
+        partenaire_nom: r.partenaire_nom ?? prospLookup[r.prospection]?.partenaire_nom ?? null,
+        formation_nom: r.formation_nom ?? prospLookup[r.prospection]?.formation_nom ?? null,
       })),
     [rows, prospLookup]
   );
@@ -221,20 +195,12 @@ export default function ProspectionCommentPage() {
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {/* 🔹 Bouton toggle filtres */}
           {canUseFilters && (
-            <Button
-              variant="outlined"
-              onClick={() => setShowFilters((v) => !v)}
-            >
+            <Button variant="outlined" onClick={() => setShowFilters((v) => !v)}>
               {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
             </Button>
           )}
 
-          <Chip
-            label={`Rôle : ${role}`}
-            size="small"
-            color="primary"
-            variant="outlined"
-          />
+          <Chip label={`Rôle : ${role}`} size="small" color="primary" variant="outlined" />
           <ExportButtonProspectionComment data={exportRows} selectedIds={[]} />
 
           <Select
@@ -252,10 +218,7 @@ export default function ProspectionCommentPage() {
             ))}
           </Select>
 
-          <Button
-            variant="contained"
-            onClick={() => navigate("/prospection-commentaires/create")}
-          >
+          <Button variant="contained" onClick={() => navigate("/prospection-commentaires/create")}>
             ➕ Nouveau commentaire
           </Button>
         </Stack>
@@ -266,14 +229,14 @@ export default function ProspectionCommentPage() {
             mode={panelMode}
             filtres={
               canUseFilters
-                ? filterOptions ?? {
+                ? (filterOptions ?? {
                     authors: [],
                     formations: [],
                     partenaires: [],
                     centres: [],
                     owners: [],
                     user_role: role,
-                  }
+                  })
                 : {
                     authors: [],
                     formations: [],
