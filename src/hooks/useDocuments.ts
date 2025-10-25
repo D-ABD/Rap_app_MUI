@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import api from "../api/axios";
 import type { DocumentFormData, DocumentQueryParams, TypeDocumentChoice } from "../types/document";
+import { toast } from "react-toastify";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -62,6 +63,23 @@ export function useDocumentsApi() {
     return res.data.data;
   }, []);
 
+  const downloadDocument = useCallback(async (id: number, nom_fichier?: string) => {
+    try {
+      const res = await api.get(`/documents/${id}/download/`, { responseType: "blob" });
+      const blob = new Blob([res.data]);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", nom_fichier || `document_${id}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (_err) {
+      toast.error("❌ Téléchargement impossible");
+    }
+  }, []);
+
   return {
     fetchDocuments,
     fetchDocument,
@@ -69,5 +87,6 @@ export function useDocumentsApi() {
     updateDocument,
     deleteDocument,
     fetchTypeDocuments,
+    downloadDocument,
   };
 }

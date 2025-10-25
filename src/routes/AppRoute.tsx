@@ -78,6 +78,9 @@ import PartenairesCandidatCreatePage from "../pages/partenaires/PartenairesCandi
 import PartenairesCandidatEditPage from "../pages/partenaires/PartenairesCandidatEditPage";
 import PartenairesCandidatPage from "../pages/partenaires/PartenairesCandidatPage";
 import ProspectionPageCandidat from "../pages/prospection/ProspectionPageCandidat";
+import DocumentsPage from "src/pages/Documents/DocumentsPage";
+import DocumentsCreatePage from "src/pages/Documents/DocumentsCreatePage";
+import DocumentsEditPage from "src/pages/Documents/DocumentsEditPage";
 
 /* ---------- SecureRoute ---------- */
 type AdminOnlyRouteProps = { children: ReactNode };
@@ -328,6 +331,10 @@ export default function AppRoute() {
           path="/formations/:formationId/commentaires"
           element={secure(<FormationsCommentairesPage />)}
         />
+
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/documents/create" element={<DocumentsCreatePage />} />
+        <Route path="/documents/edit/:id" element={<DocumentsEditPage />} />
 
         {/* Utilisateurs */}
         <Route path="/users" element={secure(<UsersPage />)} />

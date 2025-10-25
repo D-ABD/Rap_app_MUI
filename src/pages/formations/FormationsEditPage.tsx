@@ -14,6 +14,7 @@ import {
 import type { Formation, FormationFormData } from "../../types/formation";
 import PageTemplate from "../../components/PageTemplate";
 import FormationForm from "./FormationForm";
+import AddDocumentButton from "./componentsFormations/AddDocumentButton";
 
 export default function FormationsEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -170,6 +171,7 @@ export default function FormationsEditPage() {
       onBack={() => navigate(-1)}
       actions={
         <Box display="flex" gap={1}>
+          <AddDocumentButton formationId={formationId ?? 0} />
           <Button
             variant="contained"
             color={archived ? "success" : "warning"}

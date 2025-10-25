@@ -15,6 +15,8 @@ import {
 import { useFormation } from "../../hooks/useFormations";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import AddDocumentButton from "../../pages/formations/componentsFormations/AddDocumentButton";
 import FormationCommentsModal from "../../components/modals/FormationCommentsModal";
 
 /* ---------- Types ---------- */
@@ -99,8 +101,6 @@ export default function FormationDetailModal({ open, onClose, formationId }: Pro
                 <Field label="Centre" value={formation.centre?.nom ?? "—"} />
                 <Field label="Type d’offre" value={formation.type_offre?.libelle ?? "—"} />
                 <Field label="Statut" value={formation.statut?.libelle ?? "—"} />
-
-                {/* 🆕 Activité */}
                 <Field
                   label="Activité"
                   value={
@@ -111,7 +111,6 @@ export default function FormationDetailModal({ open, onClose, formationId }: Pro
                         : "—"
                   }
                 />
-
                 <Field label="Active" value={yn(formation.is_active)} />
                 <Field label="Statut temporel" value={nn(formation.status_temporel)} />
                 <Field label="À recruter" value={yn(formation.is_a_recruter)} />
@@ -199,12 +198,55 @@ export default function FormationDetailModal({ open, onClose, formationId }: Pro
                       : "—"
                   }
                 />
-                <Field
-                  label="Documents"
-                  value={
-                    formation.documents?.length ? `${formation.documents.length} documents` : "—"
-                  }
-                />
+
+                {/* 🆕 Documents */}
+                <Grid item xs={12}>
+                  <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
+                    <strong>Documents :</strong>{" "}
+                    {formation.documents?.length ? (
+                      <Box component="span" sx={{ color: "text.primary" }}>
+                        {formation.documents.map((doc, idx) => (
+                          <span key={doc.id}>
+                            <a
+                              href={doc.download_url || "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                textDecoration: "underline",
+                                color: "#1976d2",
+                              }}
+                            >
+                              {doc.nom_fichier}
+                            </a>
+                            {idx < (formation.documents?.length ?? 0) - 1 ? ", " : ""}
+                          </span>
+                        ))}
+                      </Box>
+                    ) : (
+                      <span
+                        style={{
+                          color: "red",
+                          fontStyle: "italic",
+                          opacity: 0.8,
+                        }}
+                      >
+                        — Aucun document
+                      </span>
+                    )}
+                  </Typography>
+
+                  {/* Bouton pour ajouter un document */}
+                  <Box sx={{ mt: 1 }}>
+                    <AddDocumentButton
+                      formationId={formation.id}
+                      onCreated={() => {
+                        toast.success("✅ Document ajouté !");
+                        // 🔁 tu pourras rafraîchir la formation ici si besoin
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
                 <Field
                   label="Commentaires"
                   value={

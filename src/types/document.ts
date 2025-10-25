@@ -14,6 +14,7 @@ export interface Document {
   download_url?: string;
   created_at?: string;
   created_by?: string;
+  updated_at?: string;
   is_viewable_in_browser?: boolean;
 
   // 🔗 Liaison formation
@@ -85,4 +86,19 @@ export interface DocumentQueryParams {
   ordering?: string;
   formation?: number;
   type_document?: string;
+}
+
+export interface DocumentAPIResponse {
+  success: boolean;
+  message: string;
+  data: Document;
+}
+
+export interface DocumentsListAPIResponse {
+  success: boolean;
+  message: string;
+  data: {
+    count: number;
+    results: Document[];
+  };
 }

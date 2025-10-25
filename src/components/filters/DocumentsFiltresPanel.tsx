@@ -8,6 +8,7 @@ import {
   Select,
   SelectChangeEvent,
   Stack,
+  Typography,
 } from "@mui/material";
 import { FiltresValues } from "../../types/Filtres";
 
@@ -28,6 +29,13 @@ interface DocumentsFiltresPanelProps {
     centres: { id: number; nom: string }[];
     statuts: { id: number; nom: string }[];
     type_offres: { id: number; nom: string }[];
+    formations?: {
+      id: number;
+      nom: string;
+      num_offre?: string | null;
+      type_offre_nom?: string | null;
+      type_offre_libelle?: string | null;
+    }[];
     formation_etats?: { value: string; label: string }[];
   };
   values: FiltresValues;
@@ -46,6 +54,7 @@ export default function DocumentsFiltresPanel({
     () => uniqueById(filtres.formation_etats ?? []),
     [filtres.formation_etats]
   );
+  const formations = useMemo(() => uniqueById(filtres.formations ?? []), [filtres.formations]);
 
   const handleChange = useCallback(
     (e: SelectChangeEvent<string | number>) => {
@@ -69,14 +78,13 @@ export default function DocumentsFiltresPanel({
       }}
     >
       <Stack direction="row" spacing={2} flexWrap="wrap">
-        {/* Centre */}
+        {/* ✅ Centre */}
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel id="filtres-centre-label">Centre</InputLabel>
           <Select
             labelId="filtres-centre-label"
-            id="filtres-centre"
             name="centre_id"
-            value={values.centre_id ?? ""}
+            value={(values.centre_id as string | number | undefined) ?? ""}
             label="Centre"
             onChange={handleChange}
           >
@@ -89,14 +97,13 @@ export default function DocumentsFiltresPanel({
           </Select>
         </FormControl>
 
-        {/* Statut */}
+        {/* ✅ Statut */}
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel id="filtres-statut-label">Statut</InputLabel>
           <Select
             labelId="filtres-statut-label"
-            id="filtres-statut"
             name="statut_id"
-            value={values.statut_id ?? ""}
+            value={(values.statut_id as string | number | undefined) ?? ""}
             label="Statut"
             onChange={handleChange}
           >
@@ -109,14 +116,13 @@ export default function DocumentsFiltresPanel({
           </Select>
         </FormControl>
 
-        {/* Type d'offre */}
+        {/* ✅ Type d’offre */}
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel id="filtres-type-label">Type d’offre</InputLabel>
           <Select
             labelId="filtres-type-label"
-            id="filtres-type"
             name="type_offre_id"
-            value={values.type_offre_id ?? ""}
+            value={(values.type_offre_id as string | number | undefined) ?? ""}
             label="Type d’offre"
             onChange={handleChange}
           >
@@ -129,16 +135,48 @@ export default function DocumentsFiltresPanel({
           </Select>
         </FormControl>
 
-        {/* État de formation (optionnel) */}
+        {/* ✅ Formation */}
+        {formations.length > 0 && (
+          <FormControl sx={{ minWidth: 250 }}>
+            <InputLabel id="filtres-formation-label">Formation</InputLabel>
+            <Select
+              labelId="filtres-formation-label"
+              name="formation_id"
+              value={(values.formation_id as string | number | undefined) ?? ""}
+              label="Formation"
+              onChange={handleChange}
+              renderValue={(selected) => {
+                const f = formations.find((f) => f.id === selected);
+                if (!f) return "— Toutes les formations —";
+                return `${f.nom ?? "—"} (${f.num_offre ?? "–"})`;
+              }}
+            >
+              <MenuItem value="">— Toutes les formations —</MenuItem>
+              {formations.map((f) => (
+                <MenuItem key={`formation-${f.id}`} value={f.id}>
+                  <Box>
+                    <Typography variant="body2" fontWeight={600}>
+                      📚 {f.nom ?? "—"}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {f.type_offre_libelle ?? f.type_offre_nom ?? "—"} · N° {f.num_offre ?? "—"}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+
+        {/* ✅ État formation (optionnel) */}
         {formationEtats.length > 0 && (
           <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel id="filtres-etat-label">État de formation</InputLabel>
+            <InputLabel id="filtres-etat-label">État</InputLabel>
             <Select
               labelId="filtres-etat-label"
-              id="filtres-etat-formation"
               name="formation_etat"
-              value={values.formation_etat ?? ""}
-              label="État de formation"
+              value={(values.formation_etat as string | number | undefined) ?? ""}
+              label="État"
               onChange={handleChange}
             >
               <MenuItem value="">— Tous les états —</MenuItem>
