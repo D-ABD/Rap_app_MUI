@@ -46,7 +46,6 @@ export default function FormationsEditPage() {
   const formation = localDetail ?? detail;
   const archived = !!formation?.est_archivee;
 
-
   // ------------------------------------------------------------------
   // 🔹 Archiver / Désarchiver
   // ------------------------------------------------------------------

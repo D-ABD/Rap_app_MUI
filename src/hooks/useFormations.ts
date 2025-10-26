@@ -66,8 +66,6 @@ function cleanFormationPayload(input: FormationFormData): FormationWritePayload 
   return payload as FormationWritePayload;
 }
 
-
-
 export interface FormationOption {
   value: number;
   label: string;
@@ -236,20 +234,23 @@ export function useUpdateFormation(id: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AxiosError | null>(null);
 
-  const updateFormation = useCallback(async (formData: FormationFormData) => {
-    setLoading(true);
-    try {
-      const cleaned = cleanFormationPayload(formData);
-      const response = await api.patch<WrappedResponse<Formation>>(`/formations/${id}/`, cleaned);
-      setError(null);
-      return response.data.data;
-    } catch (err) {
-      setError(err as AxiosError);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const updateFormation = useCallback(
+    async (formData: FormationFormData) => {
+      setLoading(true);
+      try {
+        const cleaned = cleanFormationPayload(formData);
+        const response = await api.patch<WrappedResponse<Formation>>(`/formations/${id}/`, cleaned);
+        setError(null);
+        return response.data.data;
+      } catch (err) {
+        setError(err as AxiosError);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [id]
+  );
 
   return { updateFormation, loading, error };
 }

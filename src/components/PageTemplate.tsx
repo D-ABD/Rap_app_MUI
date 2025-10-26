@@ -55,7 +55,7 @@ function PageTemplate({
       window.history.back();
     }
   };
-  
+
   return (
     <PageWrapper>
       <Stack

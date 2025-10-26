@@ -1,18 +1,12 @@
 import { useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Paper, Box } from "@mui/material";
+import { Paper } from "@mui/material";
 
 import PageTemplate from "../../components/PageTemplate";
 import FormationForm from "./FormationForm";
-import {
-  useCreateFormation,
-  useFormationChoices,
-} from "../../hooks/useFormations";
-import type {
-  FormationFormData,
-  FormationFormDataRaw,
-} from "../../types/formation";
+import { useCreateFormation, useFormationChoices } from "../../hooks/useFormations";
+import type { FormationFormData, FormationFormDataRaw } from "../../types/formation";
 
 export default function FormationsCreatePage() {
   const navigate = useNavigate();
@@ -99,9 +93,10 @@ export default function FormationsCreatePage() {
       submitLabel: "💾 Créer",
     }),
     [
-      memoizedCentres.length,
-      memoizedStatuts.length,
-      memoizedTypeOffres.length,
+      // 🔧 Corrigé: inclure directement les tableaux
+      memoizedCentres,
+      memoizedStatuts,
+      memoizedTypeOffres,
       loadingChoices,
       handleSubmit,
       handleBack,

@@ -170,10 +170,11 @@ function FormationForm({
       const { name, value } = e.target;
       setValues((prev) => ({
         ...prev,
-        [name]:
-          ["centre_id", "type_offre_id", "statut_id"].includes(name as string)
-            ? value === "" ? null : Number(value)
-            : value,
+        [name]: ["centre_id", "type_offre_id", "statut_id"].includes(name as string)
+          ? value === ""
+            ? null
+            : Number(value)
+          : value,
       }));
     },
     []
@@ -202,7 +203,7 @@ function FormationForm({
     },
     [values, onSubmit]
   );
-  
+
   // ✅ Rendu
   return (
     <Box component="form" onSubmit={handleSubmit}>
@@ -298,19 +299,75 @@ function FormationForm({
 
       {/* Section 2 */}
       <Section icon={<NumbersIcon color="primary" />} title="Numéros & assistante">
-        <Input label="N° Kairos" name="num_kairos" value={values.num_kairos} error={errors.num_kairos} onChange={handleChange} />
-        <Input label="N° Offre" name="num_offre" value={values.num_offre} error={errors.num_offre} onChange={handleChange} />
-        <Input label="N° Produit" name="num_produit" value={values.num_produit} error={errors.num_produit} onChange={handleChange} />
-        <Input label="Assistante" name="assistante" value={values.assistante} error={errors.assistante} onChange={handleChange} />
+        <Input
+          label="N° Kairos"
+          name="num_kairos"
+          value={values.num_kairos}
+          error={errors.num_kairos}
+          onChange={handleChange}
+        />
+        <Input
+          label="N° Offre"
+          name="num_offre"
+          value={values.num_offre}
+          error={errors.num_offre}
+          onChange={handleChange}
+        />
+        <Input
+          label="N° Produit"
+          name="num_produit"
+          value={values.num_produit}
+          error={errors.num_produit}
+          onChange={handleChange}
+        />
+        <Input
+          label="Assistante"
+          name="assistante"
+          value={values.assistante}
+          error={errors.assistante}
+          onChange={handleChange}
+        />
       </Section>
 
       {/* Section 3 */}
       <Section icon={<SchoolIcon color="primary" />} title="Diplôme ou titre visé">
-        <Input label="Intitulé précis" name="intitule_diplome" value={values.intitule_diplome} error={errors.intitule_diplome} onChange={handleChange} />
-        <Input label="Code diplôme" name="code_diplome" value={values.code_diplome} error={errors.code_diplome} onChange={handleChange} />
-        <Input label="Code RNCP" name="code_rncp" value={values.code_rncp} error={errors.code_rncp} onChange={handleChange} />
-        <Input label="Total heures" name="total_heures" type="number" value={values.total_heures} error={errors.total_heures} onChange={handleChange} />
-        <Input label="Heures distanciel" name="heures_distanciel" type="number" value={values.heures_distanciel} error={errors.heures_distanciel} onChange={handleChange} />
+        <Input
+          label="Intitulé précis"
+          name="intitule_diplome"
+          value={values.intitule_diplome}
+          error={errors.intitule_diplome}
+          onChange={handleChange}
+        />
+        <Input
+          label="Code diplôme"
+          name="code_diplome"
+          value={values.code_diplome}
+          error={errors.code_diplome}
+          onChange={handleChange}
+        />
+        <Input
+          label="Code RNCP"
+          name="code_rncp"
+          value={values.code_rncp}
+          error={errors.code_rncp}
+          onChange={handleChange}
+        />
+        <Input
+          label="Total heures"
+          name="total_heures"
+          type="number"
+          value={values.total_heures}
+          error={errors.total_heures}
+          onChange={handleChange}
+        />
+        <Input
+          label="Heures distanciel"
+          name="heures_distanciel"
+          type="number"
+          value={values.heures_distanciel}
+          error={errors.heures_distanciel}
+          onChange={handleChange}
+        />
       </Section>
 
       {/* Section 4 */}
