@@ -11,8 +11,13 @@ import type { FormationFormData, FormationFormDataRaw } from "../../types/format
 export default function FormationsCreatePage() {
   const navigate = useNavigate();
   const { createFormation } = useCreateFormation();
-  const { centres, statuts, typeOffres, loading: loadingChoices, refresh } =
-    useFormationCreationChoices();
+  const {
+    centres,
+    statuts,
+    typeOffres,
+    loading: loadingChoices,
+    refresh,
+  } = useFormationCreationChoices();
 
   const initialValuesRef = useRef<FormationFormData>({
     nom: "",
@@ -42,7 +47,10 @@ export default function FormationsCreatePage() {
   });
 
   const handleBack = useCallback(() => navigate(-1), [navigate]);
-  const handleRefresh = useCallback(() => { refresh(); toast.info("Référentiels rechargés"); }, [refresh]);
+  const handleRefresh = useCallback(() => {
+    refresh();
+    toast.info("Référentiels rechargés");
+  }, [refresh]);
 
   const handleSubmit = useCallback(
     async (values: FormationFormDataRaw) => {

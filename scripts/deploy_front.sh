@@ -2,39 +2,28 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-echo "🚀 Build & déploiement du frontend vers production..."
+REMOTE="root@147.93.126.119"
+DEST="/srv/rap_app_front"
+TMP="/srv/rap_app_front._new"
 
-# --- Étape 1 : Vérifications préalables ---
-if ! command -v npm &> /dev/null; then
-  echo "❌ Erreur : npm n'est pas installé ou non disponible dans le PATH."
-  exit 1
-fi
-
-# --- Étape 2 : Vérification du code ---
-echo "🧹 Vérification du code..."
+echo "🧹 Lint & types..."
 npm run lint
 npm run type-check
 
-# --- Étape 3 : Compilation ---
-echo "🏗️ Compilation du frontend (npm run build)..."
+echo "🏗️ Build..."
+[ -f package-lock.json ] && npm ci || npm install
 npm run build
 
-# --- Étape 4 : Déploiement sur le serveur ---
-REMOTE="root@147.93.126.119"
-DEST="/srv/rap_app_front"
+echo "📤 Upload atomique..."
+ssh "$REMOTE" "rm -rf '$TMP' && mkdir -p '$TMP'"
+rsync -az --delete dist/ "$REMOTE:$TMP/"
+ssh "$REMOTE" "rm -rf '${DEST}.bak' && mv '$DEST' '${DEST}.bak' 2>/dev/null || true && mv '$TMP' '$DEST'"
 
-echo "📦 Suppression de l'ancien build sur le serveur..."
-ssh "$REMOTE" "rm -rf ${DEST:?}/*"
+echo "🔄 Reload Nginx..."
+ssh "$REMOTE" "systemctl reload nginx"
 
-echo "📤 Transfert du nouveau build..."
-scp -r dist/* "$REMOTE:$DEST/"
-
-# --- Étape 5 : Rechargement de Nginx ---
-echo "🔄 Rechargement de Nginx..."
-ssh "$REMOTE" "sudo systemctl reload nginx"
-
-# --- Étape 6 : Vérification rapide ---
-echo "🔍 Vérification HTTP (Brotli + Gzip)..."
+echo "🔍 Checks..."
 ssh "$REMOTE" "curl -I -H 'Accept-Encoding: br,gzip' https://rap.adserv.fr/ | grep -E 'HTTP|content-encoding'"
+ssh "$REMOTE" "curl -I https://rap.adserv.fr/api/ | head -n1"   # 401 attendu
 
-echo "✅ Déploiement terminé avec succès !"
+echo "✅ Déploiement terminé."

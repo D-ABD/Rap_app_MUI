@@ -79,14 +79,6 @@ export interface UseFormationChoicesResult {
   refresh: () => void; // volontairement sync côté signature
 }
 
-type Result = {
-  centres: NomId[];
-  statuts: NomId[];
-  typeOffres: NomId[];
-  loading: boolean;
-  refresh: () => void;
-};
-
 export function useFormationCreationChoices() {
   const [centres, setCentres] = useState<NomId[]>([]);
   const [statuts, setStatuts] = useState<NomId[]>([]);
@@ -110,7 +102,9 @@ export function useFormationCreationChoices() {
     }
   }, []);
 
-  useEffect(() => { fetchChoices(); }, [fetchChoices]);
+  useEffect(() => {
+    fetchChoices();
+  }, [fetchChoices]);
 
   const refresh = useCallback(() => fetchChoices(), [fetchChoices]);
 
