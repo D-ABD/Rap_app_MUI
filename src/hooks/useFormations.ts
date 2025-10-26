@@ -162,15 +162,25 @@ export function useFormationChoices(): UseFormationChoicesResult {
     [centres, statuts, typeOffres, loading, refresh]
   );
 }
+// ✅ Remplace l’interface par celle-ci (on garde search/starts pour rétro-compat)
 interface UseFormationsOptions {
+  // Nouveau / canonique côté API
+  texte?: string;
+  date_debut?: string;
+  date_fin?: string;
+
+  // Ancien / rétro-compat → mappé vers les champs ci-dessus
   search?: string;
+  start_date?: string;
+  end_date?: string;
+
+  // Le reste inchangé
   page?: number;
-  ordering?: string;
+  ordering?: string;    // OrderingFilter DRF (ex: -date_debut, nom)
+  tri?: string;         // alias supporté côté API (optionnel)
   centre?: number;
   statut?: number;
   type_offre?: number;
-  start_date?: string;
-  end_date?: string;
   page_size?: number;
   avec_archivees?: boolean;
   activite?: string;
@@ -188,6 +198,7 @@ interface ApiSuccessResponse<T> {
 }
 
 // ✅ Liste paginée
+// ✅ Dans useFormations, ajoute une petite couche de mapping avant l'appel axios
 export function useFormations(filters: UseFormationsOptions = {}) {
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
 
@@ -198,9 +209,30 @@ export function useFormations(filters: UseFormationsOptions = {}) {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const parsedFilters = JSON.parse(filtersKey);
+      const parsed = JSON.parse(filtersKey) as UseFormationsOptions;
+
+      // 🔁 Mapping rétro-compat
+      const params: Record<string, unknown> = { ...parsed };
+
+      // search -> texte (API attend "texte")
+      if (!params.texte && typeof parsed.search === "string") {
+        params.texte = parsed.search.trim() || undefined;
+      } else if (typeof parsed.texte === "string") {
+        params.texte = parsed.texte.trim() || undefined;
+      }
+
+      // start_date/end_date -> date_debut/date_fin
+      if (!params.date_debut && parsed.start_date) params.date_debut = parsed.start_date;
+      if (!params.date_fin && parsed.end_date) params.date_fin = parsed.end_date;
+
+      // Nettoyage: "" -> undefined pour éviter du bruit dans la querystring
+      for (const k of Object.keys(params)) {
+        const v = params[k];
+        if (typeof v === "string" && v.trim() === "") params[k] = undefined;
+      }
+
       const response = await api.get<PaginatedResponse<Formation>>("/formations/", {
-        params: parsedFilters,
+        params,
       });
       setData(response.data);
       setError(null);

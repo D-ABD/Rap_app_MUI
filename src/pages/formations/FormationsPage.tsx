@@ -65,15 +65,25 @@ export default function FormationsPage() {
   // ── meta filtres
   const { filtres, loading: filtresLoading } = useFiltresFormations();
 
-  // ── effective filters
+  // ── effective filters (état UI)
   const effectiveFilters = useMemo(
     () => ({ ...filters, page, page_size: pageSize }),
     [filters, page, pageSize]
   );
 
+  // 🔁 Mapping UI -> API : texte → search (DRF SearchFilter)
+  const apiFilters = useMemo(() => {
+    const { texte, ...rest } =
+      (effectiveFilters as typeof effectiveFilters & { texte?: string }) || {};
+    return {
+      ...rest,
+      search: texte?.trim() || undefined,
+    };
+  }, [effectiveFilters]);
+
   const { data, loading, error, fetchData } = useFetch<PaginatedResponse<Formation>>(
     "/formations/",
-    effectiveFilters,
+    apiFilters, // ⬅️ on envoie les filtres mappés à l’API
     true
   );
 
