@@ -61,16 +61,15 @@ export function useFormationChoices(): UseFormationChoicesResult {
   const fetchChoices = async () => {
     setLoading(true);
     try {
-      const [centresRes, typesRes, statutsRes] = await Promise.all([
-        api.get("/centres/"),
-        api.get("/typeoffres/"),
-        api.get("/statuts/"),
-      ]);
+      // ✅ un seul appel : /formations/filtres/
+      const res = await api.get("/formations/filtres/");
+      const data = res.data?.data ?? {};
 
-      setCentres(extractResults(centresRes));
-      setTypeOffres(extractResults(typesRes));
-      setStatuts(extractResults(statutsRes));
-    } catch {
+      setCentres(Array.isArray(data.centres) ? data.centres : []);
+      setStatuts(Array.isArray(data.statuts) ? data.statuts : []);
+      setTypeOffres(Array.isArray(data.type_offres) ? data.type_offres : []);
+    } catch (err) {
+      console.error("Erreur lors du chargement des filtres:", err);
       toast.error("Erreur lors du chargement des choix de formulaire");
     } finally {
       setLoading(false);
@@ -465,11 +464,12 @@ export function useFormationsOptions() {
         const res = await api.get("/formations/liste-simple/");
         const data = res.data?.data || res.data || [];
         const opts: FormationOption[] = Array.isArray(data)
-          ? data.map((f: { id: number; nom: string }) => ({
-              value: f.id,
-              label: f.nom,
-            }))
-          : [];
+        ? data.map((f: { id: number; nom: string; num_offre?: string | null }) => ({
+            value: f.id,
+            label: f.num_offre ? `${f.num_offre} — ${f.nom}` : f.nom,
+          }))
+        : [];
+
         if (!alive) return;
         setOptions(opts);
       } catch (e) {

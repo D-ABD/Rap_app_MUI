@@ -13,7 +13,7 @@ interface FiltresPanelProps {
     centres: { id: number; nom: string }[];
     statuts: { id: string | number; nom: string }[];
     type_offres: { id: number; nom: string }[];
-    formations?: { id: number; nom: string }[];
+    formations?: { id: number; nom: string; num_offre?: string }[]; // ✅ ajout num_offre
     formation_etats?: { value: string | number; label: string }[];
     auteurs?: { id: number; nom: string }[];
   };
@@ -52,7 +52,7 @@ function defaultReset(values: CommentaireFiltresValues): CommentaireFiltresValue
   return {
     ...values,
     centre_id: undefined,
-    formation_id: undefined,
+    formation: undefined, // ✅ renommé ici
     statut_id: undefined,
     type_offre_id: undefined,
     formation_etat: undefined,
@@ -99,10 +99,15 @@ export default React.memo(function FiltresCommentairesPanel({
         options: withPlaceholder(toOptionsUnique(filtres.centres, "nom")),
       },
       {
-        key: "formation_id" as const,
-        label: "📘 Formation",
+        key: "formation" as const,
+        label: "📘 Formation (nom + n° offre)",
         type: "select" as const,
-        options: withPlaceholder(toOptionsUnique(filtres.formations ?? [], "nom")),
+        options: withPlaceholder(
+          (filtres.formations ?? []).map((f) => ({
+            value: f.id,
+            label: f.num_offre ? `${f.nom} — ${f.num_offre}` : f.nom,
+          }))
+        ),
       },
       {
         key: "statut_id" as const,

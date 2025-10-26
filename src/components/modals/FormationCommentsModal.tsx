@@ -164,13 +164,16 @@ export default function FormationCommentsModal({
   /* ---------- Rendu ---------- */
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle>💬 Commentaires de formation</DialogTitle>
+    <DialogTitle>
+  💬 Commentaires de la formation {meta ? `"${meta.nom}"` : ""}
+    </DialogTitle>
+
 
       {meta && (
         <Typography variant="subtitle2" color="text.secondary" sx={{ px: 3, mt: -1, mb: 1 }}>
           {meta.nom} {meta.num_offre && <>— {meta.num_offre}</>}
         </Typography>
-      )}
+      )} 
 
       <DialogContent dividers>
         {/* ─── Dernier commentaire ─── */}

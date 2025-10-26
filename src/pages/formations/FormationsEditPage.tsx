@@ -1,3 +1,5 @@
+// src/pages/formations/FormationsEditpage.tsx
+
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -20,11 +22,13 @@ export default function FormationsEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
+  // 🔢 Conversion sécurisée de l'ID
   const formationId = useMemo(() => {
     const n = Number(id);
     return Number.isFinite(n) && n > 0 ? n : null;
   }, [id]);
 
+  // 🔄 Chargement des données et hooks API
   const { data: detail, loading, error } = useFormation(formationId ?? 0);
   const { updateFormation, loading: saving } = useUpdateFormation(formationId ?? 0);
   const { deleteFormation, loading: removing } = useDeleteFormation(formationId ?? 0);
@@ -35,34 +39,62 @@ export default function FormationsEditPage() {
     loading: loadingChoices,
   } = useFormationChoices();
 
+  // 🧠 Local cache pour mise à jour instantanée
   const [localDetail, setLocalDetail] = useState<Formation | null>(null);
+
+  // ⚙️ Données fusionnées
+  const formation = localDetail ?? detail;
+  const archived = !!formation?.est_archivee;
+
+  // 🧠 Mémo des valeurs initiales (appelé à chaque rendu, jamais conditionnel)
+  const formInitialValues = useMemo<FormationFormData>(
+    () => ({
+      nom: formation?.nom ?? "",
+      centre_id: formation?.centre?.id ?? null,
+      type_offre_id: formation?.type_offre?.id ?? null,
+      statut_id: formation?.statut?.id ?? null,
+      start_date: formation?.start_date ?? "",
+      end_date: formation?.end_date ?? "",
+      num_kairos: formation?.num_kairos ?? "",
+      num_offre: formation?.num_offre ?? "",
+      num_produit: formation?.num_produit ?? "",
+      prevus_crif: formation?.prevus_crif ?? undefined,
+      prevus_mp: formation?.prevus_mp ?? undefined,
+      inscrits_crif: formation?.inscrits_crif ?? undefined,
+      inscrits_mp: formation?.inscrits_mp ?? undefined,
+      intitule_diplome: formation?.intitule_diplome ?? "",
+      code_diplome: formation?.code_diplome ?? "",
+      code_rncp: formation?.code_rncp ?? "",
+      total_heures: formation?.total_heures ?? undefined,
+      heures_distanciel: formation?.heures_distanciel ?? undefined,
+      assistante: formation?.assistante ?? "",
+      cap: formation?.cap ?? undefined,
+      convocation_envoie: formation?.convocation_envoie ?? false,
+      entree_formation: formation?.entree_formation ?? 0,
+      nombre_candidats: formation?.nombre_candidats ?? 0,
+      nombre_entretiens: formation?.nombre_entretiens ?? 0,
+      nombre_evenements: formation?.nombre_evenements ?? 0,
+      dernier_commentaire: formation?.dernier_commentaire ?? "",
+    }),
+    [formation]
+  );
 
   // ------------------------------------------------------------------
   // 🔹 Archiver / Désarchiver
   // ------------------------------------------------------------------
   const handleArchiveToggle = async () => {
-    if (!formationId || !detail) return;
-
-    const formation = localDetail ?? detail;
+    if (!formationId || !formation) return;
     const isArchived = !!formation.est_archivee;
 
     try {
       if (isArchived) {
         await api.post(`/formations/${formationId}/desarchiver/`);
         toast.success("♻️ Formation désarchivée");
-        setLocalDetail({
-          ...formation,
-          est_archivee: false,
-          activite: "active",
-        });
+        setLocalDetail({ ...formation, est_archivee: false, activite: "active" });
       } else {
         await api.post(`/formations/${formationId}/archiver/`);
         toast.info("📦 Formation archivée");
-        setLocalDetail({
-          ...formation,
-          est_archivee: true,
-          activite: "archivee",
-        });
+        setLocalDetail({ ...formation, est_archivee: true, activite: "archivee" });
       }
     } catch {
       toast.error("❌ Échec de l’opération d’archivage");
@@ -100,7 +132,7 @@ export default function FormationsEditPage() {
   };
 
   // ------------------------------------------------------------------
-  // 🔹 Rendu conditionnel
+  // 🔹 États de chargement / erreurs
   // ------------------------------------------------------------------
   if (!formationId) {
     return (
@@ -110,13 +142,14 @@ export default function FormationsEditPage() {
     );
   }
 
-  if (loading || loadingChoices) {
+  if (loading || loadingChoices || !formation) {
     return (
       <PageTemplate title={`Formation #${formationId}`}>
         <CircularProgress />
       </PageTemplate>
     );
   }
+
 
   if (error || !detail) {
     return (
@@ -125,41 +158,6 @@ export default function FormationsEditPage() {
       </PageTemplate>
     );
   }
-
-  // ------------------------------------------------------------------
-  // 🔹 Données prêtes
-  // ------------------------------------------------------------------
-  const formation = localDetail ?? detail;
-  const archived = !!formation.est_archivee;
-
-  const formInitialValues: FormationFormData = {
-    nom: formation.nom,
-    centre_id: formation.centre?.id ?? null,
-    type_offre_id: formation.type_offre?.id ?? null,
-    statut_id: formation.statut?.id ?? null,
-    start_date: formation.start_date ?? "",
-    end_date: formation.end_date ?? "",
-    num_kairos: formation.num_kairos ?? "",
-    num_offre: formation.num_offre ?? "",
-    num_produit: formation.num_produit ?? "",
-    prevus_crif: formation.prevus_crif ?? undefined,
-    prevus_mp: formation.prevus_mp ?? undefined,
-    inscrits_crif: formation.inscrits_crif ?? undefined,
-    inscrits_mp: formation.inscrits_mp ?? undefined,
-    intitule_diplome: formation.intitule_diplome ?? "",
-    code_diplome: formation.code_diplome ?? "",
-    code_rncp: formation.code_rncp ?? "",
-    total_heures: formation.total_heures ?? undefined,
-    heures_distanciel: formation.heures_distanciel ?? undefined,
-    assistante: formation.assistante ?? "",
-    cap: formation.cap ?? undefined,
-    convocation_envoie: formation.convocation_envoie ?? false,
-    entree_formation: formation.entree_formation ?? 0,
-    nombre_candidats: formation.nombre_candidats ?? 0,
-    nombre_entretiens: formation.nombre_entretiens ?? 0,
-    nombre_evenements: formation.nombre_evenements ?? 0,
-    dernier_commentaire: formation.dernier_commentaire ?? "",
-  };
 
   // ------------------------------------------------------------------
   // 🔹 Rendu principal
@@ -180,8 +178,12 @@ export default function FormationsEditPage() {
           >
             {archived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
-
-          <Button variant="outlined" color="error" onClick={handleDelete} disabled={removing}>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={handleDelete}
+            disabled={removing}
+          >
             {removing ? "Suppression…" : "Supprimer"}
           </Button>
         </Box>
@@ -194,9 +196,9 @@ export default function FormationsEditPage() {
           borderRadius: 2,
         }}
       >
-        {/* Formulaire */}
+        {/* 🧾 Formulaire */}
         <FormationForm
-          initialValues={formInitialValues}
+          initialValues={formation}
           centres={centres}
           statuts={statuts}
           typeOffres={typeOffres}
@@ -207,7 +209,7 @@ export default function FormationsEditPage() {
           submitLabel="💾 Mettre à jour"
         />
 
-        {/* Footer : dates */}
+        {/* 📅 Footer */}
         <Box
           mt={4}
           sx={{
@@ -218,7 +220,7 @@ export default function FormationsEditPage() {
         >
           <div>
             <strong>📌 Créée le :</strong>{" "}
-            {formation.created_at
+            {formation?.created_at
               ? new Date(formation.created_at).toLocaleDateString("fr-FR", {
                   weekday: "long",
                   day: "2-digit",
@@ -229,7 +231,8 @@ export default function FormationsEditPage() {
                 })
               : "—"}
           </div>
-          {formation.updated_at && (
+
+          {formation?.updated_at && (
             <div>
               <strong>✏️ Dernière mise à jour :</strong>{" "}
               {new Date(formation.updated_at).toLocaleDateString("fr-FR", {
