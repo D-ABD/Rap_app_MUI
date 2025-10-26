@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React from "react";
 import { Box, Stack, Typography, Button, IconButton, Collapse, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import RefreshIcon from "@mui/icons-material/Refresh";
@@ -8,20 +8,18 @@ import PageSection from "./PageSection";
 export type PageTemplateProps = {
   title: string;
   subtitle?: string;
-  actions?: ReactNode;
-  /** ✅ Nouveau : contenu affiché à droite du header (ex: bouton Archiver) */
-  actionsRight?: ReactNode;
+  actions?: React.ReactNode;
+  actionsRight?: React.ReactNode;
   backButton?: boolean;
   onBack?: () => void;
   refreshButton?: boolean;
   onRefresh?: () => void;
-  filters?: ReactNode;
+  filters?: React.ReactNode;
   showFilters?: boolean;
-  children: ReactNode;
-  footer?: ReactNode;
+  children: React.ReactNode;
+  footer?: React.ReactNode;
   centered?: boolean;
-  /** Contenu supplémentaire sous le header (ex: tags, stats, infos rapides) */
-  headerExtra?: ReactNode;
+  headerExtra?: React.ReactNode;
 };
 
 const centeredBoxStyles = {
@@ -34,11 +32,11 @@ const centeredBoxStyles = {
   gap: 2,
 } as const;
 
-export default function PageTemplate({
+function PageTemplate({
   title,
   subtitle,
   actions,
-  actionsRight, // ✅ nouveau
+  actionsRight,
   backButton = false,
   onBack,
   refreshButton = false,
@@ -50,7 +48,6 @@ export default function PageTemplate({
   centered = false,
   headerExtra,
 }: PageTemplateProps) {
-  // ✅ Sécurisation du comportement par défaut du bouton retour
   const handleBack = () => {
     if (typeof onBack === "function") {
       onBack();
@@ -58,10 +55,9 @@ export default function PageTemplate({
       window.history.back();
     }
   };
-
+  
   return (
     <PageWrapper>
-      {/* Header */}
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}
@@ -69,7 +65,6 @@ export default function PageTemplate({
         alignItems={{ xs: "flex-start", sm: "center" }}
         justifyContent="space-between"
       >
-        {/* Bloc gauche : titre, bouton retour, etc. */}
         <Stack
           direction="row"
           spacing={1}
@@ -90,13 +85,13 @@ export default function PageTemplate({
           )}
 
           <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-            {title ? (
+            {title && (
               <Tooltip title={title} disableInteractive>
                 <Typography variant="h5" component="h1" noWrap sx={{ fontWeight: 600 }}>
                   {title}
                 </Typography>
               </Tooltip>
-            ) : null}
+            )}
 
             {subtitle && (
               <Typography variant="body2" color="text.secondary" noWrap sx={{ maxWidth: "100%" }}>
@@ -114,26 +109,22 @@ export default function PageTemplate({
           )}
         </Stack>
 
-        {/* Bloc droit : actions classiques + nouveau slot actionsRight */}
         <Stack direction="row" spacing={1} alignItems="center">
           {actions}
           {actionsRight}
         </Stack>
       </Stack>
 
-      {/* Filtres */}
       {filters && (
         <Collapse in={showFilters} unmountOnExit>
           <PageSection>{filters}</PageSection>
         </Collapse>
       )}
 
-      {/* Contenu principal */}
       <PageSection>
         {centered ? <Box sx={centeredBoxStyles}>{children}</Box> : children}
       </PageSection>
 
-      {/* Footer */}
       {footer && (
         <Box component="footer" mt={2}>
           {footer}
@@ -142,3 +133,6 @@ export default function PageTemplate({
     </PageWrapper>
   );
 }
+
+// ✅ Empêche les re-renders inutiles du layout
+export default React.memo(PageTemplate);

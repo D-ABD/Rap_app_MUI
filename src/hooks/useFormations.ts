@@ -18,77 +18,117 @@ import type { Evenement } from "../types/evenement";
 import type { Prospection } from "../types/prospection";
 import type { HistoriqueFormation } from "../types/historique";
 
-interface ApiListResponse {
-  results?: NomId[];
-  data?: {
-    results?: NomId[];
-  };
+// Type minimal d'écriture : uniquement les champs acceptés en POST
+export type FormationWritePayload = {
+  nom?: string;
+  centre_id?: number | null;
+  type_offre_id?: number | null;
+  statut_id?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  num_kairos?: string | null;
+  num_offre?: string | null;
+  num_produit?: string | null;
+  assistante?: string | null;
+  prevus_crif?: number | null;
+  prevus_mp?: number | null;
+  inscrits_crif?: number | null;
+  inscrits_mp?: number | null;
+  cap?: number | null;
+  convocation_envoie?: boolean;
+  entree_formation?: number | null;
+  nombre_candidats?: number | null;
+  nombre_entretiens?: number | null;
+  intitule_diplome?: string | null;
+  code_diplome?: string | null;
+  code_rncp?: string | null;
+  total_heures?: number | null;
+  heures_distanciel?: number | null;
+};
+
+function cleanFormationPayload(input: FormationFormData): FormationWritePayload {
+  const payload = {
+    ...input,
+    centre_id: input.centre_id ? Number(input.centre_id) || null : null,
+    type_offre_id: input.type_offre_id ? Number(input.type_offre_id) || null : null,
+    statut_id: input.statut_id ? Number(input.statut_id) || null : null,
+  } as Record<string, string | number | boolean | null | undefined>;
+
+  // 🔧 Nettoyage : chaîne vide → null
+  for (const key of Object.keys(payload)) {
+    const val = payload[key];
+    if (typeof val === "string" && val.trim() === "") {
+      payload[key] = null;
+    }
+  }
+
+  // 🧩 Cast final vers le type attendu
+  return payload as FormationWritePayload;
 }
+
+
 
 export interface FormationOption {
   value: number;
   label: string;
 }
 
-// Résultat retourné par le hook
-interface UseFormationChoicesResult {
+export interface UseFormationChoicesResult {
   centres: NomId[];
   statuts: NomId[];
   typeOffres: NomId[];
   loading: boolean;
-  refresh: () => void;
-}
-
-function extractResults(res: { data: ApiListResponse | NomId[] }): NomId[] {
-  if (Array.isArray(res.data)) {
-    return res.data;
-  }
-  if ("results" in res.data && Array.isArray(res.data.results)) {
-    return res.data.results;
-  }
-  if ("data" in res.data && Array.isArray(res.data.data?.results)) {
-    return res.data.data.results ?? [];
-  }
-  return [];
+  refresh: () => void; // volontairement sync côté signature
 }
 
 export function useFormationChoices(): UseFormationChoicesResult {
   const [centres, setCentres] = useState<NomId[]>([]);
   const [statuts, setStatuts] = useState<NomId[]>([]);
   const [typeOffres, setTypeOffres] = useState<NomId[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
-  const fetchChoices = async () => {
+  // ✅ Callback stable
+  const fetchChoices = useCallback(async () => {
     setLoading(true);
     try {
-      // ✅ un seul appel : /formations/filtres/
       const res = await api.get("/formations/filtres/");
       const data = res.data?.data ?? {};
 
       setCentres(Array.isArray(data.centres) ? data.centres : []);
       setStatuts(Array.isArray(data.statuts) ? data.statuts : []);
       setTypeOffres(Array.isArray(data.type_offres) ? data.type_offres : []);
-    } catch (err) {
-      console.error("Erreur lors du chargement des filtres:", err);
+    } catch {
       toast.error("Erreur lors du chargement des choix de formulaire");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchChoices();
   }, []);
 
-  return {
-    centres,
-    statuts,
-    typeOffres,
-    loading,
-    refresh: fetchChoices,
-  };
-}
+  // ✅ Monté une seule fois
+  useEffect(() => {
+    if (centres.length === 0 && statuts.length === 0 && typeOffres.length === 0) {
+      fetchChoices();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ✅ on monte une seule fois
 
+  // ✅ Fonction refresh stable (ne change plus jamais)
+  const refresh = useCallback(() => {
+    fetchChoices();
+  }, [fetchChoices]);
+
+  // ✅ Retourne des valeurs mémoïsées (références stables)
+  return useMemo(
+    () => ({
+      centres,
+      statuts,
+      typeOffres,
+      loading,
+      refresh,
+    }),
+    [centres, statuts, typeOffres, loading, refresh]
+  );
+}
 interface UseFormationsOptions {
   search?: string;
   page?: number;
@@ -171,10 +211,12 @@ export function useCreateFormation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AxiosError | null>(null);
 
-  const createFormation = async (formData: FormationFormData) => {
+  // useCallback → stabilise la référence
+  const createFormation = useCallback(async (formData: FormationFormData) => {
     setLoading(true);
     try {
-      const response = await api.post<WrappedResponse<Formation>>("/formations/", formData);
+      const cleaned = cleanFormationPayload(formData);
+      const response = await api.post<WrappedResponse<Formation>>("/formations/", cleaned);
       setError(null);
       return response.data.data;
     } catch (err) {
@@ -183,8 +225,9 @@ export function useCreateFormation() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  // ✅ Objet de retour stable
   return { createFormation, loading, error };
 }
 
@@ -193,10 +236,11 @@ export function useUpdateFormation(id: number) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AxiosError | null>(null);
 
-  const updateFormation = async (formData: FormationFormData) => {
+  const updateFormation = useCallback(async (formData: FormationFormData) => {
     setLoading(true);
     try {
-      const response = await api.put<WrappedResponse<Formation>>(`/formations/${id}/`, formData);
+      const cleaned = cleanFormationPayload(formData);
+      const response = await api.patch<WrappedResponse<Formation>>(`/formations/${id}/`, cleaned);
       setError(null);
       return response.data.data;
     } catch (err) {
@@ -205,7 +249,7 @@ export function useUpdateFormation(id: number) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
   return { updateFormation, loading, error };
 }
@@ -464,11 +508,11 @@ export function useFormationsOptions() {
         const res = await api.get("/formations/liste-simple/");
         const data = res.data?.data || res.data || [];
         const opts: FormationOption[] = Array.isArray(data)
-        ? data.map((f: { id: number; nom: string; num_offre?: string | null }) => ({
-            value: f.id,
-            label: f.num_offre ? `${f.num_offre} — ${f.nom}` : f.nom,
-          }))
-        : [];
+          ? data.map((f: { id: number; nom: string; num_offre?: string | null }) => ({
+              value: f.id,
+              label: f.num_offre ? `${f.num_offre} — ${f.nom}` : f.nom,
+            }))
+          : [];
 
         if (!alive) return;
         setOptions(opts);

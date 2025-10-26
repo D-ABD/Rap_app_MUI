@@ -36,7 +36,7 @@ const dtfFR =
       })
     : undefined;
 
-    // 🔒 Désinfection minimale sans dépendance
+// 🔒 Désinfection minimale sans dépendance
 function sanitizeHTML(input: string): string {
   const allowedTags = ["b", "i", "em", "strong", "u", "p", "span", "br"];
   const allowedAttrs = ["style"];
@@ -275,105 +275,102 @@ export default function FormationDetailModal({ open, onClose, formationId }: Pro
                   </Box>
                 </Grid>
 
+                {/* 🗒️ Dernier commentaire (le plus récent selon date maj/création) */}
+                {formation.commentaires?.length
+                  ? (() => {
+                      const dernier = ([...formation.commentaires] as Commentaire[])
+                        .filter((c) => c.created_at || c.updated_at)
+                        .sort((a, b) => {
+                          const dateA = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
+                          const dateB = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
+                          return dateB - dateA;
+                        })[0];
 
+                      if (!dernier) return null;
 
-{/* 🗒️ Dernier commentaire (le plus récent selon date maj/création) */}
-{formation.commentaires?.length ? (
-  (() => {
-    const dernier = ([...formation.commentaires] as Commentaire[])
-      .filter((c) => c.created_at || c.updated_at)
-      .sort((a, b) => {
-        const dateA = new Date(a.updated_at ?? a.created_at ?? 0).getTime();
-        const dateB = new Date(b.updated_at ?? b.created_at ?? 0).getTime();
-        return dateB - dateA;
-      })[0];
+                      const auteur =
+                        dernier.auteur ?? dernier.created_by_username ?? "Auteur inconnu";
+                      const dateMaj = dernier.updated_at ? fmt(dernier.updated_at) : null;
+                      const dateCrea = dernier.created_at ? fmt(dernier.created_at) : null;
 
-    if (!dernier) return null;
+                      return (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            ml: 1,
+                            borderLeft: "3px solid #1976d2",
+                            pl: 1.5,
+                            bgcolor: "rgba(25, 118, 210, 0.04)",
+                            borderRadius: 1,
+                          }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            color="text.secondary"
+                            sx={{ mb: 0.5, fontWeight: 500 }}
+                          >
+                            🗒️ Dernier commentaire :
+                          </Typography>
 
-    const auteur = dernier.auteur ?? dernier.created_by_username ?? "Auteur inconnu";
-    const dateMaj = dernier.updated_at ? fmt(dernier.updated_at) : null;
-    const dateCrea = dernier.created_at ? fmt(dernier.created_at) : null;
+                          <Box
+                            sx={{
+                              "& p": { m: 0 },
+                              "& span": { borderRadius: "2px", padding: "1px 3px" },
+                            }}
+                            dangerouslySetInnerHTML={{
+                              __html: sanitizeHTML(
+                                dernier.contenu ?? formation.dernier_commentaire ?? ""
+                              ),
+                            }}
+                          />
 
-    return (
-      <Box
-        sx={{
-          mt: 1,
-          ml: 1,
-          borderLeft: "3px solid #1976d2",
-          pl: 1.5,
-          bgcolor: "rgba(25, 118, 210, 0.04)",
-          borderRadius: 1,
-        }}
-      >
-        <Typography
-          variant="subtitle2"
-          color="text.secondary"
-          sx={{ mb: 0.5, fontWeight: 500 }}
-        >
-          🗒️ Dernier commentaire :
-        </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.disabled"
+                            sx={{ display: "block", mt: 0.5 }}
+                          >
+                            — {auteur}
+                            {dateMaj
+                              ? `, modifié le ${dateMaj}`
+                              : dateCrea
+                                ? `, le ${dateCrea}`
+                                : ""}
+                          </Typography>
+                        </Box>
+                      );
+                    })()
+                  : null}
 
-        <Box
-          sx={{
-            "& p": { m: 0 },
-            "& span": { borderRadius: "2px", padding: "1px 3px" },
-          }}
-          dangerouslySetInnerHTML={{
-            __html: sanitizeHTML(
-              (dernier.contenu ?? formation.dernier_commentaire ?? "")
-            ),
-          }}
-        />
-
-        <Typography
-          variant="caption"
-          color="text.disabled"
-          sx={{ display: "block", mt: 0.5 }}
-        >
-          — {auteur}
-          {dateMaj
-            ? `, modifié le ${dateMaj}`
-            : dateCrea
-              ? `, le ${dateCrea}`
-              : ""}
-        </Typography>
-      </Box>
-    );
-  })()
-) : null}
-
-
-<Field
-  label="Commentaires"
-  value={
-    formation.commentaires?.length ? (
-      <Button
-        variant="outlined"
-        size="small"
-        color="primary"
-        onClick={() => {
-          // Ouvre la modale + charge les commentaires de cette formation
-          setOpenComments(true);
-          // (optionnel) tu pourrais aussi ici stocker formation.id dans un état si tu gères plusieurs formations
-        }}
-      >
-        Voir tous les commentaires ({formation.commentaires.length})
-      </Button>
-    ) : ( 
-      <Button
-        variant="text"
-        size="small"
-        color="primary"
-        onClick={() => {
-          setOpenComments(true);
-        }}
-      >
-        Ajouter un commentaire
-      </Button>
-    )
-  } 
-/>
-
+                <Field
+                  label="Commentaires"
+                  value={
+                    formation.commentaires?.length ? (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        color="primary"
+                        onClick={() => {
+                          // Ouvre la modale + charge les commentaires de cette formation
+                          setOpenComments(true);
+                          // (optionnel) tu pourrais aussi ici stocker formation.id dans un état si tu gères plusieurs formations
+                        }}
+                      >
+                        Voir tous les commentaires ({formation.commentaires.length})
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="text"
+                        size="small"
+                        color="primary"
+                        onClick={() => {
+                          setOpenComments(true);
+                        }}
+                      >
+                        Ajouter un commentaire
+                      </Button>
+                    )
+                  }
+                />
               </Section>
             </Grid>
           </Grid>

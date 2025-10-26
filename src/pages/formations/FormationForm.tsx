@@ -1,5 +1,4 @@
-// src/pages/formations/FormationForm.tsx
-import { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Box,
   Stack,
@@ -27,6 +26,58 @@ import {
 import type { Formation, FormationFormDataRaw } from "../../types/formation";
 import type { NomId } from "../../types/formation";
 
+/* =========================================
+ * Sous-composants au niveau module
+ * ========================================= */
+
+type SectionProps = { icon: React.ReactNode; title: string; children: React.ReactNode };
+function Section({ icon, title, children }: SectionProps) {
+  return (
+    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+        {icon}
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+          {title}
+        </Typography>
+      </Stack>
+      <Divider sx={{ mb: 2 }} />
+      <Grid container spacing={2}>
+        {children}
+      </Grid>
+    </Paper>
+  );
+}
+
+type InputProps = {
+  label: string;
+  name: keyof FormationFormDataRaw | string;
+  type?: string;
+  value: any;
+  error?: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any) => void;
+  [k: string]: any;
+};
+function Input({ label, name, type = "text", value, error, onChange, ...props }: InputProps) {
+  return (
+    <Grid item xs={12} sm={6}>
+      <TextField
+        fullWidth
+        label={label}
+        name={name as string}
+        type={type}
+        value={value ?? ""}
+        onChange={onChange}
+        error={!!error}
+        helperText={error}
+        {...props}
+      />
+    </Grid>
+  );
+}
+
+/* =========================================
+ * Composant principal
+ * ========================================= */
 
 interface FormationFormProps {
   initialValues?: Partial<Formation>;
@@ -40,7 +91,7 @@ interface FormationFormProps {
   submitLabel?: string;
 }
 
-export default function FormationForm({
+function FormationForm({
   initialValues,
   centres,
   statuts,
@@ -51,8 +102,7 @@ export default function FormationForm({
   onCancel,
   submitLabel = "💾 Enregistrer",
 }: FormationFormProps) {
-  // 🧠 État local
-  const [values, setValues] = useState<FormationFormDataRaw>({
+  const [values, setValues] = useState<FormationFormDataRaw>(() => ({
     nom: "",
     centre_id: null,
     type_offre_id: null,
@@ -77,14 +127,16 @@ export default function FormationForm({
     code_rncp: "",
     total_heures: 0,
     heures_distanciel: 0,
-  });
+  }));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // 🧩 1️⃣ Initialisation à partir de initialValues
+  // ✅ Initialisation des valeurs au montage uniquement
   useEffect(() => {
     if (!initialValues) return;
-    setValues({
+
+    setValues((prev) => ({
+      ...prev,
       nom: initialValues.nom ?? "",
       centre_id: initialValues.centre?.id ?? null,
       type_offre_id: initialValues.type_offre?.id ?? null,
@@ -109,123 +161,66 @@ export default function FormationForm({
       code_rncp: initialValues.code_rncp ?? "",
       total_heures: initialValues.total_heures ?? 0,
       heures_distanciel: initialValues.heures_distanciel ?? 0,
-    });
+    }));
   }, [initialValues]);
 
-  // 🧩 2️⃣ Synchronisation quand les listes (centres / statuts / types) arrivent
-  useEffect(() => {
-    if (!initialValues) return;
-    setValues((prev) => ({
-      ...prev,
-      centre_id: initialValues.centre?.id ?? prev.centre_id,
-      type_offre_id: initialValues.type_offre?.id ?? prev.type_offre_id,
-      statut_id: initialValues.statut?.id ?? prev.statut_id,
-    }));
-  }, [centres, statuts, typeOffres, initialValues]);
-
-  // ----------------------------------------------------------------------
-  // 🔹 Gestion des champs
-  // ----------------------------------------------------------------------
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any
-  ) => {
-    const { name, value } = e.target;
-    if (["centre_id", "type_offre_id", "statut_id"].includes(name)) {
+  // ✅ Handlers mémoïsés
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any) => {
+      const { name, value } = e.target;
       setValues((prev) => ({
         ...prev,
-        [name]: value === "" ? null : Number(value),
+        [name]:
+          ["centre_id", "type_offre_id", "statut_id"].includes(name as string)
+            ? value === "" ? null : Number(value)
+            : value,
       }));
-    } else {
-      setValues((prev) => ({ ...prev, [name]: value }));
-    }
-  };
+    },
+    []
+  );
 
-  const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCheckbox = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target;
     setValues((prev) => ({ ...prev, [name]: checked }));
-  };
+  }, []);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setErrors({});
-
-    if (!values.nom.trim()) {
-      setErrors({ nom: "Le nom est requis" });
-      return;
-    }
-
-    try {
-      await onSubmit(values);
-    } catch (err: any) {
-      if (err?.response?.data?.errors) {
-        setErrors(err.response.data.errors);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setErrors({});
+      if (!values.nom.trim()) {
+        setErrors({ nom: "Le nom est requis" });
+        return;
       }
-    }
-  };
-
-  // ----------------------------------------------------------------------
-  // 🔹 Petits composants internes
-  // ----------------------------------------------------------------------
-  const Section = ({
-    icon,
-    title,
-    children,
-  }: {
-    icon: React.ReactNode;
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <Paper
-      variant="outlined"
-      sx={{ p: 2.5, mb: 3, borderRadius: 2, backgroundColor: "#fafafa" }}
-    >
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        {icon}
-        <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
-          {title}
-        </Typography>
-      </Stack>
-      <Divider sx={{ mb: 2 }} />
-      <Grid container spacing={2}>
-        {children}
-      </Grid>
-    </Paper>
+      try {
+        await onSubmit(values);
+      } catch (err: any) {
+        if (err?.response?.data?.errors) {
+          setErrors(err.response.data.errors);
+        }
+      }
+    },
+    [values, onSubmit]
   );
-
-  const Input = ({ label, name, type = "text", ...props }: any) => (
-    <Grid item xs={12} sm={6}>
-      <TextField
-        fullWidth
-        label={label}
-        name={name}
-        type={type}
-        value={values[name as keyof FormationFormDataRaw] ?? ""}
-        onChange={handleChange}
-        error={!!errors[name]}
-        helperText={errors[name]}
-        {...props}
-      />
-    </Grid>
-  );
-
-console.log("🎯 Valeurs actuelles:", values);
-console.log("📦 Centres:", centres);
-console.log("📦 Statuts:", statuts);
-console.log("📦 TypeOffres:", typeOffres);
-
-  // ----------------------------------------------------------------------
-  // 🔹 Rendu
-  // ----------------------------------------------------------------------
+  
+  // ✅ Rendu
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      {/* Section 1 */}
       <Section icon={<AssignmentIcon color="primary" />} title="Informations principales">
-        <Input label="Nom" name="nom" required />
+        <Input
+          label="Nom"
+          name="nom"
+          required
+          value={values.nom}
+          error={errors.nom}
+          onChange={handleChange}
+        />
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <InputLabel>Centre</InputLabel>
+            <InputLabel id="centre-label">Centre</InputLabel>
             <Select
+              labelId="centre-label"
               name="centre_id"
               value={values.centre_id ? String(values.centre_id) : ""}
               onChange={handleChange}
@@ -243,10 +238,11 @@ console.log("📦 TypeOffres:", typeOffres);
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <InputLabel>Type d’offre</InputLabel>
+            <InputLabel id="type-offre-label">Type d’offre</InputLabel>
             <Select
+              labelId="type-offre-label"
               name="type_offre_id"
-              value={values.type_offre_id !== null && values.type_offre_id !== undefined ? String(values.type_offre_id) : ""}
+              value={values.type_offre_id ? String(values.type_offre_id) : ""}
               onChange={handleChange}
               label="Type d’offre"
               required
@@ -262,10 +258,11 @@ console.log("📦 TypeOffres:", typeOffres);
 
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <InputLabel>Statut</InputLabel>
+            <InputLabel id="statut-label">Statut</InputLabel>
             <Select
+              labelId="statut-label"
               name="statut_id"
-              value={values.statut_id !== null && values.statut_id !== undefined ? String(values.statut_id) : ""}
+              value={values.statut_id ? String(values.statut_id) : ""}
               onChange={handleChange}
               label="Statut"
               required
@@ -279,53 +276,71 @@ console.log("📦 TypeOffres:", typeOffres);
           </FormControl>
         </Grid>
 
-        <Input label="Date de début" name="start_date" type="date" InputLabelProps={{ shrink: true }} />
-        <Input label="Date de fin" name="end_date" type="date" InputLabelProps={{ shrink: true }} />
+        <Input
+          label="Date de début"
+          name="start_date"
+          type="date"
+          value={values.start_date}
+          error={errors.start_date}
+          onChange={handleChange}
+          InputLabelProps={{ shrink: true }}
+        />
+        <Input
+          label="Date de fin"
+          name="end_date"
+          type="date"
+          value={values.end_date}
+          error={errors.end_date}
+          onChange={handleChange}
+          InputLabelProps={{ shrink: true }}
+        />
       </Section>
 
       {/* Section 2 */}
       <Section icon={<NumbersIcon color="primary" />} title="Numéros & assistante">
-        <Input label="N° Kairos" name="num_kairos" />
-        <Input label="N° Offre" name="num_offre" />
-        <Input label="N° Produit" name="num_produit" />
-        <Input label="Assistante" name="assistante" />
+        <Input label="N° Kairos" name="num_kairos" value={values.num_kairos} error={errors.num_kairos} onChange={handleChange} />
+        <Input label="N° Offre" name="num_offre" value={values.num_offre} error={errors.num_offre} onChange={handleChange} />
+        <Input label="N° Produit" name="num_produit" value={values.num_produit} error={errors.num_produit} onChange={handleChange} />
+        <Input label="Assistante" name="assistante" value={values.assistante} error={errors.assistante} onChange={handleChange} />
       </Section>
 
       {/* Section 3 */}
       <Section icon={<SchoolIcon color="primary" />} title="Diplôme ou titre visé">
-        <Input label="Intitulé précis" name="intitule_diplome" />
-        <Input label="Code diplôme" name="code_diplome" />
-        <Input label="Code RNCP" name="code_rncp" />
-        <Input label="Total heures" name="total_heures" type="number" />
-        <Input label="Heures distanciel" name="heures_distanciel" type="number" />
+        <Input label="Intitulé précis" name="intitule_diplome" value={values.intitule_diplome} error={errors.intitule_diplome} onChange={handleChange} />
+        <Input label="Code diplôme" name="code_diplome" value={values.code_diplome} error={errors.code_diplome} onChange={handleChange} />
+        <Input label="Code RNCP" name="code_rncp" value={values.code_rncp} error={errors.code_rncp} onChange={handleChange} />
+        <Input label="Total heures" name="total_heures" type="number" value={values.total_heures} error={errors.total_heures} onChange={handleChange} />
+        <Input label="Heures distanciel" name="heures_distanciel" type="number" value={values.heures_distanciel} error={errors.heures_distanciel} onChange={handleChange} />
       </Section>
 
       {/* Section 4 */}
       <Section icon={<BusinessIcon color="primary" />} title="Places & inscrits">
-        {["prevus_crif", "prevus_mp", "inscrits_crif", "inscrits_mp", "cap"].map(
-          (field) => (
-            <Input
-              key={field}
-              label={field.replace("_", " ").toUpperCase()}
-              name={field}
-              type="number"
-            />
-          )
-        )}
+        {["prevus_crif", "prevus_mp", "inscrits_crif", "inscrits_mp", "cap"].map((field) => (
+          <Input
+            key={field}
+            label={field.replace("_", " ").toUpperCase()}
+            name={field}
+            type="number"
+            value={(values as any)[field]}
+            error={(errors as any)[field]}
+            onChange={handleChange}
+          />
+        ))}
       </Section>
 
       {/* Section 5 */}
       <Section icon={<TrendingUpIcon color="primary" />} title="Recrutement & statistiques">
-        {["entree_formation", "nombre_candidats", "nombre_entretiens"].map(
-          (field) => (
-            <Input
-              key={field}
-              label={field.replace("_", " ").toUpperCase()}
-              name={field}
-              type="number"
-            />
-          )
-        )}
+        {["entree_formation", "nombre_candidats", "nombre_entretiens"].map((field) => (
+          <Input
+            key={field}
+            label={field.replace("_", " ").toUpperCase()}
+            name={field}
+            type="number"
+            value={(values as any)[field]}
+            error={(errors as any)[field]}
+            onChange={handleChange}
+          />
+        ))}
 
         <Grid item xs={12}>
           <FormControlLabel
@@ -362,3 +377,5 @@ console.log("📦 TypeOffres:", typeOffres);
     </Box>
   );
 }
+
+export default React.memo(FormationForm);

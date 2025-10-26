@@ -46,38 +46,6 @@ export default function FormationsEditPage() {
   const formation = localDetail ?? detail;
   const archived = !!formation?.est_archivee;
 
-  // 🧠 Mémo des valeurs initiales (appelé à chaque rendu, jamais conditionnel)
-  const formInitialValues = useMemo<FormationFormData>(
-    () => ({
-      nom: formation?.nom ?? "",
-      centre_id: formation?.centre?.id ?? null,
-      type_offre_id: formation?.type_offre?.id ?? null,
-      statut_id: formation?.statut?.id ?? null,
-      start_date: formation?.start_date ?? "",
-      end_date: formation?.end_date ?? "",
-      num_kairos: formation?.num_kairos ?? "",
-      num_offre: formation?.num_offre ?? "",
-      num_produit: formation?.num_produit ?? "",
-      prevus_crif: formation?.prevus_crif ?? undefined,
-      prevus_mp: formation?.prevus_mp ?? undefined,
-      inscrits_crif: formation?.inscrits_crif ?? undefined,
-      inscrits_mp: formation?.inscrits_mp ?? undefined,
-      intitule_diplome: formation?.intitule_diplome ?? "",
-      code_diplome: formation?.code_diplome ?? "",
-      code_rncp: formation?.code_rncp ?? "",
-      total_heures: formation?.total_heures ?? undefined,
-      heures_distanciel: formation?.heures_distanciel ?? undefined,
-      assistante: formation?.assistante ?? "",
-      cap: formation?.cap ?? undefined,
-      convocation_envoie: formation?.convocation_envoie ?? false,
-      entree_formation: formation?.entree_formation ?? 0,
-      nombre_candidats: formation?.nombre_candidats ?? 0,
-      nombre_entretiens: formation?.nombre_entretiens ?? 0,
-      nombre_evenements: formation?.nombre_evenements ?? 0,
-      dernier_commentaire: formation?.dernier_commentaire ?? "",
-    }),
-    [formation]
-  );
 
   // ------------------------------------------------------------------
   // 🔹 Archiver / Désarchiver
@@ -150,7 +118,6 @@ export default function FormationsEditPage() {
     );
   }
 
-
   if (error || !detail) {
     return (
       <PageTemplate title={`Formation #${formationId}`}>
@@ -178,12 +145,7 @@ export default function FormationsEditPage() {
           >
             {archived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={handleDelete}
-            disabled={removing}
-          >
+          <Button variant="outlined" color="error" onClick={handleDelete} disabled={removing}>
             {removing ? "Suppression…" : "Supprimer"}
           </Button>
         </Box>

@@ -1,29 +1,32 @@
-// src/pages/formations/FormationsCreatePage.tsx
+import { useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Paper } from "@mui/material";
+import { Paper, Box } from "@mui/material";
 
 import PageTemplate from "../../components/PageTemplate";
-import useForm from "../../hooks/useForm";
-import { useCreateFormation, useFormationChoices } from "../../hooks/useFormations";
+import FormationForm from "./FormationForm";
+import {
+  useCreateFormation,
+  useFormationChoices,
+} from "../../hooks/useFormations";
 import type {
   FormationFormData,
   FormationFormDataRaw,
-  FormationFormErrors,
 } from "../../types/formation";
-import FormationForm from "./FormationForm";
 
 export default function FormationsCreatePage() {
   const navigate = useNavigate();
-  const { createFormation, loading } = useCreateFormation();
+  const { createFormation } = useCreateFormation(); // ✅ on ne récupère plus loading / error
   const {
-    centres = [],
-    statuts = [],
-    typeOffres = [],
+    centres,
+    statuts,
+    typeOffres,
     loading: loadingChoices,
+    refresh: refreshChoices,
   } = useFormationChoices();
 
-  const { values, setErrors, resetForm } = useForm<FormationFormDataRaw>({
+  // 🧩 Valeurs initiales (fixes)
+  const initialValuesRef = useRef<FormationFormData>({
     nom: "",
     centre_id: null,
     type_offre_id: null,
@@ -50,52 +53,72 @@ export default function FormationsCreatePage() {
     heures_distanciel: 0,
   });
 
-  /** 🔄 Nouvelle signature : on reçoit directement `values` */
-  const handleSubmit = async (values: FormationFormDataRaw) => {
-    const payload: FormationFormData = {
-      ...values,
-      centre_id: values.centre_id ? Number(values.centre_id) : null,
-      type_offre_id: values.type_offre_id ? Number(values.type_offre_id) : null,
-      statut_id: values.statut_id ? Number(values.statut_id) : null,
-    };
+  // ✅ Mémorisation des listes pour ne pas recréer de références
+  const memoizedCentres = useMemo(() => centres ?? [], [centres]);
+  const memoizedStatuts = useMemo(() => statuts ?? [], [statuts]);
+  const memoizedTypeOffres = useMemo(() => typeOffres ?? [], [typeOffres]);
 
-    try {
-      await createFormation(payload);
-      toast.success("✅ Formation créée avec succès !");
-      navigate("/formations");
-    } catch (err: unknown) {
-      const serverError = err as {
-        response?: { data?: { errors?: FormationFormErrors } };
+  // ✅ Callbacks stables
+  const handleBack = useCallback(() => navigate(-1), [navigate]);
+
+  const handleRefresh = useCallback(() => {
+    refreshChoices();
+    toast.info("Listes de choix rechargées");
+  }, [refreshChoices]);
+
+  const handleSubmit = useCallback(
+    async (values: FormationFormDataRaw) => {
+      const payload: FormationFormData = {
+        ...values,
+        centre_id: values.centre_id ? Number(values.centre_id) : null,
+        type_offre_id: values.type_offre_id ? Number(values.type_offre_id) : null,
+        statut_id: values.statut_id ? Number(values.statut_id) : null,
       };
-      const backendErrors = serverError.response?.data?.errors;
-      if (backendErrors) setErrors(backendErrors);
-      toast.error("❌ Erreur lors de la création de la formation");
-    }
-  };
+
+      try {
+        await createFormation(payload);
+        toast.success("✅ Formation créée avec succès !");
+        navigate("/formations");
+      } catch {
+        toast.error("❌ Erreur lors de la création de la formation");
+      }
+    },
+    [createFormation, navigate]
+  );
+
+  // ✅ Empêche les re-renders inutiles du formulaire
+  const formProps = useMemo(
+    () => ({
+      initialValues: initialValuesRef.current,
+      centres: memoizedCentres,
+      statuts: memoizedStatuts,
+      typeOffres: memoizedTypeOffres,
+      loadingChoices,
+      onSubmit: handleSubmit,
+      onCancel: handleBack,
+      submitLabel: "💾 Créer",
+    }),
+    [
+      memoizedCentres.length,
+      memoizedStatuts.length,
+      memoizedTypeOffres.length,
+      loadingChoices,
+      handleSubmit,
+      handleBack,
+    ]
+  );
 
   return (
     <PageTemplate
-      title="Créer une formation"
+      title="➕ Créer une formation"
       backButton
-      onBack={() => navigate(-1)}
+      onBack={handleBack}
       refreshButton
-      onRefresh={() => {
-        resetForm();
-        toast.info("Formulaire réinitialisé");
-      }}
+      onRefresh={handleRefresh}
     >
       <Paper sx={{ p: 3 }}>
-        <FormationForm
-          initialValues={values}
-          centres={centres}
-          statuts={statuts}
-          typeOffres={typeOffres}
-          loading={loading}
-          loadingChoices={loadingChoices}
-          onSubmit={handleSubmit}
-          onCancel={() => navigate(-1)}
-          submitLabel="💾 Créer"
-        />
+        {/* ✅ Props mémoïsées : plus de perte de focus */}
+        <FormationForm {...formProps} />
       </Paper>
     </PageTemplate>
   );
