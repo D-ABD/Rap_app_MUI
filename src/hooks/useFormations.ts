@@ -79,6 +79,47 @@ export interface UseFormationChoicesResult {
   refresh: () => void; // volontairement sync côté signature
 }
 
+type Result = {
+  centres: NomId[];
+  statuts: NomId[];
+  typeOffres: NomId[];
+  loading: boolean;
+  refresh: () => void;
+};
+
+export function useFormationCreationChoices() {
+  const [centres, setCentres] = useState<NomId[]>([]);
+  const [statuts, setStatuts] = useState<NomId[]>([]);
+  const [typeOffres, setTypeOffres] = useState<NomId[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchChoices = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/formations/filtres/", {
+        params: { ref_complet: true }, // ✅ centres = périmètre, statuts/type_offres = complets
+      });
+      const data = res.data?.data ?? {};
+      setCentres(Array.isArray(data.centres) ? data.centres : []);
+      setStatuts(Array.isArray(data.statuts) ? data.statuts : []);
+      setTypeOffres(Array.isArray(data.type_offres) ? data.type_offres : []);
+    } catch {
+      toast.error("Erreur lors du chargement des référentiels");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchChoices(); }, [fetchChoices]);
+
+  const refresh = useCallback(() => fetchChoices(), [fetchChoices]);
+
+  return useMemo(
+    () => ({ centres, statuts, typeOffres, loading, refresh }),
+    [centres, statuts, typeOffres, loading, refresh]
+  );
+}
+
 export function useFormationChoices(): UseFormationChoicesResult {
   const [centres, setCentres] = useState<NomId[]>([]);
   const [statuts, setStatuts] = useState<NomId[]>([]);
