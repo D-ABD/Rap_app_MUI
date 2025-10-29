@@ -2,15 +2,23 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-  server: {
-    port: 5173,
-  },
   resolve: {
     alias: {
-      src: path.resolve(__dirname, "./src"),
+      src: path.resolve(__dirname, "src"), // ✅ permet import "src/..."
+    },
+  },
+  build: {
+    target: "esnext",
+    commonjsOptions: {
+      transformMixedEsModules: true,
+      include: [/node_modules/],
+    },
+  },
+  optimizeDeps: {
+    esbuildOptions: {
+      target: "esnext",
     },
   },
 });
