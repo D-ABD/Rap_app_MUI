@@ -4,17 +4,10 @@
 // (corrigé : conserve les couleurs et surlignages Quill)
 // ======================================================
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography, Paper } from "@mui/material";
 import { useQuill } from "react-quilljs";
 import Quill from "quill"; // ✅ nécessaire pour le patch
 import "quill/dist/quill.snow.css";
@@ -66,16 +59,7 @@ const modules = {
   ],
 };
 
-const formats = [
-  "bold",
-  "italic",
-  "underline",
-  "strike",
-  "list",
-  "bullet",
-  "color",
-  "background",
-];
+const formats = ["bold", "italic", "underline", "strike", "list", "bullet", "color", "background"];
 
 /* ---------- Composant ---------- */
 export default function CommentaireForm({
@@ -177,9 +161,7 @@ export default function CommentaireForm({
         response?: { data?: Record<string, string[]> };
       };
       if (axiosError.response?.data) {
-        const formattedErrors: Partial<
-          Record<keyof CommentaireFormData, string>
-        > = {};
+        const formattedErrors: Partial<Record<keyof CommentaireFormData, string>> = {};
         for (const key in axiosError.response.data) {
           const val = axiosError.response.data[key];
           if (Array.isArray(val)) {
@@ -214,23 +196,15 @@ export default function CommentaireForm({
               }}
             >
               <Typography variant="body2">
-                📚 Commentaire pour la formation :{" "}
-                <strong>{formationNom}</strong>
+                📚 Commentaire pour la formation : <strong>{formationNom}</strong>
               </Typography>
             </Box>
           )}
 
           {!readonlyFormation && (
             <>
-              <Button
-                variant="outlined"
-                onClick={() => setShowModal(true)}
-                sx={{ mb: 2 }}
-              >
-                🔍{" "}
-                {formationNom
-                  ? "Changer de formation"
-                  : "Rechercher une formation"}
+              <Button variant="outlined" onClick={() => setShowModal(true)} sx={{ mb: 2 }}>
+                🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
               </Button>
 
               <FormationSelectModal
@@ -304,17 +278,8 @@ export default function CommentaireForm({
           {/* --- Actions --- */}
           {!readonlyFormation && (
             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="success"
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  "💾 Enregistrer"
-                )}
+              <Button type="submit" variant="contained" color="success" disabled={submitting}>
+                {submitting ? <CircularProgress size={20} color="inherit" /> : "💾 Enregistrer"}
               </Button>
 
               {!onSubmit && (

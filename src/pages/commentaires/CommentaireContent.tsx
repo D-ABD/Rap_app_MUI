@@ -16,20 +16,7 @@ export default function CommentaireContent({ html }: Props) {
 
   // Sanitize : conserve les styles inline
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
-    ALLOWED_TAGS: [
-      "b",
-      "i",
-      "u",
-      "em",
-      "strong",
-      "p",
-      "br",
-      "ul",
-      "ol",
-      "li",
-      "span",
-      "a",
-    ],
+    ALLOWED_TAGS: ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "span", "a"],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
   } as DOMPurify.Config);
 

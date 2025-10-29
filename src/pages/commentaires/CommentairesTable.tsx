@@ -36,29 +36,10 @@ function formatDate(value?: string | null): string {
 }
 
 /* ---------- 🧩 Contenu HTML enrichi sécurisé (avec couleurs/surlignage) ---------- */
-function CommentaireContent({
-  html,
-  maxLength = 400,
-}: {
-  html: string;
-  maxLength?: number;
-}) {
+function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength?: number }) {
   // ✅ Étape 1 — Sanitize HTML
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
-    ALLOWED_TAGS: [
-      "b",
-      "i",
-      "u",
-      "em",
-      "strong",
-      "p",
-      "br",
-      "ul",
-      "ol",
-      "li",
-      "span",
-      "a",
-    ],
+    ALLOWED_TAGS: ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "span", "a"],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
     FORBID_TAGS: ["script", "style"],
     FORBID_ATTR: ["onerror", "onclick", "onload"],
@@ -90,9 +71,7 @@ function CommentaireContent({
 
   const cleanedHTML = tempDiv.innerHTML;
   const truncated =
-    cleanedHTML.length > maxLength
-      ? cleanedHTML.slice(0, maxLength) + "..."
-      : cleanedHTML;
+    cleanedHTML.length > maxLength ? cleanedHTML.slice(0, maxLength) + "..." : cleanedHTML;
 
   // ✅ Étape 3 — Rendu fidèle
   return (
@@ -192,10 +171,7 @@ export default function CommentairesTable({
             >
               {/* ✅ Checkbox */}
               <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                <Checkbox
-                  checked={isSelected}
-                  onChange={() => onToggleSelect(c.id)}
-                />
+                <Checkbox checked={isSelected} onChange={() => onToggleSelect(c.id)} />
               </TableCell>
 
               {/* ✅ Infos formation */}
@@ -205,7 +181,6 @@ export default function CommentairesTable({
                 {c.type_offre_nom || "—"} / {c.num_offre || "—"}
                 <br />
                 {c.centre_nom || "—"} / {c.statut_nom || "—"}
-
                 {typeof c.saturation_formation === "number" && (
                   <Box mt={1}>
                     <Typography variant="caption" color="text.secondary">
@@ -232,27 +207,18 @@ export default function CommentairesTable({
                     />
                   </Box>
                 )}
-
                 {typeof c.taux_saturation === "number" && (
                   <Typography variant="caption" display="block" mt={0.5}>
                     📈 Saturation actuelle : <strong>{c.taux_saturation}%</strong>
                   </Typography>
                 )}
-
                 {typeof c.saturation_commentaires === "number" && (
                   <Typography variant="caption" display="block">
-                    💬 Moy. des commentaires :{" "}
-                    <strong>{c.saturation_commentaires}%</strong>
+                    💬 Moy. des commentaires : <strong>{c.saturation_commentaires}%</strong>
                   </Typography>
                 )}
-
                 {c.centre_id && (
-                  <Typography
-                    variant="caption"
-                    display="block"
-                    color="text.secondary"
-                    mt={0.5}
-                  >
+                  <Typography variant="caption" display="block" color="text.secondary" mt={0.5}>
                     ID centre : {c.centre_id}
                   </Typography>
                 )}

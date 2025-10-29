@@ -48,12 +48,7 @@ const DashboardPage = () => {
           <Typography variant="body1" color="text.secondary">
             Ceci est votre tableau de bord.
           </Typography>
-          <Button
-            variant="contained"
-            component={RouterLink}
-            to="/parametres"
-            sx={{ mt: 2 }}
-          >
+          <Button variant="contained" component={RouterLink} to="/parametres" sx={{ mt: 2 }}>
             Aller aux paramètres
           </Button>
         </Box>
