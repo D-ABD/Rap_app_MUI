@@ -1,4 +1,4 @@
-// src/pages/partenaires/PartenaireCandidatEditPage.tsx
+// src/pages/partenaires/PartenairesCandidatEditPage.tsx
 import { useNavigate, useParams, Link as RouterLink } from "react-router-dom";
 import { useState, useMemo, useCallback } from "react";
 import { Box, Stack, Button, CircularProgress, Typography } from "@mui/material";
@@ -71,7 +71,6 @@ export default function PartenaireCandidatEditPage() {
     return partenaireNom ? `${base}&partenaire_nom=${enc(partenaireNom)}` : base;
   }, [partenaireId, partenaireNom]);
 
-  // ✅ correction : dépendance complète [data] pour éviter le warning exhaustive-deps
   const initialValues = useMemo(() => data || undefined, [data]);
 
   const handleSubmit = useCallback(
@@ -81,12 +80,17 @@ export default function PartenaireCandidatEditPage() {
         await update(payload);
         toast.success("✅ Modifications enregistrées");
         navigate("/partenaires");
-      } catch (_err) {
+      } catch (_err: unknown) {
         let message = "❌ Erreur lors de la mise à jour du partenaire.";
 
         if (axios.isAxiosError(_err)) {
-          const detail = _err.response?.data?.detail;
-          const nonField = _err.response?.data?.non_field_errors;
+          // ✅ typage explicite des champs d'erreur attendus
+          const data = _err.response?.data as
+            | { detail?: string; non_field_errors?: string[] }
+            | undefined;
+
+          const detail = data?.detail;
+          const nonField = data?.non_field_errors;
 
           if (typeof detail === "string") {
             if (detail.toLowerCase().includes("centre")) {
@@ -101,13 +105,12 @@ export default function PartenaireCandidatEditPage() {
             if (joined) message = `❌ ${joined}`;
           }
 
-          // ✅ suppression des console.* → affichage via toast silencieux
           if (import.meta.env.DEV) {
-            toast.info("Détails de l’erreur disponibles (mode développement).");
+            toast.info("ℹ️ Détails de l’erreur disponibles (mode développement).");
           }
         } else {
           if (import.meta.env.DEV) {
-            toast.info("Erreur inconnue (mode développement).");
+            toast.info("ℹ️ Erreur inconnue (mode développement).");
           }
         }
 

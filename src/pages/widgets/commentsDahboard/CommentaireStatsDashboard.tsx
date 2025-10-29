@@ -1,6 +1,9 @@
+// ======================================================
 // src/pages/widgets/commentsDahboard/CommentaireStatsDashboard.tsx
-import React, { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+// ✅ Version finale — couleurs & surlignage Quill préservés (identique à CommentairesTable)
+// ======================================================
+
+import React, { useState } from "react";
 import {
   Card,
   Box,
@@ -17,89 +20,126 @@ import {
   TablePagination,
   IconButton,
   Divider,
+  Tooltip,
 } from "@mui/material";
 import { Refresh as RefreshIcon } from "@mui/icons-material";
+import DOMPurify from "dompurify";
 import {
   CommentaireFilters,
   CommentaireItem,
   useCommentaireLatest,
-  useFormationOptionsFromGrouped as _useFormationOptionsFromGrouped, // ✅ renommé pour éviter warning
 } from "../../../types/commentaireStats";
-import api from "../../../api/axios";
-import CommentaireContent from "../../commentaires/CommentaireContent";
 
-/* ──────────────────────────────
-   Helpers fetch grouped options
-────────────────────────────── */
-type GroupedRow = {
-  group_key?: string | number | null;
-  group_label?: string | null;
-  departement?: string | null;
-  formation__centre_id?: number | null;
-  formation__centre__nom?: string | null;
-};
-
-function sanitize(obj: Record<string, unknown>) {
-  const out: Record<string, unknown> = {};
-  for (const [k, v] of Object.entries(obj)) {
-    if (v != null && v !== "") out[k] = v;
-  }
-  return out;
+/* ---------- 🕒 Format date FR ---------- */
+function formatDate(value?: string | null): string {
+  if (!value) return "—";
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
-// ✅ Préfixe "_" pour signaler à ESLint qu’on garde ces hooks “en réserve”
-function _useCentreOptionsFromGrouped(filters: CommentaireFilters) {
-  const params = useMemo(() => sanitize({ ...filters, centre: undefined }), [filters]);
-  return useQuery({
-    queryKey: ["commentaires:options:centre", params],
-    queryFn: async () => {
-      const { data } = await api.get<{ results: GroupedRow[] }>("/commentaire-stats/grouped/", {
-        params: { ...params, by: "centre" },
-      });
-      return (data?.results ?? [])
-        .map((r) => {
-          const id =
-            (typeof r["formation__centre_id"] === "number"
-              ? r["formation__centre_id"]
-              : undefined) ??
-            (typeof r.group_key === "string" || typeof r.group_key === "number"
-              ? r.group_key
-              : undefined);
-          if (!id) return null;
-          const label = r["formation__centre__nom"] ?? r.group_label ?? `Centre #${id}`;
-          return { id, label };
-        })
-        .filter(Boolean) as Array<{ id: string | number; label: string }>;
-    },
-    staleTime: 5 * 60_000,
-    placeholderData: (prev) => prev,
+/* ---------- 🧩 Contenu HTML enrichi sécurisé (identique à CommentairesTable) ---------- */
+function CommentaireContent({
+  html,
+  maxLength = 400,
+}: {
+  html: string;
+  maxLength?: number;
+}) {
+  // ✅ Étape 1 — Sanitize HTML
+  const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
+    ALLOWED_TAGS: [
+      "b",
+      "i",
+      "u",
+      "em",
+      "strong",
+      "p",
+      "br",
+      "ul",
+      "ol",
+      "li",
+      "span",
+      "a",
+    ],
+    ALLOWED_ATTR: ["href", "title", "target", "style"],
+    FORBID_TAGS: ["script", "style"],
+    FORBID_ATTR: ["onerror", "onclick", "onload"],
   });
-}
 
-function _useDepartementOptionsFromGrouped(filters: CommentaireFilters) {
-  const params = useMemo(() => sanitize({ ...filters, departement: undefined }), [filters]);
-  return useQuery({
-    queryKey: ["commentaires:options:departement", params],
-    queryFn: async () => {
-      const { data } = await api.get<{ results: GroupedRow[] }>("/commentaire-stats/grouped/", {
-        params: { ...params, by: "departement" },
-      });
-      return (data?.results ?? [])
-        .map((r) => {
-          const code = r.departement ?? (typeof r.group_key === "string" ? r.group_key : "");
-          if (!code) return null;
-          return { code, label: r.group_label ?? code };
-        })
-        .filter(Boolean) as Array<{ code: string; label: string }>;
-    },
-    staleTime: 5 * 60_000,
-    placeholderData: (prev) => prev,
+  // ✅ Étape 2 — Nettoie les styles inline (conserve color / background / font / déco)
+  const tempDiv = document.createElement("div");
+  tempDiv.innerHTML = sanitized;
+  tempDiv.querySelectorAll<HTMLElement>("span").forEach((el) => {
+    const style = el.getAttribute("style");
+    if (!style) return;
+    const safeStyle = style
+      .split(";")
+      .map((s) => s.trim())
+      .filter(
+        (s) =>
+          s.startsWith("color:") ||
+          s.startsWith("background-color:") ||
+          s.startsWith("font-weight:") ||
+          s.startsWith("font-style:") ||
+          s.startsWith("text-decoration:")
+      )
+      .join(";");
+    el.setAttribute("style", safeStyle);
   });
+
+  const cleanedHTML = tempDiv.innerHTML;
+  const truncated =
+    cleanedHTML.length > maxLength
+      ? cleanedHTML.slice(0, maxLength) + "..."
+      : cleanedHTML;
+
+  // ✅ Étape 3 — Rendu HTML sécurisé, isolé du thème MUI
+  return (
+    <Tooltip
+      title={
+        <Box
+          sx={{
+            all: "revert", // ← neutralise tout style hérité
+            maxWidth: 500,
+            p: 1,
+            fontSize: "0.9rem",
+            lineHeight: 1.4,
+            "& p": { m: 0, mb: 0.5 },
+            "& ul, & ol": { pl: 2, mb: 0.5 },
+          }}
+          dangerouslySetInnerHTML={{ __html: cleanedHTML }}
+        />
+      }
+      placement="top-start"
+      arrow
+      enterDelay={400}
+    >
+      <Box
+        sx={{
+          all: "revert", // ✅ clé absolue : neutralise le thème MUI ici aussi
+          maxHeight: 160,
+          overflowY: "auto",
+          wordBreak: "break-word",
+          fontSize: "0.9rem",
+          lineHeight: 1.4,
+          "& p": { margin: 0, marginBottom: 0.5 },
+          "& ul, & ol": { paddingLeft: 3, marginBottom: 0.5 },
+          "& a": { color: "#1976d2", textDecoration: "underline" },
+        }}
+        dangerouslySetInnerHTML={{ __html: truncated || "<em>—</em>" }}
+      />
+    </Tooltip>
+  );
 }
 
-/* ──────────────────────────────
-   Dashboard principal
-────────────────────────────── */
+/* ---------- Composant principal ---------- */
 export default function CommentaireStatsDashboard({
   title = "Derniers commentaires",
 }: {
@@ -109,44 +149,34 @@ export default function CommentaireStatsDashboard({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error, refetch, isFetching } = useCommentaireLatest(filters);
-  const total = data?.count ?? 0;
+  const { data, isLoading, error, refetch, isFetching } =
+    useCommentaireLatest(filters);
   const results = data?.results ?? [];
-
-  // (Conservation fonctionnelle : ces hooks restent disponibles si besoin)
-  // const { data: centreOptions = [], isLoading: loadingCentres } =
-  //   _useCentreOptionsFromGrouped(filters);
-  // const { data: departementOptions = [], isLoading: loadingDeps } =
-  //   _useDepartementOptionsFromGrouped(filters);
-  // const { data: formationOptions = [], isLoading: loadingFormations } =
-  //   _useFormationOptionsFromGrouped(filters);
+  const total = data?.count ?? 0;
 
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
 
-  const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  function formatLocalDateTime(createdAt?: string | null, updatedAt?: string | null) {
-    const iso = updatedAt || createdAt;
-    if (!iso) return "—";
-
-    const date = new Date(iso);
-    const options: Intl.DateTimeFormatOptions = {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-
-    return date.toLocaleString("fr-FR", options).replace(",", " à");
-  }
+  const paginated = results.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
-    <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
+    <Card
+      sx={{
+        p: 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        // 🚫 pas de color ici : on laisse le thème MUI neutre pour préserver les styles inline
+      }}
+    >
       {/* Header */}
       <Box
         display="flex"
@@ -158,13 +188,19 @@ export default function CommentaireStatsDashboard({
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
-        <IconButton onClick={() => refetch()} disabled={isFetching} size="small" title="Rafraîchir">
+        <IconButton
+          onClick={() => refetch()}
+          disabled={isFetching}
+          size="small"
+          title="Rafraîchir"
+        >
           <RefreshIcon fontSize="small" />
         </IconButton>
       </Box>
 
       <Divider />
 
+      {/* États de chargement / erreur */}
       {isLoading ? (
         <Box display="flex" justifyContent="center" p={2}>
           <CircularProgress size={24} />
@@ -180,47 +216,35 @@ export default function CommentaireStatsDashboard({
               <TableHead>
                 <TableRow>
                   <TableCell>Formation</TableCell>
+                  <TableCell>Auteur / Date</TableCell>
                   <TableCell>Commentaire</TableCell>
                 </TableRow>
               </TableHead>
+
               <TableBody>
                 {paginated.map((c: CommentaireItem) => (
                   <TableRow key={c.id} hover>
-                    <TableCell sx={{ maxWidth: 300 }}>
-                      <Typography variant="body2" fontWeight="bold">
-                        {c.formation_nom ?? `Formation #${c.formation_id ?? "—"}`}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {c.type_offre ?? "?"} — {c.num_offre ?? "?"}
-                      </Typography>
-                      <Typography variant="caption" display="block" color="text.secondary">
-                        {c.centre_nom ?? "Centre inconnu"}
-                      </Typography>
-                      {(c.start_date || c.end_date) && (
-                        <Typography variant="caption" display="block" color="text.secondary">
-                          {c.start_date?.slice(0, 10) ?? "?"} → {c.end_date?.slice(0, 10) ?? "?"}
-                        </Typography>
-                      )}
+                    {/* Formation */}
+                    <TableCell sx={{ maxWidth: 340 }}>
+                      <strong>{c.formation_nom || "—"}</strong>
+                      <br />
+                      {c.type_offre || "—"} / {c.num_offre || "—"}
+                      <br />
+                      {c.centre_nom || "—"}
                     </TableCell>
 
-                    {/* ✅ Colonne Commentaire HTML */}
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="bold" gutterBottom>
-                        {c.auteur} • {formatLocalDateTime(c.created_at, c.updated_at)}
+                    {/* Auteur / Date */}
+                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                      {c.auteur || "—"}
+                      <br />
+                      <Typography variant="caption" color="text.secondary">
+                        {formatDate(c.created_at)}
                       </Typography>
-                      <Box
-                        sx={{
-                          display: "-webkit-box",
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: "vertical",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          maxWidth: 400,
-                          color: "text.secondary",
-                        }}
-                      >
-                        <CommentaireContent html={c.contenu || "<em>—</em>"} />
-                      </Box>
+                    </TableCell>
+
+                    {/* Contenu enrichi Quill */}
+                    <TableCell sx={{ maxWidth: 420 }}>
+                      <CommentaireContent html={c.contenu || "<em>—</em>"} />
                     </TableCell>
                   </TableRow>
                 ))}

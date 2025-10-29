@@ -15,17 +15,16 @@ import {
   Box,
   Typography,
   Chip,
-  Tooltip,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import type { Commentaire } from "../../types/commentaire";
 
-/* ---------- 🕒 Formateur de date en français ---------- */
+/** 🕒 Formateur de date en français : "10 oct. 2025, 14:32" */
 function formatDate(value?: string | null): string {
   if (!value) return "—";
   const date = new Date(value);
-  if (isNaN(date.getTime())) return value;
+  if (isNaN(date.getTime())) return value; // fallback si format inattendu
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "short",
@@ -35,109 +34,28 @@ function formatDate(value?: string | null): string {
   }).format(date);
 }
 
-/* ---------- 🧩 Contenu HTML enrichi sécurisé (avec couleurs/surlignage) ---------- */
-function CommentaireContent({
-  html,
-  maxLength = 400,
-}: {
-  html: string;
-  maxLength?: number;
-}) {
-  // ✅ Étape 1 — Sanitize HTML
-  const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
-    ALLOWED_TAGS: [
-      "b",
-      "i",
-      "u",
-      "em",
-      "strong",
-      "p",
-      "br",
-      "ul",
-      "ol",
-      "li",
-      "span",
-      "a",
-    ],
+/** 🧩 Contenu HTML enrichi sécurisé */
+function CommentaireContent({ html }: { html: string }) {
+  const sanitized = DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "span", "a"],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
-    FORBID_TAGS: ["script", "style"],
-    FORBID_ATTR: ["onerror", "onclick", "onload"],
   });
 
-  // ✅ Étape 2 — Nettoyage des styles inline : garde color / background-color
-  const tempDiv = document.createElement("div");
-  tempDiv.innerHTML = sanitized;
-
-  tempDiv.querySelectorAll<HTMLElement>("span").forEach((el) => {
-    const style = el.getAttribute("style");
-    if (!style) return;
-
-    const safeStyle = style
-      .split(";")
-      .map((s) => s.trim().toLowerCase()) // 👈 normalise tout
-      .filter(
-        (s) =>
-          s.startsWith("color:") ||
-          s.startsWith("background-color:") ||
-          s.startsWith("font-weight:") ||
-          s.startsWith("font-style:") ||
-          s.startsWith("text-decoration:")
-      )
-      .join("; ");
-
-    el.setAttribute("style", safeStyle);
-  });
-
-  const cleanedHTML = tempDiv.innerHTML;
-  const truncated =
-    cleanedHTML.length > maxLength
-      ? cleanedHTML.slice(0, maxLength) + "..."
-      : cleanedHTML;
-
-  // ✅ Étape 3 — Rendu fidèle
   return (
-    <Tooltip
-      title={
-        <Box sx={{ maxWidth: 500, p: 1 }}>
-          <div
-            dangerouslySetInnerHTML={{ __html: cleanedHTML }}
-            style={{
-              all: "revert",
-              fontSize: "0.9rem",
-              lineHeight: 1.4,
-              wordBreak: "break-word",
-            }}
-          />
-        </Box>
-      }
-      placement="top-start"
-      arrow
-      enterDelay={400}
-    >
-      <Box
-        sx={{
-          maxHeight: 160,
-          overflowY: "auto",
-          wordBreak: "break-word",
-          fontSize: "0.9rem",
-          lineHeight: 1.4,
-        }}
-      >
-        <div
-          dangerouslySetInnerHTML={{ __html: truncated || "<em>—</em>" }}
-          style={{
-            all: "revert",
-            fontSize: "0.9rem",
-            lineHeight: 1.4,
-            wordBreak: "break-word",
-          }}
-        />
-      </Box>
-    </Tooltip>
+    <Box
+      sx={{
+        maxHeight: 180,
+        overflowY: "auto",
+        wordBreak: "break-word",
+        "& p": { m: 0, mb: 0.5 },
+        "& ul, & ol": { pl: 3, mb: 0.5 },
+        "& a": { color: "primary.main", textDecoration: "underline" },
+      }}
+      dangerouslySetInnerHTML={{ __html: sanitized }}
+    />
   );
 }
 
-/* ---------- Types Props ---------- */
 interface Props {
   commentaires: Commentaire[];
   selectedIds: number[];
@@ -145,7 +63,6 @@ interface Props {
   onClickRow?: (id: number) => void;
 }
 
-/* ---------- Composant principal ---------- */
 export default function CommentairesTable({
   commentaires,
   selectedIds,
@@ -166,7 +83,6 @@ export default function CommentairesTable({
           <TableCell align="right">Actions</TableCell>
         </TableRow>
       </TableHead>
-
       <TableBody>
         {commentaires.map((c) => {
           const isSelected = selectedIds.includes(c.id);
@@ -177,35 +93,29 @@ export default function CommentairesTable({
               key={c.id}
               hover
               selected={isSelected}
-              sx={{
-                cursor: "pointer",
-                "&:hover td": { bgcolor: "grey.50" },
-              }}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 const target = e.target as HTMLElement;
-                if (target.closest("a")) return; // évite le clic sur les liens
-                if (onClickRow) onClickRow(c.id);
-                else navigate(`/commentaires/${c.id}/edit`);
+                if (target.closest("a")) return;
+                if (onClickRow) {
+                  onClickRow(c.id);
+                } else {
+                  navigate(`/commentaires/${c.id}/edit`);
+                }
               }}
+              sx={{ cursor: "pointer" }}
             >
-              {/* ✅ Checkbox */}
               <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                <Checkbox
-                  checked={isSelected}
-                  onChange={() => onToggleSelect(c.id)}
-                />
+                <Checkbox checked={isSelected} onChange={() => onToggleSelect(c.id)} />
               </TableCell>
 
-              {/* ✅ Infos formation */}
               <TableCell sx={{ maxWidth: 340 }}>
                 <strong>{c.formation_label || c.formation_nom || "—"}</strong>
                 <br />
                 {c.type_offre_nom || "—"} / {c.num_offre || "—"}
                 <br />
                 {c.centre_nom || "—"} / {c.statut_nom || "—"}
-
                 {typeof c.saturation_formation === "number" && (
                   <Box mt={1}>
                     <Typography variant="caption" color="text.secondary">
@@ -232,33 +142,23 @@ export default function CommentairesTable({
                     />
                   </Box>
                 )}
-
                 {typeof c.taux_saturation === "number" && (
                   <Typography variant="caption" display="block" mt={0.5}>
                     📈 Saturation actuelle : <strong>{c.taux_saturation}%</strong>
                   </Typography>
                 )}
-
                 {typeof c.saturation_commentaires === "number" && (
                   <Typography variant="caption" display="block">
-                    💬 Moy. des commentaires :{" "}
-                    <strong>{c.saturation_commentaires}%</strong>
+                    💬 Moy. des commentaires : <strong>{c.saturation_commentaires}%</strong>
                   </Typography>
                 )}
-
                 {c.centre_id && (
-                  <Typography
-                    variant="caption"
-                    display="block"
-                    color="text.secondary"
-                    mt={0.5}
-                  >
+                  <Typography variant="caption" display="block" color="text.secondary" mt={0.5}>
                     ID centre : {c.centre_id}
                   </Typography>
                 )}
               </TableCell>
 
-              {/* ✅ Statut */}
               <TableCell>
                 <Chip
                   label={isArchived ? "Archivé" : "Actif"}
@@ -271,7 +171,6 @@ export default function CommentairesTable({
                 />
               </TableCell>
 
-              {/* ✅ Auteur + date */}
               <TableCell sx={{ whiteSpace: "nowrap" }}>
                 {c.auteur || "—"}
                 <br />
@@ -280,12 +179,10 @@ export default function CommentairesTable({
                 </Typography>
               </TableCell>
 
-              {/* ✅ Contenu enrichi */}
-              <TableCell sx={{ maxWidth: 420 }}>
+              <TableCell>
                 <CommentaireContent html={c.contenu || "<em>—</em>"} />
               </TableCell>
 
-              {/* ✅ Actions */}
               <TableCell align="right" onClick={(e) => e.stopPropagation()}>
                 <Button
                   size="small"

@@ -72,7 +72,6 @@ export default function PartenaireEditPage() {
     return partenaireNom ? `${base}&partenaire_nom=${enc(partenaireNom)}` : base;
   }, [partenaireId, partenaireNom]);
 
-  // ✅ Correction exhaustive-deps : inclut `data` dans les dépendances
   const initialValues = useMemo<Partial<Partenaire> | undefined>(() => data ?? undefined, [data]);
 
   const handleSubmit = async (values: Partial<Partenaire>) => {
@@ -81,29 +80,45 @@ export default function PartenaireEditPage() {
       await update(payload);
       toast.success("✅ Modifications enregistrées");
       navigate("/partenaires");
-    } catch (_err) {
+    } catch (_err: unknown) {
+      let message = "❌ Erreur lors de la mise à jour du partenaire.";
+
       if (axios.isAxiosError(_err)) {
-        const detail = _err.response?.data?.detail;
+        // ✅ Typage explicite de la réponse d’erreur attendue (DRF)
+        const data = _err.response?.data as
+          | { detail?: string; non_field_errors?: string[] }
+          | undefined;
+
+        const detail = data?.detail;
+        const nonField = data?.non_field_errors;
+
         if (typeof detail === "string") {
           if (detail.toLowerCase().includes("centre")) {
-            toast.error(`❌ ${detail} — contactez votre administrateur.`);
+            message = `❌ ${detail} — contactez votre administrateur.`;
+          } else if (detail.toLowerCase().includes("périmètre")) {
+            message = `❌ ${detail} — partenaire hors de votre périmètre.`;
           } else {
-            toast.error(`❌ ${detail}`);
+            message = `❌ ${detail}`;
           }
+        } else if (Array.isArray(nonField) && nonField.length > 0) {
+          const joined = nonField.filter((x): x is string => typeof x === "string").join(", ");
+          if (joined) message = `❌ ${joined}`;
         } else {
-          toast.error("❌ Échec de la mise à jour du partenaire.");
+          message = "❌ Échec de la mise à jour du partenaire.";
         }
 
-        // ✅ plus de console.log : notification silencieuse en mode dev
         if (import.meta.env.DEV) {
-          toast.info("Détails de l’erreur disponibles dans la console backend (mode dev).");
+          toast.info("ℹ️ Détails de l’erreur disponibles (mode développement).");
         }
+      } else if (_err instanceof Error) {
+        message = `❌ ${_err.message}`;
       } else {
-        toast.error("❌ Erreur inattendue lors de la mise à jour.");
         if (import.meta.env.DEV) {
-          toast.info("Erreur inconnue (mode dev).");
+          toast.info("ℹ️ Erreur inconnue (mode développement).");
         }
       }
+
+      toast.error(message);
     }
   };
 

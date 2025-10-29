@@ -85,8 +85,13 @@ export default function PartenaireCandidatCreatePage() {
         let message = "❌ Erreur lors de la création du partenaire.";
 
         if (axios.isAxiosError(e)) {
-          const detail = e.response?.data?.detail;
-          const nonField = e.response?.data?.non_field_errors;
+          // ✅ Typage explicite des champs possibles renvoyés par l'API
+          const data = e.response?.data as
+            | { detail?: string; non_field_errors?: string[] }
+            | undefined;
+
+          const detail = data?.detail;
+          const nonField = data?.non_field_errors;
 
           if (typeof detail === "string") {
             if (detail.toLowerCase().includes("centre")) {

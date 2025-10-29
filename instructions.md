@@ -1,14 +1,11 @@
-modification du front formation.
-
-Ajout de boutton pour creerun document dans formation edit et modification deformation detailmodal. ajout du boutton document et liste des documents
-
-
-
-Création de la page document et des routes
+git add .
+git commit -m " Réparation des select formation. type d'offre et statut à la création et update 
+-modification du script  scripts/deploy_front.sh"
+git push origin main
 
 
 
 
+Réparer les filtres de formation et recherche
 
-problemedansformation,d
-dansle edit, les infosne sont pas conservées, donc il faut encore selectionner typed'offre, centre....
+

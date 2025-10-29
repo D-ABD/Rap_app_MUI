@@ -1,19 +1,33 @@
+// ======================================================
 // src/components/ui/CommentaireForm.tsx
-import { useEffect, useState, type FormEvent } from "react";
+// Formulaire de création / lecture de commentaire
+// (corrigé : conserve les couleurs et surlignages Quill)
+// ======================================================
+
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Box, Button, CircularProgress, Stack, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+  Paper,
+} from "@mui/material";
 import { useQuill } from "react-quilljs";
+import Quill from "quill"; // ✅ nécessaire pour le patch
 import "quill/dist/quill.snow.css";
 
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
 import useForm from "../../hooks/useForm";
 import api from "../../api/axios";
 
-/* ---------- Props ---------- */
+/* ---------- Types ---------- */
 type Props = {
   formationId?: string;
   readonlyFormation?: boolean;
+  contenuInitial?: string;
   onSubmit?: (payload: { contenu: string }) => Promise<void> | void;
 };
 
@@ -23,10 +37,51 @@ interface CommentaireFormData {
   [key: string]: unknown;
 }
 
+/* ---------- 🩹 Patch Quill : autorise color et background inline ---------- */
+const Inline = (Quill as any).import("blots/inline");
+
+class SpanStyle extends Inline {
+  static create(value: any) {
+    const node = super.create() as HTMLElement;
+    if (value) node.setAttribute("style", value);
+    return node;
+  }
+
+  static formats(node: HTMLElement) {
+    return node.getAttribute("style");
+  }
+}
+
+(SpanStyle as any).blotName = "span";
+(SpanStyle as any).tagName = "span";
+(Quill as any).register(SpanStyle, true);
+
+/* ---------- Config Quill ---------- */
+const modules = {
+  toolbar: [
+    ["bold", "italic", "underline", "strike"],
+    [{ list: "ordered" }, { list: "bullet" }],
+    [{ color: [] }, { background: [] }],
+    ["clean"],
+  ],
+};
+
+const formats = [
+  "bold",
+  "italic",
+  "underline",
+  "strike",
+  "list",
+  "bullet",
+  "color",
+  "background",
+];
+
 /* ---------- Composant ---------- */
 export default function CommentaireForm({
   formationId,
   readonlyFormation = false,
+  contenuInitial = "",
   onSubmit,
 }: Props) {
   const navigate = useNavigate();
@@ -34,38 +89,46 @@ export default function CommentaireForm({
   const [formationNom, setFormationNom] = useState<string | null>(null);
   const [loading, setLoading] = useState(!!formationId);
   const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const { values, errors, setErrors, setValues } = useForm<CommentaireFormData>({
     formation: formationId || "",
-    contenu: "",
+    contenu: contenuInitial || "",
   });
 
-  // ✅ Initialise Quill (react-quilljs)
   const { quill, quillRef } = useQuill({
     theme: "snow",
-    modules: {
-      toolbar: [
-        ["bold", "italic", "underline", "strike"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        [{ color: [] }, { background: [] }],
-        ["clean"],
-      ],
-    },
+    modules,
+    formats,
   });
 
-  /* ---------- Gestion du contenu ---------- */
+  /* ---------- Synchronisation contenu ---------- */
   useEffect(() => {
-    if (quill) {
-      quill.on("text-change", () => {
-        setValues((prev) => ({
-          ...prev,
-          contenu: quill.root.innerHTML,
-        }));
-      });
-    }
-  }, [quill, setValues]); // ✅ ajouté setValues ici
+    if (!quill || readonlyFormation) return;
 
-  /* ---------- Chargement auto du nom formation ---------- */
+    const handler = () => {
+      setValues((prev) => ({
+        ...prev,
+        contenu: quill.root.innerHTML,
+      }));
+    };
+    quill.on("text-change", handler);
+    return () => {
+      quill.off("text-change", handler);
+    };
+  }, [quill, setValues, readonlyFormation]);
+
+  /* ---------- Lecture seule ---------- */
+  useEffect(() => {
+    if (quill && readonlyFormation) {
+      quill.disable();
+      if (contenuInitial) {
+        quill.root.innerHTML = contenuInitial;
+      }
+    }
+  }, [readonlyFormation, quill, contenuInitial]);
+
+  /* ---------- Chargement nom formation ---------- */
   useEffect(() => {
     if (!formationId) return;
     api
@@ -78,6 +141,7 @@ export default function CommentaireForm({
   /* ---------- Soumission ---------- */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
 
     const contenuTexte = quill?.root.innerHTML.trim() || values.contenu.trim();
     if (!contenuTexte || contenuTexte === "<p><br></p>") {
@@ -90,19 +154,21 @@ export default function CommentaireForm({
       formation: formationId ?? values.formation,
     };
 
-    if (onSubmit) {
-      await onSubmit({ contenu: payload.contenu });
-      setValues((prev) => ({ ...prev, contenu: "" }));
-      if (quill) quill.setText("");
-      return;
-    }
-
-    if (!payload.formation) {
-      toast.error("Veuillez sélectionner une formation.");
-      return;
-    }
+    setSubmitting(true);
 
     try {
+      if (onSubmit) {
+        await onSubmit({ contenu: payload.contenu });
+        setValues((prev) => ({ ...prev, contenu: "" }));
+        if (quill) quill.setText("");
+        return;
+      }
+
+      if (!payload.formation) {
+        toast.error("Veuillez sélectionner une formation.");
+        return;
+      }
+
       await api.post("/commentaires/", payload);
       toast.success("✅ Commentaire créé avec succès");
       navigate(`/formations/${payload.formation}`);
@@ -111,7 +177,9 @@ export default function CommentaireForm({
         response?: { data?: Record<string, string[]> };
       };
       if (axiosError.response?.data) {
-        const formattedErrors: Partial<Record<keyof CommentaireFormData, string>> = {};
+        const formattedErrors: Partial<
+          Record<keyof CommentaireFormData, string>
+        > = {};
         for (const key in axiosError.response.data) {
           const val = axiosError.response.data[key];
           if (Array.isArray(val)) {
@@ -119,8 +187,13 @@ export default function CommentaireForm({
           }
         }
         setErrors(formattedErrors);
-        toast.error("Erreur lors de la création du commentaire");
+
+        const firstError = Object.values(axiosError.response.data)[0];
+        if (Array.isArray(firstError)) toast.error(firstError[0]);
+        else toast.error("Erreur lors de la création du commentaire");
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -141,15 +214,23 @@ export default function CommentaireForm({
               }}
             >
               <Typography variant="body2">
-                📚 Commentaire pour la formation : <strong>{formationNom}</strong>
+                📚 Commentaire pour la formation :{" "}
+                <strong>{formationNom}</strong>
               </Typography>
             </Box>
           )}
 
           {!readonlyFormation && (
             <>
-              <Button variant="outlined" onClick={() => setShowModal(true)} sx={{ mb: 2 }}>
-                🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
+              <Button
+                variant="outlined"
+                onClick={() => setShowModal(true)}
+                sx={{ mb: 2 }}
+              >
+                🔍{" "}
+                {formationNom
+                  ? "Changer de formation"
+                  : "Rechercher une formation"}
               </Button>
 
               <FormationSelectModal
@@ -167,36 +248,90 @@ export default function CommentaireForm({
             </>
           )}
 
+          {/* --- Zone contenu --- */}
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
+            <Typography id="commentaire-label" variant="subtitle2" gutterBottom>
               Contenu
             </Typography>
-            <div ref={quillRef} style={{ height: 200, marginBottom: "1rem" }} />
-            {errors.contenu && (
-              <Typography variant="caption" color="error">
-                {errors.contenu}
-              </Typography>
+
+            {readonlyFormation ? (
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  minHeight: 150,
+                  bgcolor: "grey.50",
+                  overflowX: "auto",
+                }}
+              >
+                {values.contenu ? (
+                  <div
+                    dangerouslySetInnerHTML={{ __html: values.contenu }}
+                    style={{
+                      all: "revert",
+                      fontSize: "0.95rem",
+                      lineHeight: 1.5,
+                      wordBreak: "break-word",
+                    }}
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    Aucun contenu disponible.
+                  </Typography>
+                )}
+              </Paper>
+            ) : (
+              <>
+                <div
+                  ref={quillRef}
+                  aria-labelledby="commentaire-label"
+                  style={{
+                    height: 200,
+                    marginBottom: "1rem",
+                    backgroundColor: "#fff",
+                    borderRadius: 8,
+                  }}
+                />
+                {errors.contenu && (
+                  <Typography variant="caption" color="error">
+                    {errors.contenu}
+                  </Typography>
+                )}
+              </>
             )}
           </Box>
 
-          <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-            <Button type="submit" variant="contained" color="success">
-              💾 Enregistrer
-            </Button>
-            {!onSubmit && (
+          {/* --- Actions --- */}
+          {!readonlyFormation && (
+            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
               <Button
-                type="button"
-                variant="outlined"
-                onClick={() =>
-                  values.formation
-                    ? navigate(`/formations/${values.formation}`)
-                    : navigate("/commentaires")
-                }
+                type="submit"
+                variant="contained"
+                color="success"
+                disabled={submitting}
               >
-                Annuler
+                {submitting ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "💾 Enregistrer"
+                )}
               </Button>
-            )}
-          </Stack>
+
+              {!onSubmit && (
+                <Button
+                  type="button"
+                  variant="outlined"
+                  onClick={() =>
+                    values.formation
+                      ? navigate(`/formations/${values.formation}`)
+                      : navigate("/commentaires")
+                  }
+                >
+                  Annuler
+                </Button>
+              )}
+            </Stack>
+          )}
         </Box>
       )}
     </Paper>

@@ -69,8 +69,13 @@ export default function PartenaireCreatePage() {
         let message = "❌ Erreur lors de la création du partenaire.";
 
         if (axios.isAxiosError(_e)) {
-          const detail = _e.response?.data?.detail;
-          const nonField = _e.response?.data?.non_field_errors;
+          // ✅ typage explicite de la structure d'erreur backend (DRF)
+          const data = _e.response?.data as
+            | { detail?: string; non_field_errors?: string[] }
+            | undefined;
+
+          const detail = data?.detail;
+          const nonField = data?.non_field_errors;
 
           if (typeof detail === "string") {
             if (detail.toLowerCase().includes("centre")) {
@@ -83,13 +88,14 @@ export default function PartenaireCreatePage() {
             if (joined) message = `❌ ${joined}`;
           }
 
-          // ✅ plus de console.error : on notifie en mode dev via toast
           if (import.meta.env.DEV) {
-            toast.info("Détails de l’erreur disponibles (mode développement).");
+            toast.info("ℹ️ Détails de l’erreur disponibles (mode développement).");
           }
+        } else if (_e instanceof Error) {
+          message = `❌ ${_e.message}`;
         } else {
           if (import.meta.env.DEV) {
-            toast.info("Erreur inconnue (mode développement).");
+            toast.info("ℹ️ Erreur inconnue (mode développement).");
           }
         }
 

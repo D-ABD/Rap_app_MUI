@@ -176,8 +176,8 @@ interface UseFormationsOptions {
 
   // Le reste inchangé
   page?: number;
-  ordering?: string;    // OrderingFilter DRF (ex: -date_debut, nom)
-  tri?: string;         // alias supporté côté API (optionnel)
+  ordering?: string; // OrderingFilter DRF (ex: -date_debut, nom)
+  tri?: string; // alias supporté côté API (optionnel)
   centre?: number;
   statut?: number;
   type_offre?: number;

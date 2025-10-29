@@ -1,6 +1,7 @@
 // ======================================================
 // src/pages/commentaires/CommentairesEditPage.tsx
 // Édition d’un commentaire avec archivage/désarchivage
+// (corrigé : couleurs Quill préservées dans l’aperçu)
 // ======================================================
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -25,7 +26,6 @@ import "quill/dist/quill.snow.css";
 import api from "../../api/axios";
 import useForm from "../../hooks/useForm";
 import PageTemplate from "../../components/PageTemplate";
-import CommentaireContent from "./CommentaireContent";
 import type { Commentaire } from "../../types/commentaire";
 
 export default function CommentairesEditPage() {
@@ -87,7 +87,10 @@ export default function CommentairesEditPage() {
     const fetchData = async () => {
       try {
         const res = await api.get(`/commentaires/${id}/`);
-        const data = res.data?.data && typeof res.data.data === "object" ? res.data.data : res.data;
+        const data =
+          res.data?.data && typeof res.data.data === "object"
+            ? res.data.data
+            : res.data;
 
         if (!data || typeof data !== "object" || !data.id)
           throw new Error("Réponse invalide du serveur");
@@ -160,7 +163,9 @@ export default function CommentairesEditPage() {
       setIsArchived(updated?.statut_commentaire === "archive");
 
       toast.success(
-        isArchived ? "💬 Commentaire désarchivé avec succès" : "📦 Commentaire archivé avec succès"
+        isArchived
+          ? "💬 Commentaire désarchivé avec succès"
+          : "📦 Commentaire archivé avec succès"
       );
     } catch (_err) {
       toast.error("Erreur lors du changement de statut");
@@ -202,7 +207,8 @@ export default function CommentairesEditPage() {
                 📍 Centre : <strong>{meta?.centre_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                📌 Statut : <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
+                📌 Statut :{" "}
+                <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
                 🧩 Type d’offre : <strong>{meta?.type_offre_nom || "—"}</strong>
@@ -215,7 +221,8 @@ export default function CommentairesEditPage() {
                 <strong>{meta?.saturation_formation ?? "—"}%</strong>
               </Typography>
               <Typography variant="body2">
-                📈 Saturation actuelle : <strong>{meta?.taux_saturation ?? "—"}%</strong>
+                📈 Saturation actuelle :{" "}
+                <strong>{meta?.taux_saturation ?? "—"}%</strong>
               </Typography>
             </Box>
 
@@ -241,19 +248,34 @@ export default function CommentairesEditPage() {
               )}
             </Box>
 
-            {/* 📝 Aperçu rendu */}
-            <Typography variant="subtitle1">Aperçu du rendu :</Typography>
+            {/* 📝 Aperçu rendu (corrigé : respecte les styles Quill) */}
+            <Typography variant="subtitle1" gutterBottom>
+              Aperçu du rendu :
+            </Typography>
             <Box
               sx={{
                 border: "1px solid #e0e0e0",
                 borderRadius: 1,
                 p: 2,
                 bgcolor: "grey.50",
+                maxHeight: 300,
+                overflowY: "auto",
               }}
             >
-              <CommentaireContent html={values.contenu || "<em>—</em>"} />
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: values.contenu || "<em>—</em>",
+                }}
+                style={{
+                  all: "revert", // ✅ neutralise les styles MUI
+                  fontSize: "0.95rem",
+                  lineHeight: 1.5,
+                  wordBreak: "break-word",
+                }}
+              />
             </Box>
 
+            {/* 🧭 Actions */}
             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
               <Button type="submit" variant="contained">
                 💾 Enregistrer
@@ -282,13 +304,21 @@ export default function CommentairesEditPage() {
       >
         <DialogTitle>✅ Votre commentaire a bien été mis à jour</DialogTitle>
         <DialogContent>
-          <DialogContentText>Que souhaitez-vous faire ensuite ?</DialogContentText>
+          <DialogContentText>
+            Que souhaitez-vous faire ensuite ?
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => navigate(`/formations/${values.formation}`)} variant="outlined">
+          <Button
+            onClick={() => navigate(`/formations/${values.formation}`)}
+            variant="outlined"
+          >
             ← Retour à la formation
           </Button>
-          <Button onClick={() => navigate("/commentaires")} variant="contained">
+          <Button
+            onClick={() => navigate("/commentaires")}
+            variant="contained"
+          >
             💬 Voir commentaires
           </Button>
         </DialogActions>

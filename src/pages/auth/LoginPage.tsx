@@ -24,7 +24,9 @@ export default function LoginPage() {
       navigate("/dashboard");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        const msg = err.response?.data?.detail || "Identifiants incorrects.";
+        // ✅ Typage explicite de la structure de l'erreur backend
+        const data = err.response?.data as { detail?: string } | undefined;
+        const msg = data?.detail || "Identifiants incorrects.";
         setError(msg);
       } else if (err instanceof Error) {
         setError(err.message);

@@ -16,7 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { toast } from "react-toastify";
-import { isAxiosError } from "axios";
+import axios, { AxiosError } from "axios"; // ✅ import correct
 import api from "../../api/axios";
 import type { Partenaire } from "../../types/partenaire";
 
@@ -173,9 +173,10 @@ export default function PartenaireSelectModal({
       toast.success("✅ Partenaire créé et sélectionné");
       onSelect(created as Partenaire);
       onClose();
-    } catch (err) {
-      if (isAxiosError(err)) {
-        const detail = err.response?.data?.detail;
+    } catch (err: unknown) {
+      // ✅ typage correct + test axios
+      if (axios.isAxiosError(err)) {
+        const detail = (err as AxiosError<{ detail?: string }>).response?.data?.detail;
         if (typeof detail === "string") {
           if (detail.toLowerCase().includes("centre")) {
             toast.error(`❌ ${detail} — contactez votre administrateur.`);
