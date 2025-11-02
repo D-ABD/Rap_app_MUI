@@ -32,7 +32,7 @@ export interface FormationInfo {
 
 /** Valeurs autorisées pour le statut de CV (aligne strictement avec le backend). */
 export type CVStatutValue = "oui" | "en_cours" | "a_modifier";
-
+export type ContratSigneValue = "non" | "en_cours" | "signe" | "valide";
 // ─────────────────────────────────────────────────────────────────────────────
 // Appairage (lite) – dernier appairage du candidat
 // ─────────────────────────────────────────────────────────────────────────────
@@ -112,6 +112,14 @@ export interface Candidat {
   formation_info?: FormationInfo | null;
   centre_id?: number | null;
   centre_nom?: string | null;
+// Champs dérivés de formation (backend 2025-10)
+formation_nom?: string | null;
+formation_centre_nom?: string | null;
+formation_type_offre_nom?: string | null;
+formation_type_offre_libelle?: string | null;
+formation_num_offre?: string | null;
+formation_date_debut?: string | null;
+formation_date_fin?: string | null;
 
   // ───── Infos pour contrats ─────
   situation_avant_contrat?: string | null;
@@ -137,6 +145,7 @@ export interface Candidat {
 
   // ───── Statuts ─────
   statut: string;
+  statut_display?: string | null;
   cv_statut?: CVStatutValue | null;
   cv_statut_display?: string | null;
   type_contrat?: string | null;
@@ -163,7 +172,6 @@ export interface Candidat {
   resultat_placement_display?: string | null;
   entreprise_validee?: number | null;
   entreprise_validee_nom?: string | null;
-  contrat_signe?: string | null;
 
   // ───── Suivi  ─────
   nb_appairages?: number;
@@ -173,6 +181,9 @@ export interface Candidat {
   ateliers_counts?: AtelierCounts;
   notes?: string | null;
   origine_sourcing?: string | null;
+  contrat_signe?: ContratSigneValue | null;
+  contrat_signe_display?: string | null;
+
 
   // ───── Système ─────
   date_inscription: string; // ISO
@@ -221,7 +232,7 @@ export type CandidatFormData = Partial<
     | "vu_par_nom"
     | "resultat_placement_display"
     | "cv_statut_display"
-    | "ateliers_counts" // ✅ à ajouter (champ calculé)
+    | "ateliers_counts" 
   >
 >;
 

@@ -278,7 +278,7 @@ export function useUpdateProspection(id: number | string) {
         );
         const url = `/prospections/${id}/`;
 
-        const res = await api.patch<unknown>(url, cleanPayload);
+        const res = await api.put<unknown>(url, cleanPayload);
 
         const updated = safeGetDetail<Prospection>(res.data, "useUpdateProspection");
         return updated;

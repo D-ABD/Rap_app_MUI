@@ -74,6 +74,8 @@ export type OverviewKpis = {
   candidats: CandidatKpis;
   appairages: AppairageKpis; // ← NEW
   avec_archivees?: boolean;
+    nb_annulees: number;
+  nb_archivees: number;
 };
 
 export type OverviewResponse = {
@@ -261,14 +263,6 @@ export function useFormationTops(filters: Filters) {
 }
 
 // ── Dictionnaires pour labels ────────────────────────────────
-type Option = { id: number | string } & Record<string, unknown>;
-
-type FiltersPayload = Partial<{
-  centres: Option[];
-  type_offres: Option[];
-  statuts: Option[];
-  departements: Array<string | number>;
-}>;
 
 export type Dictionaries = {
   centresById: Record<string | number, string>;
@@ -276,32 +270,19 @@ export type Dictionaries = {
   statutById: Record<string | number, string>;
 };
 
-function buildMap(arr?: Option[]): Record<string | number, string> {
-  const out: Record<string | number, string> = {};
-  if (!arr) return out;
-  for (const o of arr) {
-    const label = pickLabel(o, ["nom", "name", "label", "libelle", "titre"]) ?? String(o.id);
-    out[o.id] = label;
-  }
-  return out;
-}
-
-async function fetchFilters(): Promise<FiltersPayload> {
-  const { data } = await api.get<FiltersPayload>("/formations/filtres/");
+// ⚙️ Appel du nouvel endpoint backend
+async function fetchDictionaries(): Promise<Dictionaries> {
+  const { data } = await api.get<Dictionaries>("/formation-stats/filter-options/");
   return data;
 }
 
+// ✅ Hook simplifié (plus besoin de buildMap ou FiltersPayload)
 export function useFormationDictionaries() {
-  return useQuery<FiltersPayload, Error, Dictionaries>({
-    queryKey: ["formation-stats:filters-dicts"],
-    queryFn: fetchFilters,
-    staleTime: 5 * 60_000,
+  return useQuery<Dictionaries, Error>({
+    queryKey: ["formation-stats:filter-options"],
+    queryFn: fetchDictionaries,
+    staleTime: 5 * 60_000, // cache de 5 min
     placeholderData: (prev) => prev,
-    select: (payload): Dictionaries => ({
-      centresById: buildMap(payload.centres),
-      typeOffreById: buildMap(payload.type_offres),
-      statutById: buildMap(payload.statuts),
-    }),
   });
 }
 

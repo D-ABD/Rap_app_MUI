@@ -6,7 +6,6 @@ import { Typography } from "@mui/material";
 
 import PageTemplate from "../../components/PageTemplate";
 import ProspectionFormCandidat from "./ProspectionFormCandidat";
-
 import api from "../../api/axios";
 import { useCreateProspection } from "../../hooks/useProspection";
 import { usePartenaire } from "../../hooks/usePartenaires";
@@ -19,35 +18,35 @@ import type {
   ProspectionTypeProspection,
 } from "../../types/prospection";
 
+// 🔧 Utils
 function toNum(v: string | null): number | null {
   if (v == null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
+
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null;
 }
-function extractCreatedId(x: unknown): number | null {
-  if (!isRecord(x)) return null;
-  if (typeof x.id === "number") return x.id;
-  const data = x.data;
-  if (isRecord(data) && typeof data.id === "number") return data.id;
-  return null;
+
+function extractCreatedId(value: unknown): number | null {
+  const id = (value as any)?.id ?? (value as any)?.data?.id;
+  return typeof id === "number" ? id : null;
 }
 
 export default function ProspectionCreatePageCandidat() {
   const navigate = useNavigate();
   const { create, loading: creating, error: createError } = useCreateProspection();
-
   const [searchParams] = useSearchParams();
+
   const presetPartenaire = useMemo(() => toNum(searchParams.get("partenaire")), [searchParams]);
   const presetFormation = useMemo(() => toNum(searchParams.get("formation")), [searchParams]);
 
-  // 🔎 nom du partenaire si ?partenaire=.. présent
+  // 🔎 partenaire
   const { data: partenaireData } = usePartenaire(presetPartenaire ?? undefined);
   const partenaireNom = partenaireData?.nom ?? null;
 
-  // 🔎 nom (léger) de la formation si ?formation=.. présent
+  // 🔎 formation
   const [formationNom, setFormationNom] = useState<string | null>(null);
   useEffect(() => {
     let cancelled = false;
@@ -57,11 +56,9 @@ export default function ProspectionCreatePageCandidat() {
         return;
       }
       try {
-        const res = await api.get<unknown>(`/formations/${presetFormation}/`);
-        const raw = res.data as unknown;
-        const node = isRecord(raw) && isRecord(raw.data) ? raw.data : raw;
-        const nom = isRecord(node) && typeof node.nom === "string" ? node.nom : null;
-        if (!cancelled) setFormationNom(nom);
+        const res = await api.get<{ id: number; nom: string }>(`/formations/${presetFormation}/`);
+        const nom = res.data?.nom ?? (isRecord(res.data) && typeof res.data.nom === "string" ? res.data.nom : null);
+        if (!cancelled) setFormationNom(nom ?? null);
       } catch {
         if (!cancelled) setFormationNom(null);
       }
@@ -71,9 +68,9 @@ export default function ProspectionCreatePageCandidat() {
     };
   }, [presetFormation]);
 
-  // ✅ valeurs par défaut (côté candidat, owner forcé à null)
+  // ✅ valeurs par défaut
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const initialValues: ProspectionFormData = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10);
     const defaultStatut: ProspectionStatut = "a_faire";
     const defaultType: ProspectionTypeProspection = "premier_contact";
     const defaultMotif: ProspectionMotif = "autre";
@@ -82,7 +79,6 @@ export default function ProspectionCreatePageCandidat() {
     return {
       partenaire: presetPartenaire ?? null,
       partenaire_nom: partenaireNom,
-
       formation: presetFormation ?? null,
       date_prospection: today,
       type_prospection: defaultType,
@@ -91,39 +87,33 @@ export default function ProspectionCreatePageCandidat() {
       objectif: defaultObjectif,
       commentaire: "",
       relance_prevue: null,
-
       owner: null,
       owner_username: null,
-
       formation_nom: formationNom,
       centre_nom: null,
       num_offre: null,
-
       partenaire_ville: null,
       partenaire_tel: null,
       partenaire_email: null,
-
       formation_date_debut: null,
       formation_date_fin: null,
       type_offre_display: null,
       formation_statut_display: null,
       places_disponibles: null,
-
       moyen_contact: null,
-
       last_comment: null,
       last_comment_at: null,
       last_comment_id: null,
       comments_count: undefined,
     };
-  }, [presetPartenaire, partenaireNom, presetFormation, formationNom]);
+  }, [presetPartenaire, partenaireNom, presetFormation, formationNom, today]);
 
   const handleSubmit = async (formData: ProspectionFormData) => {
     try {
-      const payload: ProspectionFormData = { ...formData, owner: null };
-      const created = await create(payload);
+      const created = await create({ ...formData, owner: null });
       toast.success("✅ Prospection créée avec succès");
 
+      // TODO: remplacer window.confirm par un Dialog non bloquant pour une meilleure UX
       const wantsComment = window.confirm("Souhaitez-vous ajouter un commentaire maintenant ?");
       const createdId = extractCreatedId(created);
 
@@ -143,7 +133,7 @@ export default function ProspectionCreatePageCandidat() {
         <Typography color="error">❌ Impossible d’initialiser le formulaire.</Typography>
       ) : (
         <ProspectionFormCandidat
-          key={`create-cand-${presetPartenaire ?? "none"}-${partenaireNom ?? ""}-${presetFormation ?? "none"}-${formationNom ?? ""}`}
+          key={["create-cand", presetPartenaire, partenaireNom, presetFormation, formationNom].join("-")}
           mode="create"
           initialValues={initialValues}
           onSubmit={handleSubmit}

@@ -1,4 +1,9 @@
+// ======================================================
 // src/pages/formations/componentsFormations/FormationsCommentairesPage.tsx
+// Liste des commentaires liés à une formation
+// (affichage, pagination, ajout, modification)
+// ======================================================
+
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -39,7 +44,7 @@ export default function FormationsCommentairesPage() {
 
     api
       .get(`/formations/${id}/`)
-      .then((res) => setFormation(res.data.data))
+      .then((res) => setFormation(res.data.data)) // ← vérifier la structure
       .catch(() => {
         setFormation(null);
         setErrorFormation(true);
@@ -102,33 +107,32 @@ export default function FormationsCommentairesPage() {
         )}
 
         {commentairesAffiches.map((commentaire, index) => (
-          <Box key={commentaire.id}>
-            <Box sx={{ py: 2 }}>
-              <CommentaireContent html={commentaire.contenu || "<em>—</em>"} />
+          <Box key={commentaire.id} sx={{ py: 2 }}>
+            <CommentaireContent html={commentaire.contenu || "<em>—</em>"} />
 
-              <Stack
-                direction="row"
-                justifyContent="space-between"
-                flexWrap="wrap"
-                spacing={2}
-                sx={{ mt: 1 }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  ✍ {commentaire.auteur} — 📅 {commentaire.date}
-                  {commentaire.heure && ` à ${commentaire.heure}`}
-                  {commentaire.saturation_formation !== undefined &&
-                    ` — 🌡️ ${commentaire.saturation_formation}%`}
-                  {commentaire.is_edited && " — ✏️ modifié"}
-                </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              flexWrap="wrap"
+              spacing={2}
+              sx={{ mt: 1 }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                ✍ {commentaire.auteur} — 📅 {commentaire.date}
+                {commentaire.heure && ` à ${commentaire.heure}`}
+                {commentaire.saturation_formation !== undefined &&
+                  ` — 🌡️ ${commentaire.saturation_formation}%`}
+                {commentaire.is_edited && " — ✏️ modifié"}
+              </Typography>
 
-                <Link to={`/commentaires/edit/${commentaire.id}`}>
-                  <MuiButton variant="outlined" size="small">
-                    🛠 Modifier
-                  </MuiButton>
-                </Link>
-              </Stack>
-            </Box>
-            {index < commentairesAffiches.length - 1 && <Divider />}
+              <Link to={`/commentaires/edit/${commentaire.id}`}>
+                <MuiButton variant="outlined" size="small">
+                  🛠 Modifier
+                </MuiButton>
+              </Link>
+            </Stack>
+
+            {index < commentairesAffiches.length - 1 && <Divider sx={{ mt: 2 }} />}
           </Box>
         ))}
 

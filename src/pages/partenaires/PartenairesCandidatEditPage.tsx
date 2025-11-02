@@ -79,7 +79,7 @@ export default function PartenaireCandidatEditPage() {
         const payload = preparePayload(normalize(values));
         await update(payload);
         toast.success("✅ Modifications enregistrées");
-        navigate("/partenaires");
+        navigate("/partenaires/candidat");
       } catch (_err: unknown) {
         let message = "❌ Erreur lors de la mise à jour du partenaire.";
 

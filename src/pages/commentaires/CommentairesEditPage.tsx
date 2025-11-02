@@ -1,7 +1,7 @@
 // ======================================================
 // src/pages/commentaires/CommentairesEditPage.tsx
-// Édition d’un commentaire avec archivage/désarchivage
-// (corrigé : couleurs Quill préservées dans l’aperçu)
+// Édition d’un commentaire avec Quill (styles/couleurs conservés)
+// + archivage / désarchivage — version fluide (sans reset de curseur)
 // ======================================================
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -21,12 +21,17 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useQuill } from "react-quilljs";
+import Quill, {
+  defaultModules,
+  defaultFormats,
+} from "../../utils/registerQuillFormats";
 import "quill/dist/quill.snow.css";
 
 import api from "../../api/axios";
 import useForm from "../../hooks/useForm";
 import PageTemplate from "../../components/PageTemplate";
-import type { Commentaire } from "../../types/commentaire";
+import CommentaireContent from "./CommentaireContent";
+import { Commentaire } from "../../types/commentaire";
 
 export default function CommentairesEditPage() {
   const { id } = useParams();
@@ -46,37 +51,25 @@ export default function CommentairesEditPage() {
     formation: null,
   });
 
-  // ✅ Initialise l’éditeur Quill
+  /* ---------- Initialisation Quill ---------- */
   const { quill, quillRef } = useQuill({
     theme: "snow",
-    modules: {
-      toolbar: [
-        ["bold", "italic", "underline", "strike"],
-        [{ list: "ordered" }, { list: "bullet" }],
-        [{ color: [] }, { background: [] }],
-        ["clean"],
-      ],
-    },
+    modules: defaultModules,
+    formats: defaultFormats,
   });
 
-  // ────────────────────────────── Synchronisation Quill → state ──────────────────────────────
+  /* ---------- Initialisation du contenu dans Quill ---------- */
   useEffect(() => {
     if (!quill) return;
 
-    const handler = () => {
-      setValues((prev) => ({
-        ...prev,
-        contenu: quill.root.innerHTML,
-      }));
-    };
+    const isEmpty =
+      quill.root.innerHTML === "<p><br></p>" || quill.getText().trim() === "";
+    if (values.contenu && isEmpty) {
+      quill.clipboard.dangerouslyPasteHTML(values.contenu);
+    }
+  }, [quill]); // 👈 plus de dépendance sur values.contenu
 
-    quill.on("text-change", handler);
-    return () => {
-      quill.off("text-change", handler);
-    };
-  }, [quill, setValues]);
-
-  // ────────────────────────────── Chargement du commentaire ──────────────────────────────
+  /* ---------- Chargement du commentaire ---------- */
   useEffect(() => {
     if (!id) {
       toast.error("ID du commentaire manquant");
@@ -84,11 +77,13 @@ export default function CommentairesEditPage() {
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        const res = await api.get(`/commentaires/${id}/`);
-        const data = res.data?.data && typeof res.data.data === "object" ? res.data.data : res.data;
-
+    api
+      .get(`/commentaires/${id}/`)
+      .then((res) => {
+        const data =
+          res.data?.data && typeof res.data.data === "object"
+            ? res.data.data
+            : res.data;
         if (!data || typeof data !== "object" || !data.id)
           throw new Error("Réponse invalide du serveur");
 
@@ -96,36 +91,26 @@ export default function CommentairesEditPage() {
           contenu: data.contenu ?? "",
           formation: data.formation_id ?? data.formation ?? null,
         });
+
         setMeta(data);
         setIsArchived(data.statut_commentaire === "archive");
-
-        // 🪄 Pré-remplir Quill avec le HTML enrichi
-        if (quill) {
-          quill.clipboard.dangerouslyPasteHTML(data.contenu || "");
-        }
-      } catch (_err) {
+      })
+      .catch(() => {
         toast.error("Erreur lors du chargement du commentaire");
         navigate("/commentaires");
-      } finally {
-        setLoading(false);
-      }
-    };
+      })
+      .finally(() => setLoading(false));
+  }, [id, navigate, setValues]);
 
-    fetchData();
-  }, [id, navigate, setValues, quill]);
-
-  // ────────────────────────────── Soumission du formulaire ──────────────────────────────
+  /* ---------- Soumission ---------- */
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    const contenu = (quill?.root.innerHTML || "").trim();
 
-    const contenuHtml = quill?.root.innerHTML?.trim() || "";
-    const cleanHtml = contenuHtml.replace(/\s+/g, " ").trim();
-
-    if (!cleanHtml || cleanHtml === "<p><br></p>") {
+    if (!contenu || contenu === "<p><br></p>") {
       setErrors({ contenu: "Le contenu ne peut pas être vide." });
       return;
     }
-
     if (values.formation == null) {
       toast.error("Formation manquante");
       return;
@@ -133,18 +118,17 @@ export default function CommentairesEditPage() {
 
     try {
       await api.put(`/commentaires/${id}/`, {
-        contenu: cleanHtml,
+        contenu,
         formation: values.formation,
       });
-
-      toast.success("✅ Commentaire mis à jour avec succès");
+      toast.success("✅ Commentaire mis à jour");
       setShowNavigationModal(true);
-    } catch (_err) {
+    } catch {
       toast.error("Erreur lors de la modification");
     }
   };
 
-  // ────────────────────────────── Archivage / Désarchivage ──────────────────────────────
+  /* ---------- Archivage / Désarchivage ---------- */
   const handleArchiveToggle = async () => {
     if (!id) return;
     setBusyArchive(true);
@@ -156,20 +140,23 @@ export default function CommentairesEditPage() {
 
       const res = await api.post(endpoint);
       const updated = res.data?.data ?? res.data;
+
       setMeta(updated);
       setIsArchived(updated?.statut_commentaire === "archive");
 
       toast.success(
-        isArchived ? "💬 Commentaire désarchivé avec succès" : "📦 Commentaire archivé avec succès"
+        isArchived
+          ? "💬 Commentaire désarchivé avec succès"
+          : "📦 Commentaire archivé avec succès"
       );
-    } catch (_err) {
+    } catch {
       toast.error("Erreur lors du changement de statut");
     } finally {
       setBusyArchive(false);
     }
   };
 
-  // ────────────────────────────── Rendu ──────────────────────────────
+  /* ---------- Rendu ---------- */
   return (
     <PageTemplate
       title="✏️ Modifier un commentaire"
@@ -193,7 +180,7 @@ export default function CommentairesEditPage() {
       ) : (
         <Paper sx={{ p: 3 }}>
           <Stack spacing={2} component="form" onSubmit={handleSubmit}>
-            {/* ───────────── Infos meta ───────────── */}
+            {/* --- Meta infos --- */}
             <Box sx={{ bgcolor: "grey.100", p: 2, borderRadius: 1 }}>
               <Typography variant="body2">
                 📚 Formation : <strong>{meta?.formation_nom || "—"}</strong>
@@ -202,7 +189,8 @@ export default function CommentairesEditPage() {
                 📍 Centre : <strong>{meta?.centre_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                📌 Statut : <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
+                📌 Statut :{" "}
+                <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
                 🧩 Type d’offre : <strong>{meta?.type_offre_nom || "—"}</strong>
@@ -215,62 +203,55 @@ export default function CommentairesEditPage() {
                 <strong>{meta?.saturation_formation ?? "—"}%</strong>
               </Typography>
               <Typography variant="body2">
-                📈 Saturation actuelle : <strong>{meta?.taux_saturation ?? "—"}%</strong>
+                📈 Saturation actuelle :{" "}
+                <strong>{meta?.taux_saturation ?? "—"}%</strong>
               </Typography>
             </Box>
 
-            {/* 🧮 Éditeur HTML Quill */}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Modifier le contenu *
-              </Typography>
-              <div
-                ref={quillRef}
-                style={{
-                  height: 220,
-                  backgroundColor: "white",
-                  marginBottom: "1rem",
-                  borderRadius: 2,
-                  border: "1px solid #ddd",
-                }}
-              />
-              {errors.contenu && (
-                <Typography variant="caption" color="error">
-                  {errors.contenu}
-                </Typography>
-              )}
-            </Box>
+            {/* --- Contenu actuel --- */}
+            <Typography variant="subtitle1">Contenu actuel</Typography>
+            <CommentaireContent html={values.contenu || "<em>—</em>"} />
 
-            {/* 📝 Aperçu rendu (corrigé : respecte les styles Quill) */}
-            <Typography variant="subtitle1" gutterBottom>
-              Aperçu du rendu :
+            {/* --- Éditeur Quill --- */}
+            <Typography variant="subtitle1" mt={2}>
+              Modifier le contenu *
             </Typography>
             <Box
               sx={{
-                border: "1px solid #e0e0e0",
-                borderRadius: 1,
-                p: 2,
-                bgcolor: "grey.50",
-                maxHeight: 300,
-                overflowY: "auto",
+                "& .ql-editor ul": {
+                  listStyle: "disc",
+                  paddingLeft: "1.5rem",
+                  margin: "0.5rem 0",
+                },
+                "& .ql-editor ol": {
+                  listStyle: "decimal",
+                  paddingLeft: "1.5rem",
+                  margin: "0.5rem 0",
+                },
+                "& .ql-editor li > p": {
+                  margin: 0,
+                },
               }}
             >
               <div
-                dangerouslySetInnerHTML={{
-                  __html: values.contenu || "<em>—</em>",
-                }}
+                ref={quillRef}
                 style={{
-                  all: "revert", // ✅ neutralise les styles MUI
-                  fontSize: "0.95rem",
-                  lineHeight: 1.5,
-                  wordBreak: "break-word",
+                  height: 200,
+                  backgroundColor: "#fff",
+                  borderRadius: 8,
+                  marginBottom: "1rem",
                 }}
               />
             </Box>
+            {errors.contenu && (
+              <Typography variant="caption" color="error">
+                {errors.contenu}
+              </Typography>
+            )}
 
-            {/* 🧭 Actions */}
-            <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-              <Button type="submit" variant="contained">
+            {/* --- Boutons --- */}
+            <Stack direction="row" spacing={2} justifyContent="flex-end">
+              <Button type="submit" variant="contained" color="success">
                 💾 Enregistrer
               </Button>
               <Button
@@ -288,7 +269,7 @@ export default function CommentairesEditPage() {
         </Paper>
       )}
 
-      {/* ───────────── Confirmation après sauvegarde ───────────── */}
+      {/* --- Confirmation après sauvegarde --- */}
       <Dialog
         open={showNavigationModal}
         onClose={() => setShowNavigationModal(false)}
@@ -297,13 +278,18 @@ export default function CommentairesEditPage() {
       >
         <DialogTitle>✅ Votre commentaire a bien été mis à jour</DialogTitle>
         <DialogContent>
-          <DialogContentText>Que souhaitez-vous faire ensuite ?</DialogContentText>
+          <DialogContentText>
+            Que souhaitez-vous faire ensuite ?
+          </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => navigate(`/formations/${values.formation}`)} variant="outlined">
+          <Button
+            onClick={() => navigate(`/formations/${values.formation}`)}
+            variant="outlined"
+          >
             ← Retour à la formation
           </Button>
-          <Button onClick={() => navigate("/commentaires")} variant="contained">
+          <Button onClick={() => navigate(`/commentaires`)} variant="contained">
             💬 Voir commentaires
           </Button>
         </DialogActions>

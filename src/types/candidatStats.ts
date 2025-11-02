@@ -27,6 +27,7 @@ export type CandidatFilters = {
   gespers?: boolean;
   admissible?: boolean;
   rqth?: boolean;
+  avec_archivees?: boolean;
 };
 
 // KPI candidats (globaux)
@@ -107,6 +108,7 @@ export type CandidatGroupRow = {
   departement?: string;
   statut?: string | null;
   type_contrat?: string | null;
+  formation__num_offre?: string | null;
   cv_statut?: string | null;
   resultat_placement?: string | null;
   contrat_signe?: string | null;

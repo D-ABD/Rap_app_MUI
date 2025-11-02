@@ -159,14 +159,26 @@ export interface MeResponse {
 }
 
 // ✅ Mise à jour du profil (PATCH /api/me/)
+// ✅ Mise à jour du profil (PATCH /api/me/ ou /api/candidats/me/)
 export interface MeUpdatePayload {
+  // ----- Champs User -----
   email?: string;
   first_name?: string;
   last_name?: string;
   phone?: string;
   bio?: string;
   avatar?: File | null;
+
+  // ----- Champs Candidat (profil enrichi) -----
+  street_name?: string;
+  street_complement?: string;
+  code_postal?: string;
+  ville?: string;
+  disponibilite?: string;
+  formation?: number | null;
+  centre?: number | null;
 }
+
 
 export interface MeUpdateResponse {
   success: boolean;

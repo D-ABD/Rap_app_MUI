@@ -1,27 +1,45 @@
-// src/pages/prospections/ProspectionFormCandidat.tsx
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "react-toastify";
+import { useMemo, useState, FormEvent } from "react";
 import {
   Box,
-  TextField,
   Button,
-  CircularProgress,
+  Grid,
+  TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  FormHelperText,
+  CircularProgress,
+  Typography,
+  Paper,
+  Stack,
+  Divider,
 } from "@mui/material";
+import {
+  Business as BusinessIcon,
+  Assignment as AssignmentIcon,
+  Send as SendIcon,
+} from "@mui/icons-material";
 import type { SelectChangeEvent } from "@mui/material";
+import { toast } from "react-toastify";
 
 import { useProspectionChoices } from "../../hooks/useProspection";
 import type {
   ProspectionFormData,
   ProspectionMoyenContact,
+  ProspectionMotif,
+  ProspectionObjectif,
   ProspectionStatut,
+  ProspectionTypeProspection,
 } from "../../types/prospection";
+
+import FormationSelectModal from "../../components/modals/FormationSelectModal";
+import CandidatsSelectModal, {
+  type CandidatPick,
+} from "../../components/modals/CandidatsSelectModal";
+import type { Partenaire } from "../../types/partenaire";
 import PartenaireSelectModal from "../../components/modals/PartenairesSelectModal";
 
+const TERMINAUX: ProspectionStatut[] = ["acceptee", "refusee", "annulee"];
 type Mode = "create" | "edit";
 
 interface Props {
@@ -32,14 +50,37 @@ interface Props {
   fixedFormationId?: number;
 }
 
-const TERMINAUX: ProspectionStatut[] = ["acceptee", "refusee", "annulee"];
-
-type ProspectionFormDraft = Partial<ProspectionFormData> & {
+type ProspectionFormDraft = {
   partenaire: number | null;
-  partenaire_nom?: string | null;
-  relance_prevue?: string | undefined;
+  formation?: number | null;
+  date_prospection: string;
+  type_prospection: ProspectionTypeProspection;
+  motif: ProspectionMotif;
+  statut: ProspectionStatut;
+  objectif: ProspectionObjectif;
   moyen_contact?: ProspectionMoyenContact | null;
+  relance_prevue?: string | null;
+  owner: number | null;
+  owner_username?: string | null;
+  partenaire_nom?: string | null;
+  formation_nom?: string | null;
+  centre_nom?: string | null;
+  num_offre?: string | null;
 };
+
+function extractOwnerUserId(candidate: CandidatPick): number | null {
+  if (typeof candidate.compte_utilisateur_id === "number") return candidate.compte_utilisateur_id;
+  const cu = candidate.compte_utilisateur;
+  return cu && typeof cu.id === "number" ? cu.id : null;
+}
+
+function extractCandidateDisplayName(candidate: CandidatPick): string {
+  return (
+    candidate.nom_complet ||
+    `${candidate.prenom ?? ""} ${candidate.nom ?? ""}`.trim() ||
+    `Candidat #${candidate.id}`
+  );
+}
 
 export default function ProspectionFormCandidat({
   mode = "create",
@@ -49,46 +90,55 @@ export default function ProspectionFormCandidat({
   fixedFormationId,
 }: Props) {
   const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
-
   const [form, setForm] = useState<ProspectionFormDraft>({
     partenaire: initialValues?.partenaire ?? null,
-    partenaire_nom: initialValues?.partenaire_nom ?? null,
-    formation: fixedFormationId ?? initialValues?.formation ?? null,
-    date_prospection: initialValues?.date_prospection?.slice(0, 10) ?? todayStr,
+    formation: fixedFormationId ?? initialValues?.formation ?? undefined,
+    date_prospection: initialValues?.date_prospection
+      ? initialValues.date_prospection.slice(0, 10)
+      : todayStr,
     type_prospection: initialValues?.type_prospection ?? "nouveau_prospect",
     motif: initialValues?.motif ?? "autre",
     statut: initialValues?.statut ?? "a_faire",
     objectif: initialValues?.objectif ?? "prise_contact",
+    moyen_contact: initialValues?.moyen_contact ?? null,
     relance_prevue: initialValues?.relance_prevue ?? undefined,
     owner: initialValues?.owner ?? null,
+    owner_username: initialValues?.owner_username ?? null,
+    partenaire_nom: initialValues?.partenaire_nom ?? null,
     formation_nom: initialValues?.formation_nom ?? null,
     centre_nom: initialValues?.centre_nom ?? null,
     num_offre: initialValues?.num_offre ?? null,
-    moyen_contact: initialValues?.moyen_contact ?? null,
   });
 
-  // ⚙️ mettre à jour la formation si fixedFormationId change
-  useEffect(() => {
-    if (fixedFormationId != null) {
-      setForm((prev) => ({ ...prev, formation: fixedFormationId }));
-    }
-  }, [fixedFormationId]);
+  const [partenaireNom, setPartenaireNom] = useState<string | null>(
+    initialValues?.partenaire_nom ?? null
+  );
+  const [formationNom, setFormationNom] = useState<string | null>(
+    initialValues?.formation_nom ?? null
+    
+  );
+
+    const [numOffre, setNumOffre] = useState<string | null>(
+    initialValues?.num_offre ?? null
+    
+  );
+  const [ownerUsername, setOwnerUsername] = useState<string | null>(
+    initialValues?.owner_username ?? null
+  );
+
+  const [showPartenaireModal, setShowPartenaireModal] = useState(false);
+  const [showFormationModal, setShowFormationModal] = useState(false);
+  const [showOwnerModal, setShowOwnerModal] = useState(false);
 
   const { choices, loading: loadingChoices, error } = useProspectionChoices();
-  const [showPartenaireModal, setShowPartenaireModal] = useState(false);
 
-  // handler TextField
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
     setForm((prev) => {
-      const nextVal = value === "" ? undefined : type === "number" ? Number(value) : value;
-      const next = { ...prev, [name]: nextVal } as ProspectionFormDraft;
-
+      const next = { ...prev, [name]: value } as ProspectionFormDraft;
       if (name === "relance_prevue") {
-        if (nextVal) {
-          if (!TERMINAUX.includes(prev.statut as ProspectionStatut)) {
-            next.statut = "a_relancer";
-          }
+        if (value) {
+          if (!TERMINAUX.includes(prev.statut)) next.statut = "a_relancer";
         } else if (prev.statut === "a_relancer") {
           next.statut = "en_cours";
         }
@@ -97,7 +147,6 @@ export default function ProspectionFormCandidat({
     });
   };
 
-  // handler Select MUI
   const handleSelectChange = (e: SelectChangeEvent) => {
     const { name, value } = e.target;
     setForm((prev) => {
@@ -109,8 +158,8 @@ export default function ProspectionFormCandidat({
     });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (ev: FormEvent<HTMLFormElement>) => {
+    ev.preventDefault();
     if (!form.partenaire) {
       toast.warning("Veuillez sélectionner un partenaire.");
       return;
@@ -133,14 +182,16 @@ export default function ProspectionFormCandidat({
     const payload: ProspectionFormData = {
       partenaire: form.partenaire,
       formation: fixedFormationId ?? form.formation ?? null,
-      date_prospection: form.date_prospection!,
-      type_prospection: form.type_prospection!,
-      motif: form.motif!,
-      statut: form.statut!,
-      objectif: form.objectif!,
+      date_prospection: form.date_prospection,
+      type_prospection: form.type_prospection,
+      motif: form.motif,
+      statut: form.statut,
+      objectif: form.objectif,
       owner: form.owner ?? null,
-      ...(form.moyen_contact !== undefined ? { moyen_contact: form.moyen_contact ?? null } : {}),
+      moyen_contact: form.moyen_contact ?? null,
       ...(form.relance_prevue ? { relance_prevue: form.relance_prevue } : {}),
+      ...(partenaireNom ? { partenaire_nom: partenaireNom } : {}),
+      ...(formationNom ? { formation_nom: formationNom } : {}),
     };
 
     try {
@@ -151,168 +202,228 @@ export default function ProspectionFormCandidat({
   };
 
   if (loadingChoices) return <CircularProgress />;
-  if (error) return <p>Erreur lors du chargement des choix.</p>;
+  if (error) return <Typography color="error">❌ Erreur lors du chargement des choix.</Typography>;
+
+  const Section = ({
+    icon,
+    title,
+    children,
+  }: {
+    icon: React.ReactNode;
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <Paper variant="outlined" sx={{ p: 2.5, mb: 3, borderRadius: 2, background: "#fafafa" }}>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+        {icon}
+        <Typography variant="h6" sx={{ fontWeight: 600, color: "primary.main" }}>
+          {title}
+        </Typography>
+      </Stack>
+      <Divider sx={{ mb: 2 }} />
+      {children}
+    </Paper>
+  );
 
   return (
-    <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
-      {/* Partenaire */}
-      <Box>
-        <TextField
-          label="Partenaire"
-          value={
-            form.partenaire_nom
-              ? form.partenaire_nom
-              : form.partenaire
-                ? `ID #${form.partenaire}`
-                : "—"
-          }
-          InputProps={{ readOnly: true }}
-          fullWidth
-          margin="dense"
-        />
-        {mode === "create" && (
-          <>
-            <Button type="button" onClick={() => setShowPartenaireModal(true)} variant="outlined">
+    <Box component="form" onSubmit={handleSubmit}>
+      {/* ─────────── Sélections ─────────── */}
+      <Section icon={<BusinessIcon color="primary" />} title="Entités liées">
+        <Stack direction="row" spacing={2} flexWrap="wrap">
+          <Box>
+            <Typography variant="body2" gutterBottom>
+              🏢 Partenaire : <strong>{partenaireNom ?? "— Non défini"}</strong>
+            </Typography>
+            <Button variant="outlined" onClick={() => setShowPartenaireModal(true)}>
               {form.partenaire ? "Modifier le partenaire" : "Sélectionner un partenaire"}
             </Button>
-            <PartenaireSelectModal
-              show={showPartenaireModal}
-              onClose={() => setShowPartenaireModal(false)}
-              onSelect={(p) => {
-                setForm((prev) => ({
-                  ...prev,
-                  partenaire: p.id,
-                  partenaire_nom: p.nom,
-                }));
-                setShowPartenaireModal(false);
-              }}
-            />
-          </>
-        )}
-      </Box>
+          </Box>
 
-      {/* Formation (lecture seule si présente) */}
-      {(form.formation_nom || fixedFormationId != null) && (
-        <TextField
-          label="Formation"
-          value={form.formation_nom ?? (fixedFormationId != null ? `ID #${fixedFormationId}` : "—")}
-          InputProps={{ readOnly: true }}
-          fullWidth
-          margin="dense"
-        />
-      )}
-      {form.centre_nom && (
-        <TextField
-          label="Centre"
-          value={form.centre_nom}
-          InputProps={{ readOnly: true }}
-          fullWidth
-          margin="dense"
-        />
-      )}
-      {form.num_offre && (
-        <TextField
-          label="Offre"
-          value={form.num_offre}
-          InputProps={{ readOnly: true }}
-          fullWidth
-          margin="dense"
-        />
-      )}
+          {!fixedFormationId && (
+          <Box>
+            <Typography variant="body2" gutterBottom>
+              🎓 Formation : <strong>{formationNom ?? "— Non définie"}</strong>
+            </Typography>
+            <Typography variant="body2" gutterBottom>
+              🧾 Numéro d’offre : <strong>{numOffre ?? "— Non défini"}</strong>
+            </Typography>
+          </Box>
 
-      {/* Date de prospection */}
-      <TextField
-        type="date"
-        name="date_prospection"
-        label="Date de prospection*"
-        value={form.date_prospection || ""}
-        onChange={handleInputChange}
-        InputLabelProps={{ shrink: true }}
-        required
-      />
+          )}
 
-      {/* Type de prospection */}
-      <FormControl required>
-        <InputLabel>Type de prospection</InputLabel>
-        <Select
-          name="type_prospection"
-          value={form.type_prospection || ""}
-          onChange={handleSelectChange}
+          <Box>
+            <Typography variant="body2" gutterBottom>
+              👤 Candidat : <strong>{ownerUsername ?? "— Aucun"}</strong>
+            </Typography>
+          </Box>
+        </Stack>
+      </Section>
+
+      {/* ─────────── Informations prospection ─────────── */}
+      <Section icon={<AssignmentIcon color="primary" />} title="Informations de prospection">
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            "& .MuiFormControl-root, & .MuiTextField-root": { width: "100%" },
+            "& .MuiGrid-item": { display: "flex", alignItems: "center" },
+          }}
         >
-          {choices!.type_prospection.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-        <FormHelperText>Champ obligatoire</FormHelperText>
-      </FormControl>
+          {/* Colonne gauche */}
+          <Grid item xs={12} sm={6}>
+            <Stack spacing={2}>
+              <TextField
+                type="date"
+                name="date_prospection"
+                label="Date de prospection"
+                value={form.date_prospection}
+                onChange={handleInputChange}
+                InputLabelProps={{ shrink: true }}
+                required
+              />
 
-      {/* Motif */}
-      <FormControl required>
-        <InputLabel>Motif</InputLabel>
-        <Select name="motif" value={form.motif || ""} onChange={handleSelectChange}>
-          {choices!.motif.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+              <FormControl required>
+                <InputLabel>Type</InputLabel>
+                <Select
+                  name="type_prospection"
+                  value={form.type_prospection}
+                  onChange={handleSelectChange}
+                >
+                  {choices!.type_prospection.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
 
-      {/* Statut */}
-      <FormControl required>
-        <InputLabel>Statut</InputLabel>
-        <Select name="statut" value={form.statut || ""} onChange={handleSelectChange}>
-          {choices!.statut.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+              <FormControl required>
+                <InputLabel>Motif</InputLabel>
+                <Select name="motif" value={form.motif} onChange={handleSelectChange}>
+                  {choices!.motif.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Stack>
+          </Grid>
 
-      {/* Relance prévue */}
-      <TextField
-        type="date"
-        name="relance_prevue"
-        label="Date de relance prévue"
-        value={form.relance_prevue || ""}
-        onChange={handleInputChange}
-        InputLabelProps={{ shrink: true }}
-        inputProps={{ min: todayStr }}
-        helperText="Saisir une date bascule automatiquement le statut en 'À relancer' (sauf si statut terminal)."
+          {/* Colonne droite */}
+          <Grid item xs={12} sm={6}>
+            <Stack spacing={2}>
+              <FormControl>
+                <InputLabel>Moyen de contact</InputLabel>
+                <Select
+                  name="moyen_contact"
+                  value={form.moyen_contact ?? ""}
+                  onChange={handleSelectChange}
+                >
+                  <MenuItem value="">—</MenuItem>
+                  {choices!.moyen_contact.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <FormControl required>
+                <InputLabel>Statut</InputLabel>
+                <Select name="statut" value={form.statut} onChange={handleSelectChange}>
+                  {choices!.statut.map((opt) => (
+                    <MenuItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <TextField
+                type="date"
+                name="relance_prevue"
+                label="Relance prévue"
+                value={form.relance_prevue ?? ""}
+                onChange={handleInputChange}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: todayStr }}
+                helperText="Définit automatiquement le statut 'À relancer'."
+              />
+            </Stack>
+          </Grid>
+
+          {/* Ligne complète pour l’objectif */}
+          <Grid item xs={12}>
+            <FormControl fullWidth required>
+              <InputLabel>Objectif</InputLabel>
+              <Select name="objectif" value={form.objectif} onChange={handleSelectChange}>
+                {choices!.objectif.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
+      </Section>
+
+      {/* ─────────── Actions ─────────── */}
+      <Stack direction="row" justifyContent="flex-end" spacing={2} sx={{ mt: 2 }}>
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          endIcon={loading ? <CircularProgress size={18} /> : <SendIcon />}
+          disabled={loading}
+        >
+          {loading
+            ? mode === "create"
+              ? "Création..."
+              : "Mise à jour..."
+            : mode === "create"
+              ? "Créer la prospection"
+              : "Mettre à jour"}
+        </Button>
+      </Stack>
+
+      {/* ─────────── Modales ─────────── */}
+      <PartenaireSelectModal
+        show={showPartenaireModal}
+        onClose={() => setShowPartenaireModal(false)}
+        onSelect={(p: Partenaire) => {
+          setForm((fm) => ({ ...fm, partenaire: p.id }));
+          setPartenaireNom(p.nom ?? null);
+          setShowPartenaireModal(false);
+        }}
       />
 
-      {/* Objectif */}
-      <FormControl required>
-        <InputLabel>Objectif</InputLabel>
-        <Select name="objectif" value={form.objectif || ""} onChange={handleSelectChange}>
-          {choices!.objectif.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <FormationSelectModal
+        show={showFormationModal}
+        onClose={() => setShowFormationModal(false)}
+        onSelect={(f) => {
+          setForm((fm) => ({ ...fm, formation: f.id }));
+          setFormationNom(f.nom);
+          setShowFormationModal(false);
+        }}
+      />
 
-      {/* Moyen de contact */}
-      <FormControl>
-        <InputLabel>Moyen de contact</InputLabel>
-        <Select name="moyen_contact" value={form.moyen_contact ?? ""} onChange={handleSelectChange}>
-          <MenuItem value="">—</MenuItem>
-          {(choices?.moyen_contact ?? []).map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      {/* Submit */}
-      <Button type="submit" variant="contained" disabled={loading}>
-        {loading ? (mode === "create" ? "⏳ Création…" : "⏳ Mise à jour…") : "✅ Enregistrer"}
-      </Button>
+      <CandidatsSelectModal
+        show={showOwnerModal}
+        onClose={() => setShowOwnerModal(false)}
+        onSelect={(cand) => {
+          const ownerId = extractOwnerUserId(cand);
+          if (!ownerId) {
+            toast.warning("Ce candidat n'a pas de compte utilisateur lié.");
+            return;
+          }
+          const name = extractCandidateDisplayName(cand);
+          setForm((fm) => ({ ...fm, owner: ownerId }));
+          setOwnerUsername(name);
+          setShowOwnerModal(false);
+        }}
+      />
     </Box>
   );
 }

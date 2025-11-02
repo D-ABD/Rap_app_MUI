@@ -124,7 +124,11 @@ export function useFormationChoices(): UseFormationChoicesResult {
   const fetchChoices = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await api.get("/formations/filtres/");
+      // ✅ Inclut ref_complet=true pour afficher tous les statuts / types d’offre
+      const res = await api.get("/formations/filtres/", {
+        params: { ref_complet: true },
+      });
+
       const data = res.data?.data ?? {};
 
       setCentres(Array.isArray(data.centres) ? data.centres : []);
@@ -137,20 +141,17 @@ export function useFormationChoices(): UseFormationChoicesResult {
     }
   }, []);
 
-  // ✅ Monté une seule fois
+  // ✅ Appel unique au montage
   useEffect(() => {
-    if (centres.length === 0 && statuts.length === 0 && typeOffres.length === 0) {
-      fetchChoices();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // ✅ on monte une seule fois
+    fetchChoices();
+  }, [fetchChoices]);
 
-  // ✅ Fonction refresh stable (ne change plus jamais)
+  // ✅ Fonction refresh stable
   const refresh = useCallback(() => {
     fetchChoices();
   }, [fetchChoices]);
 
-  // ✅ Retourne des valeurs mémoïsées (références stables)
+  // ✅ Retourne des valeurs stables pour éviter les re-renders inutiles
   return useMemo(
     () => ({
       centres,

@@ -1,4 +1,3 @@
-// src/components/formation/FormationGroupedWidget.tsx
 import * as React from "react";
 import {
   Card,
@@ -15,6 +14,7 @@ import {
   TableBody,
   TableFooter,
   Button,
+  FormControl,
 } from "@mui/material";
 import { alpha } from "@mui/material/styles";
 import ArchiveIcon from "@mui/icons-material/Archive";
@@ -24,13 +24,13 @@ import {
   useFormationGrouped,
   useFormationDictionaries,
   resolveGroupLabel,
+  GroupRow,
 } from "../../../types/formationStats";
 
 function toFixed0(n?: number | null) {
   return n == null ? "—" : Math.round(n).toString();
 }
 
-// 🔹 Colonnes définies une seule fois
 const COLUMNS = [
   "Formations",
   "Places CRIF",
@@ -58,7 +58,7 @@ const COLUMNS = [
 export default function FormationGroupedWidget({
   title = "Détails des formations",
   initialBy = "centre",
-  filters,
+  filters = {},
 }: {
   title?: string;
   initialBy?: GroupBy;
@@ -66,82 +66,70 @@ export default function FormationGroupedWidget({
 }) {
   const [by, setBy] = React.useState<GroupBy>(initialBy);
   const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
+  const [localFilters, setLocalFilters] = React.useState<Filters>(filters);
 
   const effectiveFilters = React.useMemo(
-    () => ({ ...(filters ?? {}), avec_archivees: includeArchived }),
-    [filters, includeArchived]
+    () => ({ ...localFilters, avec_archivees: includeArchived }),
+    [localFilters, includeArchived]
   );
 
-  const { data: dicts } = useFormationDictionaries();
+  const { data: dicts, isLoading: isLoadingDicts, error: dictError } = useFormationDictionaries();
   const { data, isLoading, error } = useFormationGrouped(by, effectiveFilters);
 
-  // 🧮 Calcul des totaux
   const totals = React.useMemo(() => {
     if (!data?.results?.length) return null;
-    const sum = <K extends keyof any>(key: K) =>
-      data.results.reduce((acc, row: any) => acc + (Number(row[key]) || 0), 0);
-
-    const nbFormations = sum("nb_formations");
-    const totalPlacesCrif = sum("total_places_crif");
-    const totalInscritsCrif = sum("total_inscrits_crif");
-    const totalPlacesMp = sum("total_places_mp");
-    const totalInscritsMp = sum("total_inscrits_mp");
-    const totalDispo = sum("total_disponibles");
-    const totalEntrees = sum("entrees_formation");
-    const totalCandidats = sum("nb_candidats");
-    const totalAdmissibles = sum("nb_admissibles");
-    const totalEntretien = sum("nb_entretien_ok");
-    const totalTest = sum("nb_test_ok");
-    const totalGespers = sum("nb_inscrits_gespers");
-    const totalAppr = sum("nb_contrats_apprentissage");
-    const totalProf = sum("nb_contrats_professionnalisation");
-    const totalPoeiPoec = sum("nb_contrats_poei_poec");
-    const totalAutres = sum("nb_contrats_autres");
-    const totalAppTotal = sum("app_total");
-    const totalAppOk = sum("app_appairage_ok");
-    const totalAppAttente = sum("app_en_attente");
-    const totalAppAFaire = sum("app_a_faire");
+    const sum = (key: keyof GroupRow) =>
+      data.results.reduce((acc, row) => acc + (Number(row[key]) || 0), 0);
 
     const moyenneSaturation =
       data.results.reduce((acc, r) => acc + (Number(r.taux_saturation) || 0), 0) /
       data.results.length;
 
     return {
-      nbFormations,
-      totalPlacesCrif,
-      totalInscritsCrif,
-      totalPlacesMp,
-      totalInscritsMp,
-      totalDispo,
+      nbFormations: sum("nb_formations"),
+      totalPlacesCrif: sum("total_places_crif"),
+      totalInscritsCrif: sum("total_inscrits_crif"),
+      totalPlacesMp: sum("total_places_mp"),
+      totalInscritsMp: sum("total_inscrits_mp"),
+      totalDispo: sum("total_disponibles"),
       moyenneSaturation,
-      totalEntrees,
-      totalCandidats,
-      totalAdmissibles,
-      totalEntretien,
-      totalTest,
-      totalGespers,
-      totalAppr,
-      totalProf,
-      totalPoeiPoec,
-      totalAutres,
-      totalAppTotal,
-      totalAppOk,
-      totalAppAttente,
-      totalAppAFaire,
+      totalEntrees: sum("entrees_formation"),
+      totalCandidats: sum("nb_candidats"),
+      totalAdmissibles: sum("nb_admissibles"),
+      totalEntretien: sum("nb_entretien_ok"),
+      totalTest: sum("nb_test_ok"),
+      totalGespers: sum("nb_inscrits_gespers"),
+      totalAppr: sum("nb_contrats_apprentissage"),
+      totalProf: sum("nb_contrats_professionnalisation"),
+      totalPoeiPoec: sum("nb_contrats_poei_poec"),
+      totalAutres: sum("nb_contrats_autres"),
+      totalAppTotal: sum("app_total"),
+      totalAppOk: sum("app_appairage_ok"),
+      totalAppAttente: sum("app_en_attente"),
+      totalAppAFaire: sum("app_a_faire"),
     };
   }, [data]);
+
+  if (dictError) {
+    return (
+      <Card sx={{ p: 3 }}>
+        <Alert severity="error">{(dictError as Error).message}</Alert>
+      </Card>
+    );
+  }
+
+  if (isLoadingDicts) {
+    return (
+      <Card sx={{ p: 3, textAlign: "center" }}>
+        <CircularProgress size={24} />
+      </Card>
+    );
+  }
 
   return (
     <Card sx={{ p: 2, width: "100%" }}>
       {/* Header */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        flexWrap="wrap"
-        mb={2}
-        gap={1}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" mb={2} gap={1.5}>
         <Typography variant="h6" fontWeight="bold">
           {title}
         </Typography>
@@ -170,6 +158,72 @@ export default function FormationGroupedWidget({
             {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
           </Button>
         </Box>
+      </Box>
+
+      {/* Filtres multiples */}
+      <Box display="flex" gap={2} mb={2} flexWrap="wrap">
+        {/* Centre */}
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <Select
+            value={localFilters.centre ?? ""}
+            onChange={(e) => setLocalFilters((f) => ({ ...f, centre: e.target.value || undefined }))}
+            displayEmpty
+            disabled={!dicts}
+          >
+            <MenuItem value="">Tous centres</MenuItem>
+            {dicts &&
+              Object.entries(dicts.centresById).map(([id, label]) => (
+                <MenuItem key={id} value={id}>
+                  {label}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+
+        {/* Type d’offre */}
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <Select
+            value={localFilters.type_offre ?? ""}
+            onChange={(e) => setLocalFilters((f) => ({ ...f, type_offre: e.target.value || undefined }))}
+            displayEmpty
+            disabled={!dicts}
+          >
+            <MenuItem value="">Tous types d’offre</MenuItem>
+            {dicts &&
+              Object.entries(dicts.typeOffreById).map(([id, label]) => (
+                <MenuItem key={id} value={id}>
+                  {label}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+
+        {/* Statut */}
+        <FormControl size="small" sx={{ minWidth: 140 }}>
+          <Select
+            value={localFilters.statut ?? ""}
+            onChange={(e) => setLocalFilters((f) => ({ ...f, statut: e.target.value || undefined }))}
+            displayEmpty
+            disabled={!dicts}
+          >
+            <MenuItem value="">Tous statuts</MenuItem>
+            {dicts &&
+              Object.entries(dicts.statutById).map(([id, label]) => (
+                <MenuItem key={id} value={id}>
+                  {label}
+                </MenuItem>
+              ))}
+          </Select>
+        </FormControl>
+
+        {/* Bouton reset */}
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => setLocalFilters({ ...(filters ?? {}), avec_archivees: includeArchived })}
+        >
+          Réinitialiser
+        </Button>
       </Box>
 
       {/* Contenu */}
@@ -214,15 +268,13 @@ export default function FormationGroupedWidget({
 
             <TableBody>
               {data.results.map((r, idx) => {
-                const label = resolveGroupLabel(r, by, dicts);
+                let label = resolveGroupLabel(r, by, dicts);
+                if (by === "formation" && r.num_offre) label += ` (${r.num_offre})`;
+
                 const isEven = idx % 2 === 0;
                 const saturation = r.taux_saturation ?? 0;
                 const saturationColor =
-                  saturation < 50
-                    ? "success.main"
-                    : saturation < 80
-                      ? "warning.main"
-                      : "error.main";
+                  saturation < 50 ? "success.main" : saturation < 80 ? "warning.main" : "error.main";
 
                 return (
                   <TableRow
@@ -233,21 +285,24 @@ export default function FormationGroupedWidget({
                     }}
                   >
                     <TableCell
-                      sx={{
-                        position: "sticky",
-                        left: 0,
-                        backgroundColor: isEven ? "background.default" : "grey.50",
-                        zIndex: 1,
-                        fontWeight: 500,
-                        minWidth: 180,
-                        maxWidth: 240,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      <Typography variant="body2">{label}</Typography>
-                    </TableCell>
+  sx={{
+    position: "sticky",
+    left: 0,
+    backgroundColor: isEven ? "background.default" : "grey.50",
+    zIndex: 1,
+    fontWeight: 500,
+    minWidth: 180,
+    maxWidth: 240,
+    overflowWrap: "break-word", // ✅ autorise les sauts de ligne
+    wordBreak: "break-word", // ✅ coupe si nécessaire
+    whiteSpace: "normal", // ✅ permet le retour à la ligne
+  }}
+>
+  <Typography variant="body2" sx={{ lineHeight: 1.3 }}>
+    {label}
+  </Typography>
+</TableCell>
+
 
                     <TableCell align="right">{toFixed0(r.nb_formations)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_places_crif)}</TableCell>
@@ -265,9 +320,7 @@ export default function FormationGroupedWidget({
                     <TableCell align="right">{toFixed0(r.nb_test_ok)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_inscrits_gespers)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_apprentissage)}</TableCell>
-                    <TableCell align="right">
-                      {toFixed0(r.nb_contrats_professionnalisation)}
-                    </TableCell>
+                    <TableCell align="right">{toFixed0(r.nb_contrats_professionnalisation)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_poei_poec)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_autres)}</TableCell>
                     <TableCell align="right">{toFixed0(r.app_total)}</TableCell>
@@ -279,15 +332,9 @@ export default function FormationGroupedWidget({
               })}
             </TableBody>
 
-            {/* 🔸 Ligne Totale */}
             {totals && (
               <TableFooter>
-                <TableRow
-                  sx={{
-                    backgroundColor: alpha("#1976d2", 0.1),
-                    fontWeight: "bold",
-                  }}
-                >
+                <TableRow sx={{ backgroundColor: alpha("#1976d2", 0.1), fontWeight: "bold" }}>
                   <TableCell sx={{ fontWeight: 700 }}>TOTAL</TableCell>
                   <TableCell align="right">{toFixed0(totals.nbFormations)}</TableCell>
                   <TableCell align="right">{toFixed0(totals.totalPlacesCrif)}</TableCell>

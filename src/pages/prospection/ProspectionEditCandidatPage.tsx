@@ -17,7 +17,7 @@ import {
 import { toast } from "react-toastify";
 
 import PageTemplate from "../../components/PageTemplate";
-import ProspectionForm from "./ProspectionForm";
+
 import type { ProspectionFormData } from "../../types/prospection";
 
 import api from "../../api/axios";
@@ -29,6 +29,7 @@ import {
 
 import ProspectionLastCommentRow from "./prospectioncomments/ProspectionLastCommentRow";
 import ProspectionCommentsModal from "../../components/modals/ProspectionCommentsModal";
+import ProspectionFormCandidat from "./ProspectionFormCandidat";
 
 type ProspectionDetailDTO = ProspectionFormData & {
   partenaire_nom?: string | null;
@@ -64,7 +65,7 @@ const fmt = (iso?: string | null) => {
   return Number.isNaN(d.getTime()) ? "—" : dtfFR.format(d);
 };
 
-export default function ProspectionEditPage() {
+export default function ProspectionEditCandidatPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,17 +120,17 @@ export default function ProspectionEditPage() {
     };
   }, [detail?.formation, detail?.formation_nom]);
 
-  const handleUpdate = async (data: ProspectionFormData) => {
-    if (!prospectionId) return;
-    try {
-      const updated = await update(data);
-      setDetail(updated as ProspectionDetailDTO);
-      toast.success("✅ Prospection mise à jour");
-      navigate("/prospections");
-    } catch {
-      toast.error("❌ Échec de la mise à jour");
-    }
-  };
+const handleUpdate = async (data: ProspectionFormData) => {
+  if (!prospectionId) return;
+  try {
+    await update(data);
+    toast.success("✅ Prospection mise à jour");
+    // Petite pause visuelle avant la redirection (facultatif)
+    setTimeout(() => navigate("/prospections/candidat"), 300);
+  } catch {
+    toast.error("❌ Échec de la mise à jour");
+  }
+};
 
   const handleDelete = async () => {
     if (!prospectionId) return;
@@ -294,7 +295,7 @@ export default function ProspectionEditPage() {
       />
 
       {/* Formulaire */}
-      <ProspectionForm
+      <ProspectionFormCandidat
         mode="edit"
         initialValues={initialValues}
         onSubmit={handleUpdate}

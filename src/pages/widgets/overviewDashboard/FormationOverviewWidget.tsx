@@ -108,9 +108,9 @@ export default function FormationOverviewWidget({
 
   // Données du camembert
   const pieData = k && [
-    { name: "Actives", value: k.nb_actives ?? 0 },
+    { name: "En cours", value: k.nb_actives ?? 0 },
     { name: "À venir", value: k.nb_a_venir ?? 0 },
-    { name: "Finies", value: k.nb_terminees ?? 0 },
+    { name: "Terminées", value: k.nb_terminees ?? 0 },
   ];
 
   // 🔁 Refetch si on bascule “archivées”

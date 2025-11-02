@@ -1,5 +1,3 @@
-// src/pages/formations/FormationsEditpage.tsx
-
 import React, { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -22,13 +20,13 @@ export default function FormationsEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // 🔢 Conversion sécurisée de l'ID
+  // 🧩 Conversion sécurisée de l'ID
   const formationId = useMemo(() => {
     const n = Number(id);
     return Number.isFinite(n) && n > 0 ? n : null;
   }, [id]);
 
-  // 🔄 Chargement des données et hooks API
+  // 🔄 Chargement des données
   const { data: detail, loading, error } = useFormation(formationId ?? 0);
   const { updateFormation, loading: saving } = useUpdateFormation(formationId ?? 0);
   const { deleteFormation, loading: removing } = useDeleteFormation(formationId ?? 0);
@@ -42,26 +40,25 @@ export default function FormationsEditPage() {
   // 🧠 Local cache pour mise à jour instantanée
   const [localDetail, setLocalDetail] = useState<Formation | null>(null);
 
-  // ⚙️ Données fusionnées
+  // 🧩 Données fusionnées
   const formation = localDetail ?? detail;
   const archived = !!formation?.est_archivee;
 
   // ------------------------------------------------------------------
   // 🔹 Archiver / Désarchiver
   // ------------------------------------------------------------------
-  const handleArchiveToggle = async () => {
+  const toggleArchive = async () => {
     if (!formationId || !formation) return;
-    const isArchived = !!formation.est_archivee;
 
     try {
-      if (isArchived) {
+      if (archived) {
         await api.post(`/formations/${formationId}/desarchiver/`);
-        toast.success("♻️ Formation désarchivée");
         setLocalDetail({ ...formation, est_archivee: false, activite: "active" });
+        toast.success("♻️ Formation désarchivée");
       } else {
         await api.post(`/formations/${formationId}/archiver/`);
-        toast.info("📦 Formation archivée");
         setLocalDetail({ ...formation, est_archivee: true, activite: "archivee" });
+        toast.info("📦 Formation archivée");
       }
     } catch {
       toast.error("❌ Échec de l’opération d’archivage");
@@ -71,7 +68,7 @@ export default function FormationsEditPage() {
   // ------------------------------------------------------------------
   // 🔹 Suppression
   // ------------------------------------------------------------------
-  const handleDelete = async () => {
+  const deleteCurrent = async () => {
     if (!formationId) return;
     if (!window.confirm(`Supprimer définitivement la formation #${formationId} ?`)) return;
 
@@ -85,18 +82,25 @@ export default function FormationsEditPage() {
   };
 
   // ------------------------------------------------------------------
-  // 🔹 Mise à jour du formulaire
+  // 🔹 Soumission du formulaire (mise à jour)
   // ------------------------------------------------------------------
-  const handleUpdate = async (values: FormationFormData) => {
-    if (!formationId) return;
-    try {
-      const updated = await updateFormation(values);
-      setLocalDetail(updated);
-      toast.success("✅ Formation mise à jour");
-    } catch {
-      toast.error("❌ Échec de la mise à jour");
-    }
-  };
+const submitFormation = async (values: FormationFormData): Promise<void> => {
+  if (!formationId) return;
+
+  try {
+    const updated = await updateFormation(values);
+    setLocalDetail(updated);
+    toast.success("✅ Formation mise à jour");
+
+    // 🔁 Redirige vers la liste
+    navigate("/formations");
+  } catch (error: any) {
+    console.error("Erreur updateFormation:", error);
+    toast.error("❌ Échec de la mise à jour");
+    throw error;
+  }
+};
+
 
   // ------------------------------------------------------------------
   // 🔹 États de chargement / erreurs
@@ -112,7 +116,9 @@ export default function FormationsEditPage() {
   if (loading || loadingChoices || !formation) {
     return (
       <PageTemplate title={`Formation #${formationId}`}>
-        <CircularProgress />
+        <Box display="flex" justifyContent="center" alignItems="center" minHeight="40vh">
+          <CircularProgress />
+        </Box>
       </PageTemplate>
     );
   }
@@ -136,15 +142,22 @@ export default function FormationsEditPage() {
       actions={
         <Box display="flex" gap={1}>
           <AddDocumentButton formationId={formationId ?? 0} />
+
           <Button
             variant="contained"
             color={archived ? "success" : "warning"}
-            onClick={handleArchiveToggle}
+            onClick={toggleArchive}
             disabled={saving || removing}
           >
             {archived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
-          <Button variant="outlined" color="error" onClick={handleDelete} disabled={removing}>
+
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={deleteCurrent}
+            disabled={removing}
+          >
             {removing ? "Suppression…" : "Supprimer"}
           </Button>
         </Box>
@@ -165,12 +178,12 @@ export default function FormationsEditPage() {
           typeOffres={typeOffres}
           loading={saving}
           loadingChoices={loadingChoices}
-          onSubmit={handleUpdate}
+          onSubmit={submitFormation}
           onCancel={() => navigate("/formations")}
           submitLabel="💾 Mettre à jour"
         />
 
-        {/* 📅 Footer */}
+        {/* 📅 Footer d'infos */}
         <Box
           mt={4}
           sx={{

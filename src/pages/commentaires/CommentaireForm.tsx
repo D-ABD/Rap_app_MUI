@@ -1,20 +1,37 @@
 // ======================================================
-// src/components/ui/CommentaireForm.tsx
-// Formulaire de création / lecture de commentaire
-// (corrigé : conserve les couleurs et surlignages Quill)
+// src/pages/commentaires/CommentaireForm.tsx
+// Formulaire de création / édition de commentaire
+// (version finale fluide : plus de reset du curseur,
+//  édition naturelle + TS safe + accessibilité)
 // ======================================================
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Box, Button, CircularProgress, Stack, Typography, Paper } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  Typography,
+  Paper,
+} from "@mui/material";
 import { useQuill } from "react-quilljs";
-import Quill from "quill"; // ✅ nécessaire pour le patch
 import "quill/dist/quill.snow.css";
 
+import Quill, {
+  colorOptions,
+} from "../../utils/registerQuillFormats";
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
 import useForm from "../../hooks/useForm";
 import api from "../../api/axios";
+
+/* ---------- Toolbar minimale ---------- */
+const TOOLBAR = [
+  ["bold", "italic", "strike"],
+  [{ color: colorOptions }, { background: colorOptions }],
+  ["clean"],
+];
 
 /* ---------- Types ---------- */
 type Props = {
@@ -30,37 +47,6 @@ interface CommentaireFormData {
   [key: string]: unknown;
 }
 
-/* ---------- 🩹 Patch Quill : autorise color et background inline ---------- */
-const Inline = (Quill as any).import("blots/inline");
-
-class SpanStyle extends Inline {
-  static create(value: any) {
-    const node = super.create() as HTMLElement;
-    if (value) node.setAttribute("style", value);
-    return node;
-  }
-
-  static formats(node: HTMLElement) {
-    return node.getAttribute("style");
-  }
-}
-
-(SpanStyle as any).blotName = "span";
-(SpanStyle as any).tagName = "span";
-(Quill as any).register(SpanStyle, true);
-
-/* ---------- Config Quill ---------- */
-const modules = {
-  toolbar: [
-    ["bold", "italic", "underline", "strike"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ color: [] }, { background: [] }],
-    ["clean"],
-  ],
-};
-
-const formats = ["bold", "italic", "underline", "strike", "list", "bullet", "color", "background"];
-
 /* ---------- Composant ---------- */
 export default function CommentaireForm({
   formationId,
@@ -75,44 +61,48 @@ export default function CommentaireForm({
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const { values, errors, setErrors, setValues } = useForm<CommentaireFormData>({
-    formation: formationId || "",
-    contenu: contenuInitial || "",
-  });
+  const { values, errors, setErrors, setValues } =
+    useForm<CommentaireFormData>({
+      formation: formationId || "",
+      contenu: contenuInitial || "",
+    });
 
+  /* ---------- Initialise Quill ---------- */
   const { quill, quillRef } = useQuill({
     theme: "snow",
-    modules,
-    formats,
+    modules: {
+      toolbar: { container: TOOLBAR },
+      history: { delay: 500, maxStack: 100, userOnly: true },
+      clipboard: { matchVisual: false },
+    },
+    formats: ["bold", "italic", "strike", "color", "background"],
   });
 
-  /* ---------- Synchronisation contenu ---------- */
+  /* ---------- Initialisation du contenu ---------- */
   useEffect(() => {
-    if (!quill || readonlyFormation) return;
+    if (!quill) return;
 
-    const handler = () => {
-      setValues((prev) => ({
-        ...prev,
-        contenu: quill.root.innerHTML,
-      }));
-    };
-    quill.on("text-change", handler);
-    return () => {
-      quill.off("text-change", handler);
-    };
-  }, [quill, setValues, readonlyFormation]);
-
-  /* ---------- Lecture seule ---------- */
-  useEffect(() => {
-    if (quill && readonlyFormation) {
-      quill.disable();
-      if (contenuInitial) {
-        quill.root.innerHTML = contenuInitial;
-      }
+    // ⚙️ Injecte le contenu initial une seule fois
+    const isEmpty =
+      quill.root.innerHTML === "<p><br></p>" || quill.getText().trim() === "";
+    if (contenuInitial && isEmpty) {
+      quill.clipboard.dangerouslyPasteHTML(contenuInitial);
     }
-  }, [readonlyFormation, quill, contenuInitial]);
 
-  /* ---------- Chargement nom formation ---------- */
+    // 🔒 Lecture seule si nécessaire
+    if (readonlyFormation) {
+      quill.disable();
+    }
+  }, [quill, contenuInitial, readonlyFormation]);
+
+  /* ---------- Mise à jour du formationId ---------- */
+  useEffect(() => {
+    if (formationId) {
+      setValues((prev) => ({ ...prev, formation: formationId }));
+    }
+  }, [formationId, setValues]);
+
+  /* ---------- Chargement du nom de la formation ---------- */
   useEffect(() => {
     if (!formationId) return;
     api
@@ -127,41 +117,38 @@ export default function CommentaireForm({
     e.preventDefault();
     if (submitting) return;
 
-    const contenuTexte = quill?.root.innerHTML.trim() || values.contenu.trim();
-    if (!contenuTexte || contenuTexte === "<p><br></p>") {
+    const contenuHtml = quill?.root.innerHTML?.trim() ?? "";
+    const contenuText = quill?.getText()?.trim() ?? "";
+
+    if (!contenuText) {
       toast.error("Le contenu du commentaire est requis.");
       return;
     }
 
     const payload = {
-      contenu: contenuTexte,
-      formation: formationId ?? values.formation,
+      contenu: contenuHtml,
+      formation: formationId || values.formation || null,
     };
 
+    if (!payload.formation) {
+      toast.error("Veuillez sélectionner une formation.");
+      return;
+    }
+
     setSubmitting(true);
-
     try {
-      if (onSubmit) {
-        await onSubmit({ contenu: payload.contenu });
-        setValues((prev) => ({ ...prev, contenu: "" }));
-        if (quill) quill.setText("");
-        return;
-      }
-
-      if (!payload.formation) {
-        toast.error("Veuillez sélectionner une formation.");
-        return;
-      }
-
       await api.post("/commentaires/", payload);
       toast.success("✅ Commentaire créé avec succès");
-      navigate(`/formations/${payload.formation}`);
+      if (onSubmit) onSubmit(payload);
+      navigate("/commentaires");
     } catch (err: unknown) {
       const axiosError = err as {
         response?: { data?: Record<string, string[]> };
       };
       if (axiosError.response?.data) {
-        const formattedErrors: Partial<Record<keyof CommentaireFormData, string>> = {};
+        const formattedErrors: Partial<
+          Record<keyof CommentaireFormData, string>
+        > = {};
         for (const key in axiosError.response.data) {
           const val = axiosError.response.data[key];
           if (Array.isArray(val)) {
@@ -169,10 +156,9 @@ export default function CommentaireForm({
           }
         }
         setErrors(formattedErrors);
-
-        const firstError = Object.values(axiosError.response.data)[0];
-        if (Array.isArray(firstError)) toast.error(firstError[0]);
-        else toast.error("Erreur lors de la création du commentaire");
+        toast.error("Erreur lors de la création du commentaire");
+      } else {
+        toast.error("Une erreur est survenue lors de l’envoi.");
       }
     } finally {
       setSubmitting(false);
@@ -186,26 +172,35 @@ export default function CommentaireForm({
         <CircularProgress />
       ) : (
         <Box component="form" onSubmit={handleSubmit}>
-          {readonlyFormation && formationNom && (
-            <Box
-              sx={{
-                mb: 2,
-                p: 2,
-                bgcolor: "grey.100",
-                borderRadius: 1,
-              }}
-            >
-              <Typography variant="body2">
-                📚 Commentaire pour la formation : <strong>{formationNom}</strong>
-              </Typography>
-            </Box>
-          )}
-
+          {/* --- Sélecteur de formation --- */}
           {!readonlyFormation && (
             <>
-              <Button variant="outlined" onClick={() => setShowModal(true)} sx={{ mb: 2 }}>
-                🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
-              </Button>
+              <Box sx={{ mb: 2 }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => setShowModal(true)}
+                  aria-label={
+                    formationNom
+                      ? "Changer de formation"
+                      : "Rechercher une formation"
+                  }
+                >
+                  🔍{" "}
+                  {formationNom
+                    ? "Changer de formation"
+                    : "Rechercher une formation"}
+                </Button>
+
+                {formationNom && (
+                  <Typography
+                    variant="body2"
+                    sx={{ mt: 1, color: "text.secondary" }}
+                  >
+                    📚 Formation sélectionnée :{" "}
+                    <strong style={{ color: "#2e7d32" }}>{formationNom}</strong>
+                  </Typography>
+                )}
+              </Box>
 
               <FormationSelectModal
                 show={showModal}
@@ -228,73 +223,64 @@ export default function CommentaireForm({
               Contenu
             </Typography>
 
-            {readonlyFormation ? (
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  minHeight: 150,
-                  bgcolor: "grey.50",
-                  overflowX: "auto",
-                }}
-              >
-                {values.contenu ? (
-                  <div
-                    dangerouslySetInnerHTML={{ __html: values.contenu }}
-                    style={{
-                      all: "revert",
-                      fontSize: "0.95rem",
-                      lineHeight: 1.5,
-                      wordBreak: "break-word",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body2" color="text.secondary">
-                    Aucun contenu disponible.
-                  </Typography>
-                )}
-              </Paper>
-            ) : (
-              <>
-                <div
-                  ref={quillRef}
-                  aria-labelledby="commentaire-label"
-                  style={{
-                    height: 200,
-                    marginBottom: "1rem",
-                    backgroundColor: "#fff",
-                    borderRadius: 8,
-                  }}
-                />
-                {errors.contenu && (
-                  <Typography variant="caption" color="error">
-                    {errors.contenu}
-                  </Typography>
-                )}
-              </>
+            <Box
+              sx={{
+                "& .ql-editor": {
+                  minHeight: 200,
+                  overflowY: "auto",
+                  backgroundColor: "#fff",
+                  borderRadius: 1,
+                  padding: "0.5rem",
+                  fontSize: "0.95rem",
+                  lineHeight: 1.5,
+                },
+              }}
+            >
+              <div
+                ref={quillRef}
+                aria-labelledby="commentaire-label"
+                role="textbox"
+                aria-multiline="true"
+              />
+            </Box>
+
+            {errors.contenu && (
+              <Typography variant="caption" color="error">
+                {errors.contenu}
+              </Typography>
             )}
           </Box>
 
           {/* --- Actions --- */}
           {!readonlyFormation && (
             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-              <Button type="submit" variant="contained" color="success" disabled={submitting}>
-                {submitting ? <CircularProgress size={20} color="inherit" /> : "💾 Enregistrer"}
+              <Button
+                type="submit"
+                variant="contained"
+                color="success"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <CircularProgress size={20} color="inherit" />
+                ) : (
+                  "💾 Enregistrer"
+                )}
               </Button>
 
-              {!onSubmit && (
-                <Button
-                  type="button"
-                  variant="outlined"
-                  onClick={() =>
-                    values.formation
-                      ? navigate(`/formations/${values.formation}`)
-                      : navigate("/commentaires")
+              <Button
+                type="button"
+                variant="outlined"
+                onClick={() => {
+                  if (
+                    !submitting &&
+                    window.confirm("Annuler les modifications ?")
+                  ) {
+                    navigate("/commentaires");
                   }
-                >
-                  Annuler
-                </Button>
-              )}
+                }}
+              >
+                Annuler
+              </Button>
             </Stack>
           )}
         </Box>

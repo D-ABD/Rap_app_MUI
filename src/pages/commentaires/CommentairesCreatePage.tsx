@@ -1,10 +1,12 @@
 // ======================================================
 // src/pages/commentaires/CommentairesCreatePage.tsx
 // Création d’un commentaire avec aperçu du rendu en temps réel
+// (version finale fluide : enregistre via CommentaireForm + aperçu live)
 // ======================================================
 
 import { useState } from "react";
 import { Box, Paper, Typography, Divider } from "@mui/material";
+import { toast } from "react-toastify";
 
 import PageTemplate from "../../components/PageTemplate";
 import CommentaireForm from "./CommentaireForm";
@@ -13,14 +15,18 @@ export default function CommentairesCreatePage() {
   const [previewHTML, setPreviewHTML] = useState<string>("");
 
   return (
-    <PageTemplate title="➕ Créer un commentaire" backButton onBack={() => window.history.back()}>
+    <PageTemplate
+      title="➕ Créer un commentaire"
+      backButton
+      onBack={() => window.history.back()}
+    >
       {/* ⚙️ Conteneur principal */}
       <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
         {/* 📝 Formulaire de création */}
         <Box flex={1}>
           <CommentaireForm
             onSubmit={(payload) => {
-              // Met à jour le contenu de l’aperçu sans bloquer le submit
+              toast.success("✅ Commentaire créé avec succès");
               setPreviewHTML(payload.contenu);
             }}
           />

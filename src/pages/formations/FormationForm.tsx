@@ -86,7 +86,7 @@ interface FormationFormProps {
   typeOffres: NomId[];
   loading?: boolean;
   loadingChoices?: boolean;
-  onSubmit: (values: FormationFormDataRaw) => Promise<void> | void;
+  onSubmit: (values: FormationFormDataRaw) => Promise<void | Formation> | void;
   onCancel?: () => void;
   submitLabel?: string;
 }
@@ -131,12 +131,11 @@ function FormationForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // ✅ Initialisation des valeurs au montage uniquement
+  // ✅ Initialisation — exécution une seule fois au montage
   useEffect(() => {
     if (!initialValues) return;
 
-    setValues((prev) => ({
-      ...prev,
+    setValues({
       nom: initialValues.nom ?? "",
       centre_id: initialValues.centre?.id ?? null,
       type_offre_id: initialValues.type_offre?.id ?? null,
@@ -161,10 +160,12 @@ function FormationForm({
       code_rncp: initialValues.code_rncp ?? "",
       total_heures: initialValues.total_heures ?? 0,
       heures_distanciel: initialValues.heures_distanciel ?? 0,
-    }));
-  }, [initialValues]);
+    });
+    // ⛔️ Ne pas redéclencher quand initialValues change (évite la double validation)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // ✅ Handlers mémoïsés
+  // ✅ Handlers
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | any) => {
       const { name, value } = e.target;
@@ -299,104 +300,32 @@ function FormationForm({
 
       {/* Section 2 */}
       <Section icon={<NumbersIcon color="primary" />} title="Numéros & assistante">
-        <Input
-          label="N° Kairos"
-          name="num_kairos"
-          value={values.num_kairos}
-          error={errors.num_kairos}
-          onChange={handleChange}
-        />
-        <Input
-          label="N° Offre"
-          name="num_offre"
-          value={values.num_offre}
-          error={errors.num_offre}
-          onChange={handleChange}
-        />
-        <Input
-          label="N° Produit"
-          name="num_produit"
-          value={values.num_produit}
-          error={errors.num_produit}
-          onChange={handleChange}
-        />
-        <Input
-          label="Assistante"
-          name="assistante"
-          value={values.assistante}
-          error={errors.assistante}
-          onChange={handleChange}
-        />
+        <Input label="N° Kairos" name="num_kairos" value={values.num_kairos} onChange={handleChange} />
+        <Input label="N° Offre" name="num_offre" value={values.num_offre} onChange={handleChange} />
+        <Input label="N° Produit" name="num_produit" value={values.num_produit} onChange={handleChange} />
+        <Input label="Assistante" name="assistante" value={values.assistante} onChange={handleChange} />
       </Section>
 
       {/* Section 3 */}
       <Section icon={<SchoolIcon color="primary" />} title="Diplôme ou titre visé">
-        <Input
-          label="Intitulé précis"
-          name="intitule_diplome"
-          value={values.intitule_diplome}
-          error={errors.intitule_diplome}
-          onChange={handleChange}
-        />
-        <Input
-          label="Code diplôme"
-          name="code_diplome"
-          value={values.code_diplome}
-          error={errors.code_diplome}
-          onChange={handleChange}
-        />
-        <Input
-          label="Code RNCP"
-          name="code_rncp"
-          value={values.code_rncp}
-          error={errors.code_rncp}
-          onChange={handleChange}
-        />
-        <Input
-          label="Total heures"
-          name="total_heures"
-          type="number"
-          value={values.total_heures}
-          error={errors.total_heures}
-          onChange={handleChange}
-        />
-        <Input
-          label="Heures distanciel"
-          name="heures_distanciel"
-          type="number"
-          value={values.heures_distanciel}
-          error={errors.heures_distanciel}
-          onChange={handleChange}
-        />
+        <Input label="Intitulé précis" name="intitule_diplome" value={values.intitule_diplome} onChange={handleChange} />
+        <Input label="Code diplôme" name="code_diplome" value={values.code_diplome} onChange={handleChange} />
+        <Input label="Code RNCP" name="code_rncp" value={values.code_rncp} onChange={handleChange} />
+        <Input label="Total heures" name="total_heures" type="number" value={values.total_heures} onChange={handleChange} />
+        <Input label="Heures distanciel" name="heures_distanciel" type="number" value={values.heures_distanciel} onChange={handleChange} />
       </Section>
 
       {/* Section 4 */}
       <Section icon={<BusinessIcon color="primary" />} title="Places & inscrits">
         {["prevus_crif", "prevus_mp", "inscrits_crif", "inscrits_mp", "cap"].map((field) => (
-          <Input
-            key={field}
-            label={field.replace("_", " ").toUpperCase()}
-            name={field}
-            type="number"
-            value={(values as any)[field]}
-            error={(errors as any)[field]}
-            onChange={handleChange}
-          />
+          <Input key={field} label={field.replace("_", " ").toUpperCase()} name={field} type="number" value={(values as any)[field]} onChange={handleChange} />
         ))}
       </Section>
 
       {/* Section 5 */}
       <Section icon={<TrendingUpIcon color="primary" />} title="Recrutement & statistiques">
         {["entree_formation", "nombre_candidats", "nombre_entretiens"].map((field) => (
-          <Input
-            key={field}
-            label={field.replace("_", " ").toUpperCase()}
-            name={field}
-            type="number"
-            value={(values as any)[field]}
-            error={(errors as any)[field]}
-            onChange={handleChange}
-          />
+          <Input key={field} label={field.replace("_", " ").toUpperCase()} name={field} type="number" value={(values as any)[field]} onChange={handleChange} />
         ))}
 
         <Grid item xs={12}>

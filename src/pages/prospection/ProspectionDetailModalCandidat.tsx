@@ -14,36 +14,29 @@ import {
   Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import { useMemo } from "react";
 import { useProspection } from "../../hooks/useProspection";
-import React from "react";
+import { useNavigate } from "react-router-dom";
 
 /* ---------- Helpers ---------- */
-const useFormatters = () => {
-  const dtfFR = useMemo(
-    () =>
-      typeof Intl !== "undefined"
-        ? new Intl.DateTimeFormat("fr-FR", {
-            dateStyle: "medium",
-            timeStyle: "short",
-          })
-        : undefined,
-    []
-  );
+const dtfFR =
+  typeof Intl !== "undefined"
+    ? new Intl.DateTimeFormat("fr-FR", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : undefined;
 
-  const fmt = (iso?: string | null): string => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
-  };
 
-  const nn = (s?: string | number | null) =>
-    s === null || s === undefined || s === "" ? "—" : String(s);
-
-  const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
-
-  return { fmt, nn, yn };
+const fmt = (iso?: string | null): string => {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
+
+const nn = (s?: string | number | null) =>
+  s === null || s === undefined || s === "" ? "—" : String(s);
+
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Props ---------- */
 type Props = {
@@ -54,13 +47,11 @@ type Props = {
 };
 
 /* ---------- Component ---------- */
-export default function ProspectionDetailModal({ open, onClose, prospectionId, onEdit }: Props) {
-  const { fmt, nn, yn } = useFormatters();
-const { data: prospection, loading } = useProspection(prospectionId ?? null);
+export default function ProspectionDetailModalCandidat({ open, onClose, prospectionId, onEdit }: Props) {
+  const { data: prospection, loading } = useProspection(prospectionId);
+const navigate = useNavigate();
 
   if (!open) return null;
-
-  const titleId = "prospection-detail-title";
 
   return (
     <Dialog
@@ -70,10 +61,8 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
       maxWidth="lg"
       scroll="paper"
       disableEnforceFocus
-      aria-labelledby={titleId}
     >
       <DialogTitle
-        id={titleId}
         sx={{
           display: "flex",
           justifyContent: "space-between",
@@ -88,7 +77,7 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
         </Button>
       </DialogTitle>
 
-      <DialogContent dividers aria-busy={loading}>
+      <DialogContent dividers>
         {loading || !prospection ? (
           <Box textAlign="center" py={4}>
             <CircularProgress />
@@ -109,6 +98,7 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                 <Section title="Partenaire">
                   <Field label="Nom" value={nn(prospection.partenaire_nom)} />
                   <Field label="Ville" value={nn(prospection.partenaire_ville)} />
+                  <Field label="ID partenaire" value={nn(prospection.partenaire)} />
                   <Field
                     label="Téléphone"
                     value={
@@ -151,7 +141,11 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                     )}`}
                   />
                   <Field label="Type d’offre" value={nn(prospection.type_offre_display)} />
-                  <Field label="Statut formation" value={nn(prospection.formation_statut_display)} />
+                  <Field
+                    label="Statut formation"
+                    value={nn(prospection.formation_statut_display)}
+                  />
+                  <Field label="ID formation" value={nn(prospection.formation)} />
                   <Field
                     label="Places disponibles"
                     value={
@@ -160,15 +154,6 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                         : "—"
                     }
                   />
-                </Section>
-              </Grid>
-
-              {/* ───── Candidat / Owner ───── */}
-              <Grid item xs={12}>
-                <Section title="Candidat / Propriétaire">
-                  <Field label="Utilisateur associé" value={nn(prospection.owner_username)} />
-                  <Field label="ID utilisateur" value={nn(prospection.owner)} />
-                  <Field label="Actif ?" value={yn(prospection.is_active)} />
                 </Section>
               </Grid>
 
@@ -199,13 +184,7 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                       <Chip
                         size="small"
                         label={prospection.activite_display || "—"}
-                        color={
-                          prospection.activite === "archivee"
-                            ? "default"
-                            : prospection.activite === "active"
-                            ? "success"
-                            : "warning"
-                        }
+                        color={prospection.activite === "archivee" ? "default" : "success"}
                         sx={{
                           fontWeight: 600,
                           bgcolor:
@@ -223,18 +202,9 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                   />
                   <Field label="Relance prévue" value={fmt(prospection.relance_prevue)} />
                   <Field label="Date prospection" value={fmt(prospection.date_prospection)} />
+                  <Field label="Active" value={yn(prospection.is_active)} />
                   <Field label="Relance nécessaire" value={yn(prospection.relance_necessaire)} />
                   <Field label="Commentaire" value={nn(prospection.commentaire)} />
-                </Section>
-              </Grid>
-
-              {/* ───── Métadonnées ───── */}
-              <Grid item xs={12}>
-                <Section title="Métadonnées">
-                  <Field label="Créé par" value={nn(prospection.created_by)} />
-                  <Field label="Créé le" value={fmt(prospection.created_at)} />
-                  <Field label="Modifié le" value={fmt(prospection.updated_at)} />
-                  <Field label="Activité" value={nn(prospection.activite_display)} />
                 </Section>
               </Grid>
 
@@ -261,7 +231,10 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                       )
                     }
                   />
-                  <Field label="Date dernier commentaire" value={fmt(prospection.last_comment_at)} />
+                  <Field
+                    label="Date dernier commentaire"
+                    value={fmt(prospection.last_comment_at)}
+                  />
                   <Field
                     label="Total commentaires"
                     value={String(prospection.comments_count ?? "—")}
@@ -275,16 +248,18 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
 
       {/* ---------- Actions ---------- */}
       <DialogActions sx={{ justifyContent: "space-between", px: 3, py: 2 }}>
-        {prospection && onEdit && prospection.id != null && (
-          <Button
-            startIcon={<EditIcon />}
-            variant="contained"
-            color="primary"
-            onClick={() => onEdit(prospection.id)}
-          >
-            Modifier
-          </Button>
+        {prospection && prospection.id != null && (
+      <Button
+        startIcon={<EditIcon />}
+        variant="contained"
+        color="primary"
+        onClick={() => navigate(`/prospections/${prospection.id}/edit/candidat`)}
+      >
+        Modifier
+      </Button>
+
         )}
+
         {prospection && onEdit && prospection.id != null && (
           <Button variant="contained" color="warning" onClick={() => onEdit(prospection.id!)}>
             Voir les commentaires
@@ -299,13 +274,7 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
 }
 
 /* ---------- Sous-composants ---------- */
-const Section = React.memo(function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 2 }}>
       <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main" }} gutterBottom>
@@ -317,15 +286,9 @@ const Section = React.memo(function Section({
       </Grid>
     </Box>
   );
-});
+}
 
-const Field = React.memo(function Field({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | number | React.ReactNode;
-}) {
+function Field({ label, value }: { label: string; value: string | number | React.ReactNode }) {
   const isReactElement = typeof value !== "string" && typeof value !== "number";
   const str = typeof value === "number" ? String(value) : value;
   const isMissing =
@@ -356,4 +319,4 @@ const Field = React.memo(function Field({
       )}
     </Grid>
   );
-});
+}

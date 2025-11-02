@@ -1,6 +1,6 @@
 // ======================================================
-// src/pages/widgets/commentsDahboard/CommentaireStatsDashboard.tsx
-// ✅ Version finale — couleurs & surlignage Quill préservés (identique à CommentairesTable)
+// src/pages/widgets/commentsDashboard/CommentaireStatsDashboard.tsx
+// ✅ Affichage enrichi scrollable — styles Quill fidèles, listes, surlignage
 // ======================================================
 
 import React, { useState } from "react";
@@ -44,25 +44,29 @@ function formatDate(value?: string | null): string {
   }).format(date);
 }
 
-/* ---------- 🧩 Contenu HTML enrichi sécurisé (identique à CommentairesTable) ---------- */
-function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength?: number }) {
-  // ✅ Étape 1 — Sanitize HTML
+/* ---------- 🧩 Contenu HTML enrichi sécurisé + scroll ---------- */
+function CommentaireContent({ html }: { html: string }) {
+  // Étape 1 — Sanitize HTML
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
-    ALLOWED_TAGS: ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "span", "a"],
+    ALLOWED_TAGS: [
+      "b", "i", "u", "em", "strong", "p", "br",
+      "ul", "ol", "li", "span", "a", "blockquote",
+    ],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
     FORBID_TAGS: ["script", "style"],
     FORBID_ATTR: ["onerror", "onclick", "onload"],
   });
 
-  // ✅ Étape 2 — Nettoie les styles inline (conserve color / background / font / déco)
+  // Étape 2 — Nettoyage des styles inline : garde color / background-color
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = sanitized;
   tempDiv.querySelectorAll<HTMLElement>("span").forEach((el) => {
     const style = el.getAttribute("style");
     if (!style) return;
+
     const safeStyle = style
       .split(";")
-      .map((s) => s.trim())
+      .map((s) => s.trim().toLowerCase())
       .filter(
         (s) =>
           s.startsWith("color:") ||
@@ -71,30 +75,28 @@ function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength
           s.startsWith("font-style:") ||
           s.startsWith("text-decoration:")
       )
-      .join(";");
+      .join("; ");
+
     el.setAttribute("style", safeStyle);
   });
 
   const cleanedHTML = tempDiv.innerHTML;
-  const truncated =
-    cleanedHTML.length > maxLength ? cleanedHTML.slice(0, maxLength) + "..." : cleanedHTML;
 
-  // ✅ Étape 3 — Rendu HTML sécurisé, isolé du thème MUI
+  // Étape 3 — Rendu scrollable
   return (
     <Tooltip
       title={
-        <Box
-          sx={{
-            all: "revert", // ← neutralise tout style hérité
-            maxWidth: 500,
-            p: 1,
-            fontSize: "0.9rem",
-            lineHeight: 1.4,
-            "& p": { m: 0, mb: 0.5 },
-            "& ul, & ol": { pl: 2, mb: 0.5 },
-          }}
-          dangerouslySetInnerHTML={{ __html: cleanedHTML }}
-        />
+        <Box sx={{ maxWidth: 500, p: 1 }}>
+          <div
+            dangerouslySetInnerHTML={{ __html: cleanedHTML }}
+            style={{
+              all: "revert",
+              fontSize: "0.9rem",
+              lineHeight: 1.45,
+              wordBreak: "break-word",
+            }}
+          />
+        </Box>
       }
       placement="top-start"
       arrow
@@ -102,18 +104,27 @@ function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength
     >
       <Box
         sx={{
-          all: "revert", // ✅ clé absolue : neutralise le thème MUI ici aussi
-          maxHeight: 160,
+          maxHeight: 200,
           overflowY: "auto",
           wordBreak: "break-word",
           fontSize: "0.9rem",
-          lineHeight: 1.4,
-          "& p": { margin: 0, marginBottom: 0.5 },
-          "& ul, & ol": { paddingLeft: 3, marginBottom: 0.5 },
-          "& a": { color: "#1976d2", textDecoration: "underline" },
+          lineHeight: 1.45,
+          pr: 0.5,
+          "& p": { m: 0, mb: 0.5 },
+          "& ul, & ol": { pl: 3, mb: 0.5 },
+          "& a": { color: "primary.main", textDecoration: "underline" },
         }}
-        dangerouslySetInnerHTML={{ __html: truncated || "<em>—</em>" }}
-      />
+      >
+        <div
+          dangerouslySetInnerHTML={{ __html: cleanedHTML || "<em>—</em>" }}
+          style={{
+            all: "revert",
+            fontSize: "0.9rem",
+            lineHeight: 1.45,
+            wordBreak: "break-word",
+          }}
+        />
+      </Box>
     </Tooltip>
   );
 }
@@ -128,28 +139,26 @@ export default function CommentaireStatsDashboard({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error, refetch, isFetching } = useCommentaireLatest(filters);
+  const { data, isLoading, error, refetch, isFetching } =
+    useCommentaireLatest(filters);
   const results = data?.results ?? [];
   const total = data?.count ?? 0;
 
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChangeRowsPerPage = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
 
-  const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const paginated = results.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
-    <Card
-      sx={{
-        p: 2,
-        display: "flex",
-        flexDirection: "column",
-        gap: 2,
-        // 🚫 pas de color ici : on laisse le thème MUI neutre pour préserver les styles inline
-      }}
-    >
+    <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
       {/* Header */}
       <Box
         display="flex"
@@ -161,14 +170,19 @@ export default function CommentaireStatsDashboard({
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
-        <IconButton onClick={() => refetch()} disabled={isFetching} size="small" title="Rafraîchir">
+        <IconButton
+          onClick={() => refetch()}
+          disabled={isFetching}
+          size="small"
+          title="Rafraîchir"
+        >
           <RefreshIcon fontSize="small" />
         </IconButton>
       </Box>
 
       <Divider />
 
-      {/* États de chargement / erreur */}
+      {/* États */}
       {isLoading ? (
         <Box display="flex" justifyContent="center" p={2}>
           <CircularProgress size={24} />
@@ -179,7 +193,7 @@ export default function CommentaireStatsDashboard({
         <Alert severity="info">Aucun commentaire trouvé.</Alert>
       ) : (
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
-          <TableContainer sx={{ maxHeight: 400 }}>
+          <TableContainer sx={{ maxHeight: 500 }}>
             <Table stickyHeader size="small">
               <TableHead>
                 <TableRow>
@@ -201,7 +215,7 @@ export default function CommentaireStatsDashboard({
                       {c.centre_nom || "—"}
                     </TableCell>
 
-                    {/* Auteur / Date */}
+                    {/* Auteur */}
                     <TableCell sx={{ whiteSpace: "nowrap" }}>
                       {c.auteur || "—"}
                       <br />
@@ -210,7 +224,7 @@ export default function CommentaireStatsDashboard({
                       </Typography>
                     </TableCell>
 
-                    {/* Contenu enrichi Quill */}
+                    {/* Commentaire enrichi */}
                     <TableCell sx={{ maxWidth: 420 }}>
                       <CommentaireContent html={c.contenu || "<em>—</em>"} />
                     </TableCell>

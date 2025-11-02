@@ -37,6 +37,7 @@ function buildReset(values: FiltresFormationsValues): FiltresFormationsValues {
     statut: undefined,
     type_offre: undefined,
     activite: undefined,
+    dans: undefined,              // 👈 nouveau filtre “période à venir”
     avec_archivees: false,
     page: 1,
   };
@@ -91,6 +92,20 @@ export default function FiltresFormationsPanel({
         label: "📦 Type d'offre",
         type: "select",
         options: withPlaceholder(toOptionsUnique(filtres.type_offres)),
+      },
+      // ⏳ Nouveau filtre : période à venir
+      {
+        key: "dans" as const,
+        label: "⏳ Période à venir",
+        type: "select",
+        tooltip: "Filtrer les formations à venir (dans les 4 semaines, 3 mois, etc.)",
+        options: withPlaceholder([
+          { value: "", label: "Toutes les périodes" },
+          ...(filtres.periodes_a_venir?.map((p) => ({
+            value: p.code,
+            label: p.libelle,
+          })) ?? []),
+        ]),
       },
       // ⚙️ Filtre dynamique selon l’activité renvoyée par le backend
       {

@@ -1,5 +1,5 @@
 // ======================================================
-// src/pages/commentaires/CommentaireContent.tsx
+// src/pages/commentaires/HtmlRichContent.tsx
 // ✅ Affiche correctement les couleurs, surlignages et listes
 // même à l’intérieur des composants MUI (ex: TableCell)
 // ======================================================
@@ -12,7 +12,7 @@ interface Props {
   html: string;
 }
 
-export default function CommentaireContent({ html }: Props) {
+export default function HtmlRichContent({ html }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   // 🧼 Nettoyage HTML — garde styles inline et balises utiles

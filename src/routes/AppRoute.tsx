@@ -296,7 +296,7 @@ export default function AppRoute() {
 
         <Route path="/prospections/candidat" element={secure(<ProspectionPageCandidat />)} />
         <Route path="/prospections/create/candidat" element={<ProspectionCreatePageCandidat />} />
-        <Route path="/prospections/:id/edit-candidat" element={<ProspectionEditCandidatPage />} />
+        <Route path="/prospections/:id/edit/candidat" element={<ProspectionEditCandidatPage />} />
 
         {/* Prospection — Commentaires dédiés */}
         <Route path="/prospection-commentaires" element={secure(<ProspectionCommentPage />)} />

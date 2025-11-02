@@ -4,6 +4,8 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Node",
+    "types": ["vitest", "node"],
+
 
     // ✅ JSX moderne pour React 17+ / 18+
     "jsx": "react-jsx",

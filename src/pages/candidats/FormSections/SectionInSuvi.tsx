@@ -12,7 +12,12 @@ import {
   FormControlLabel,
   Divider,
 } from "@mui/material";
-import type { CandidatFormData, CandidatMeta, CVStatutValue } from "../../../types/candidat";
+import type {
+  CandidatFormData,
+  CandidatMeta,
+  CVStatutValue,
+  ContratSigneValue,
+} from "../../../types/candidat";
 
 interface Props {
   form: CandidatFormData;
@@ -27,7 +32,10 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
 
   return (
     <Card variant="outlined">
-      <CardHeader title="Suivi & situation" subheader="Suivi administratif et niveau du candidat" />
+      <CardHeader
+        title="Suivi & situation"
+        subheader="Suivi administratif et niveau du candidat"
+      />
       <CardContent>
         <Grid container spacing={2}>
           {/* Statut */}
@@ -94,6 +102,30 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
               >
                 <MenuItem value="">—</MenuItem>
                 {(meta?.type_contrat_choices ?? []).map((opt) => (
+                  <MenuItem key={String(opt.value)} value={String(opt.value)}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          {/* ✅ Contrat signé (dynamique) */}
+          <Grid item xs={12} md={4}>
+            <FormControl fullWidth>
+              <FormLabel>Contrat signé</FormLabel>
+              <Select
+                value={form.contrat_signe ?? ""}
+                onChange={(e) =>
+                  setForm((f) => ({
+                    ...f,
+                    contrat_signe: (e.target.value || undefined) as ContratSigneValue | undefined,
+                  }))
+                }
+                displayEmpty
+              >
+                <MenuItem value="">—</MenuItem>
+                {(meta?.contrat_signe_choices ?? []).map((opt) => (
                   <MenuItem key={String(opt.value)} value={String(opt.value)}>
                     {opt.label}
                   </MenuItem>

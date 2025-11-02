@@ -11,6 +11,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Grid,
+  Typography,
+  Link,
 } from "@mui/material";
 
 import PageTemplate from "../../components/PageTemplate";
@@ -27,7 +30,8 @@ import {
   useDeleteProspection,
 } from "../../hooks/useProspection";
 
-// ✅ on étend le type pour inclure l'id
+/* ──────────────────────────────────────────────────────────────── */
+
 type ProspectionFormDataWithId = ProspectionFormData & { id?: number };
 
 export default function ProspectionEditPage() {
@@ -41,6 +45,11 @@ export default function ProspectionEditPage() {
   const [localLastComment, setLocalLastComment] = useState<string | null>(null);
   const [localCount, setLocalCount] = useState<number>(0);
   const [localDetail, setLocalDetail] = useState<ProspectionDetailDTO | null>(null);
+  const [formationFallback, setFormationFallback] = useState<{
+    id: number;
+    nom: string;
+    num_offre?: string | null;
+  } | null>(null);
 
   const prospectionId = useMemo(() => {
     const n = Number(id);
@@ -56,12 +65,7 @@ export default function ProspectionEditPage() {
   const { update, loading: saving } = useUpdateProspection(prospectionId ?? 0);
   const { remove, loading: removing } = useDeleteProspection(prospectionId ?? 0);
 
-  const [formationFallback, setFormationFallback] = useState<{
-    id: number;
-    nom: string;
-    num_offre?: string | null;
-  } | null>(null);
-
+  /* ──────────────────────────────────────────────────────────────── */
   useEffect(() => {
     if (hookDetail) setLocalDetail(hookDetail as ProspectionDetailDTO);
   }, [hookDetail]);
@@ -92,16 +96,24 @@ export default function ProspectionEditPage() {
     };
   }, [localDetail?.formation, localDetail?.formation_nom]);
 
-  const handleUpdate = async (data: ProspectionFormData) => {
-    if (!prospectionId) return;
-    try {
-      const updated = await update(data);
-      setLocalDetail(updated as ProspectionDetailDTO);
-      toast.success("✅ Prospection mise à jour");
-    } catch {
-      toast.error("❌ Échec de la mise à jour");
-    }
-  };
+  /* ──────────────────────────────────────────────────────────────── */
+
+const handleUpdate = async (data: ProspectionFormData) => {
+  if (!prospectionId) return;
+  try {
+    const updated = await update(data);
+    setLocalDetail(updated as ProspectionDetailDTO);
+    toast.success("✅ Prospection mise à jour");
+
+    // 🔁 Redirection après un court délai (optionnel)
+    setTimeout(() => {
+      navigate("/prospections");
+    }, 400);
+  } catch {
+    toast.error("❌ Échec de la mise à jour");
+  }
+};
+
 
   const handleDelete = async () => {
     if (!prospectionId) return;
@@ -114,7 +126,6 @@ export default function ProspectionEditPage() {
     }
   };
 
-  // 🔹 Archiver / Désarchiver (nouvelle logique via activite)
   const handleArchiveToggle = async () => {
     if (!prospectionId || !localDetail) return;
 
@@ -136,8 +147,7 @@ export default function ProspectionEditPage() {
           activite_display: "Archivée",
         });
       }
-    } catch (_err) {
-      // ✅ renommé pour éviter le warning ESLint
+    } catch {
       toast.error("❌ Échec de l’opération d’archivage");
     }
   };
@@ -150,7 +160,7 @@ export default function ProspectionEditPage() {
   if (loading) return <CircularProgress />;
   if (error || !localDetail) return <Box>Erreur de chargement</Box>;
 
-  // ✅ on inclut l'id dans les valeurs initiales
+  /* ──────────────────────────────────────────────────────────────── */
   const initialValues: ProspectionFormDataWithId = {
     id: prospectionId,
     partenaire: localDetail.partenaire ?? null,
@@ -182,6 +192,8 @@ export default function ProspectionEditPage() {
   };
 
   const isArchived = localDetail?.activite === "archivee";
+
+  /* ──────────────────────────────────────────────────────────────── */
 
   return (
     <PageTemplate
@@ -224,7 +236,51 @@ export default function ProspectionEditPage() {
         onCommentAdded={handleCommentAdded}
       />
 
-      {/* --- Dernier commentaire --- */}
+      {/* Résumé */}
+      <Box mb={2} p={2} border={1} borderRadius={2}>
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2">🏢 Partenaire</Typography>
+            <Typography>{localDetail.partenaire_nom || "—"}</Typography>
+            <Typography color="text.secondary">{localDetail.partenaire_ville || "—"}</Typography>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2">📞 Contacts</Typography>
+            <Typography>
+              {localDetail.partenaire_tel ? (
+                <Link href={`tel:${localDetail.partenaire_tel}`}>{localDetail.partenaire_tel}</Link>
+              ) : (
+                "Téléphone —"
+              )}
+            </Typography>
+            <Typography>
+              {localDetail.partenaire_email ? (
+                <Link href={`mailto:${localDetail.partenaire_email}`}>
+                  {localDetail.partenaire_email}
+                </Link>
+              ) : (
+                "Email —"
+              )}
+            </Typography>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Typography variant="subtitle2">🎓 Formation</Typography>
+            <Typography>
+              {localDetail.formation_nom ?? formationFallback?.nom ?? "—"}
+            </Typography>
+            <Typography>
+              🧾 Numéro d’offre :{" "}
+              <strong>
+                {localDetail.num_offre ?? formationFallback?.num_offre ?? "— Non défini"}
+              </strong>
+            </Typography>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* Dernier commentaire */}
       <Box my={2}>
         <ProspectionLastCommentRow
           prospectionId={prospectionId}
@@ -234,7 +290,7 @@ export default function ProspectionEditPage() {
         />
       </Box>
 
-      {/* --- Formulaire d’édition --- */}
+      {/* Formulaire */}
       <Box ref={formRef} mt={4}>
         <ProspectionForm
           mode="edit"
@@ -244,7 +300,7 @@ export default function ProspectionEditPage() {
         />
       </Box>
 
-      {/* --- Dialog suppression --- */}
+      {/* Dialog suppression */}
       <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}

@@ -1,6 +1,7 @@
 // ======================================================
 // src/pages/commentaires/CommentairesTable.tsx
 // Affichage enrichi des commentaires + infos formation + état
+// (version améliorée — lisibilité, accessibilité, style, perf)
 // ======================================================
 
 import {
@@ -16,7 +17,10 @@ import {
   Typography,
   Chip,
   Tooltip,
+  Stack,
+  IconButton,
 } from "@mui/material";
+import { Edit as EditIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import DOMPurify from "dompurify";
 import type { Commentaire } from "../../types/commentaire";
@@ -35,45 +39,42 @@ function formatDate(value?: string | null): string {
   }).format(date);
 }
 
-/* ---------- 🧩 Contenu HTML enrichi sécurisé (avec couleurs/surlignage) ---------- */
+/* ---------- 🧩 Contenu HTML enrichi sécurisé ---------- */
 function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength?: number }) {
-  // ✅ Étape 1 — Sanitize HTML
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
-    ALLOWED_TAGS: ["b", "i", "u", "em", "strong", "p", "br", "ul", "ol", "li", "span", "a"],
+    ALLOWED_TAGS: [
+      "b", "i", "u", "em", "strong", "p", "br",
+      "ul", "ol", "li", "span", "a", "blockquote",
+    ],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
     FORBID_TAGS: ["script", "style"],
     FORBID_ATTR: ["onerror", "onclick", "onload"],
   });
 
-  // ✅ Étape 2 — Nettoyage des styles inline : garde color / background-color
   const tempDiv = document.createElement("div");
   tempDiv.innerHTML = sanitized;
-
   tempDiv.querySelectorAll<HTMLElement>("span").forEach((el) => {
     const style = el.getAttribute("style");
     if (!style) return;
-
     const safeStyle = style
       .split(";")
-      .map((s) => s.trim().toLowerCase()) // 👈 normalise tout
-      .filter(
-        (s) =>
-          s.startsWith("color:") ||
-          s.startsWith("background-color:") ||
-          s.startsWith("font-weight:") ||
-          s.startsWith("font-style:") ||
-          s.startsWith("text-decoration:")
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) =>
+        s.startsWith("color:") ||
+        s.startsWith("background-color:") ||
+        s.startsWith("font-weight:") ||
+        s.startsWith("font-style:") ||
+        s.startsWith("text-decoration:")
       )
       .join("; ");
-
     el.setAttribute("style", safeStyle);
   });
 
   const cleanedHTML = tempDiv.innerHTML;
-  const truncated =
-    cleanedHTML.length > maxLength ? cleanedHTML.slice(0, maxLength) + "..." : cleanedHTML;
+  const truncated = cleanedHTML.length > maxLength
+    ? cleanedHTML.slice(0, maxLength) + "..."
+    : cleanedHTML;
 
-  // ✅ Étape 3 — Rendu fidèle
   return (
     <Tooltip
       title={
@@ -83,15 +84,15 @@ function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength
             style={{
               all: "revert",
               fontSize: "0.9rem",
-              lineHeight: 1.4,
+              lineHeight: 1.45,
               wordBreak: "break-word",
             }}
           />
         </Box>
       }
-      placement="top-start"
       arrow
-      enterDelay={400}
+      placement="top-start"
+      enterDelay={500}
     >
       <Box
         sx={{
@@ -99,7 +100,8 @@ function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength
           overflowY: "auto",
           wordBreak: "break-word",
           fontSize: "0.9rem",
-          lineHeight: 1.4,
+          lineHeight: 1.45,
+          px: 0.5,
         }}
       >
         <div
@@ -107,7 +109,7 @@ function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength
           style={{
             all: "revert",
             fontSize: "0.9rem",
-            lineHeight: 1.4,
+            lineHeight: 1.45,
             wordBreak: "break-word",
           }}
         />
@@ -133,8 +135,16 @@ export default function CommentairesTable({
 }: Props) {
   const navigate = useNavigate();
 
+  if (!commentaires.length) {
+    return (
+      <Box sx={{ textAlign: "center", py: 5, color: "text.secondary" }}>
+        <Typography variant="body2">Aucun commentaire à afficher</Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Table size="small">
+    <Table size="small" sx={{ "& td, & th": { verticalAlign: "top" } }}>
       <TableHead>
         <TableRow>
           <TableCell padding="checkbox" />
@@ -142,7 +152,9 @@ export default function CommentairesTable({
           <TableCell>État</TableCell>
           <TableCell>Auteur / Date</TableCell>
           <TableCell>Contenu</TableCell>
-          <TableCell align="right">Actions</TableCell>
+          <TableCell align="center" sx={{ width: 90 }}>
+            Actions
+          </TableCell>
         </TableRow>
       </TableHead>
 
@@ -158,15 +170,13 @@ export default function CommentairesTable({
               selected={isSelected}
               sx={{
                 cursor: "pointer",
-                "&:hover td": { bgcolor: "grey.50" },
+                "&:hover": { backgroundColor: "grey.50" },
+                transition: "background-color 0.2s ease-in-out",
               }}
               onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
                 const target = e.target as HTMLElement;
-                if (target.closest("a")) return; // évite le clic sur les liens
-                if (onClickRow) onClickRow(c.id);
-                else navigate(`/commentaires/${c.id}/edit`);
+                if (target.closest("button,a,input")) return;
+                onClickRow?.(c.id) ?? navigate(`/commentaires/${c.id}/edit`);
               }}
             >
               {/* ✅ Checkbox */}
@@ -176,16 +186,20 @@ export default function CommentairesTable({
 
               {/* ✅ Infos formation */}
               <TableCell sx={{ maxWidth: 340 }}>
-                <strong>{c.formation_label || c.formation_nom || "—"}</strong>
-                <br />
-                {c.type_offre_nom || "—"} / {c.num_offre || "—"}
-                <br />
-                {c.centre_nom || "—"} / {c.statut_nom || "—"}
+                <Typography variant="subtitle2">
+                  {c.formation_label || c.formation_nom || "—"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  {c.type_offre_nom || "—"} / {c.num_offre || "—"}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" display="block">
+                  {c.centre_nom || "—"} / {c.statut_nom || "—"}
+                </Typography>
+
                 {typeof c.saturation_formation === "number" && (
                   <Box mt={1}>
                     <Typography variant="caption" color="text.secondary">
-                      🧪 Saturation au moment du commentaire :{" "}
-                      <strong>{c.saturation_formation}%</strong>
+                      🧪 Saturation : <strong>{c.saturation_formation}%</strong>
                     </Typography>
                     <LinearProgress
                       variant="determinate"
@@ -207,21 +221,6 @@ export default function CommentairesTable({
                     />
                   </Box>
                 )}
-                {typeof c.taux_saturation === "number" && (
-                  <Typography variant="caption" display="block" mt={0.5}>
-                    📈 Saturation actuelle : <strong>{c.taux_saturation}%</strong>
-                  </Typography>
-                )}
-                {typeof c.saturation_commentaires === "number" && (
-                  <Typography variant="caption" display="block">
-                    💬 Moy. des commentaires : <strong>{c.saturation_commentaires}%</strong>
-                  </Typography>
-                )}
-                {c.centre_id && (
-                  <Typography variant="caption" display="block" color="text.secondary" mt={0.5}>
-                    ID centre : {c.centre_id}
-                  </Typography>
-                )}
               </TableCell>
 
               {/* ✅ Statut */}
@@ -233,14 +232,14 @@ export default function CommentairesTable({
                   sx={{
                     fontWeight: 500,
                     bgcolor: isArchived ? "grey.200" : "success.light",
+                    color: isArchived ? "text.secondary" : "success.dark",
                   }}
                 />
               </TableCell>
 
               {/* ✅ Auteur + date */}
               <TableCell sx={{ whiteSpace: "nowrap" }}>
-                {c.auteur || "—"}
-                <br />
+                <Typography variant="body2">{c.auteur || "—"}</Typography>
                 <Typography variant="caption" color="text.secondary">
                   {formatDate(c.date || c.created_at)}
                 </Typography>
@@ -252,14 +251,16 @@ export default function CommentairesTable({
               </TableCell>
 
               {/* ✅ Actions */}
-              <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => navigate(`/commentaires/${c.id}/edit`)}
-                >
-                  ✏️ Éditer
-                </Button>
+              <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                <Tooltip title="Éditer le commentaire">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => navigate(`/commentaires/${c.id}/edit`)}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
               </TableCell>
             </TableRow>
           );

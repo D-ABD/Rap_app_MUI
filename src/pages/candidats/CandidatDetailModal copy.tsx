@@ -46,15 +46,16 @@ const yn = (b?: boolean | null) =>
 interface Props {
   open: boolean;
   onClose: () => void;
-  candidat?: CandidatWithFormation | null;
+  candidat?: CandidatWithFormation | null; // ✅ ici
   loading?: boolean;
   onEdit?: (id: number) => void;
 }
 
+
 /* ---------- Sections à afficher ---------- */
 const SECTIONS: {
   title: string;
-  fields: { key: keyof CandidatWithFormation; label: string }[];
+  fields: { key: keyof Candidat; label: string }[];
 }[] = [
   {
     title: "Identité",
@@ -83,49 +84,60 @@ const SECTIONS: {
       { key: "ville", label: "Ville" },
     ],
   },
+
+
+{
+  title: "Formation",
+  fields: [
+    { key: "centre_nom", label: "Centre" },
+    { key: "date_rentree", label: "Date de rentrée" },
+    { key: "admissible", label: "Admissible" },
+    { key: "entretien_done", label: "Entretien réalisé" },
+    { key: "test_is_ok", label: "Test d’entrée OK" },
+    { key: "cv_statut_display", label: "Statut du CV" },
+    { key: "disponibilite", label: "Disponibilité" },
+    // Champs issus de formation_info
+    { key: "formation_nom", label: "Nom formation" },
+    { key: "formation_centre_nom", label: "Centre (formation)" },
+    { key: "formation_type_offre_nom", label: "Type d’offre" },
+    { key: "formation_type_offre_libelle", label: "Libellé offre" },
+    { key: "formation_num_offre", label: "N° offre" },
+    { key: "formation_date_debut", label: "Début de formation" },
+    { key: "formation_date_fin", label: "Fin de formation" },
+  ],
+},
+
+
+
+
+
+  
   {
-    title: "Formation",
-    fields: [
-      { key: "centre_nom", label: "Centre" },
-      { key: "date_rentree", label: "Date de rentrée" },
-      { key: "formation_nom", label: "Nom formation" },
-      { key: "formation_centre_nom", label: "Centre (formation)" },
-      { key: "formation_type_offre_nom", label: "Type d’offre" },
-      { key: "formation_num_offre", label: "N° offre" },
-      { key: "formation_date_debut", label: "Début de formation" },
-      { key: "formation_date_fin", label: "Fin de formation" },
-    ],
-  },
-  {
-    title: "Statut",
+    title: "Statut et Contrat",
     fields: [
       { key: "statut", label: "Statut" },
       { key: "admissible", label: "Admissible" },
-      { key: "entretien_done", label: "Entretien réalisé" },
-      { key: "test_is_ok", label: "Test d’entrée OK" },
-      { key: "inscrit_gespers", label: "Inscrit GESPERS" },
-    ],
-  },
-  {
-    title: "Contrat",
-    fields: [
       { key: "type_contrat", label: "Type de contrat" },
       { key: "contrat_signe_display", label: "Contrat signé" },
-    ],
-  },
-  {
-    title: "Complément",
-    fields: [
+    
+      { key: "entretien_done", label: "Entretien réalisé" },
+      { key: "test_is_ok", label: "Test d’entrée OK" },
+
+
       { key: "disponibilite", label: "Disponibilité" },
+      
       { key: "cv_statut_display", label: "Statut du CV" },
       { key: "permis_b", label: "Permis B" },
       { key: "rqth", label: "RQTH" },
+
       { key: "communication", label: "Communication ★" },
       { key: "experience", label: "Expérience ★" },
       { key: "csp", label: "CSP ★" },
+
     ],
   },
-  {
+
+    {
     title: "Placement",
     fields: [
       { key: "resultat_placement_display", label: "Résultat placement" },
@@ -135,10 +147,12 @@ const SECTIONS: {
       { key: "entreprise_validee_nom", label: "Entreprise validée" },
       { key: "responsable_placement_nom", label: "Responsable placement" },
       { key: "vu_par_nom", label: "Vu par (staff)" },
+      { key: "inscrit_gespers", label: "Inscrit GESPERS" },
       { key: "courrier_rentree", label: "Courrier rentrée envoyé" },
       { key: "numero_osia", label: "Numéro OSIA" },
     ],
   },
+
   {
     title: "Infos pour CERFA : Parcours scolaire et projet...",
     fields: [
@@ -148,6 +162,8 @@ const SECTIONS: {
       { key: "intitule_diplome_prepare", label: "Intitulé du diplôme préparé" },
       { key: "situation_avant_contrat", label: "Situation avant contrat" },
       { key: "projet_creation_entreprise", label: "Projet création entreprise" },
+
+
       { key: "regime_social", label: "Régime social" },
       { key: "sportif_haut_niveau", label: "Sportif de haut niveau" },
       { key: "equivalence_jeunes", label: "Équivalence jeunes" },
@@ -155,6 +171,8 @@ const SECTIONS: {
       { key: "situation_actuelle", label: "Situation actuelle" },
     ],
   },
+
+  
   {
     title: "Représentant légal",
     fields: [
@@ -167,6 +185,7 @@ const SECTIONS: {
       { key: "representant_city", label: "Ville" },
     ],
   },
+
   {
     title: "Métadonnées / Système",
     fields: [
@@ -190,6 +209,7 @@ export default function CandidatDetailModal({
 }: Props) {
   if (!open) return null;
 
+  const f = candidat?.formation_info ?? null;
   const la = candidat?.last_appairage ?? null;
 
   return (
@@ -242,6 +262,22 @@ export default function CandidatDetailModal({
                   </Section>
                 </Grid>
               ))}
+
+              {/* ───────────── Formation détaillée ───────────── */}
+              {f && (
+                <Grid item xs={12}>
+                  <Section title="Détails de la formation">
+                    <Field label="Nom formation" value={nn(f.nom)} />
+                    <Field label="Centre" value={nn(f.centre?.nom)} />
+                    <Field label="Dates" value={`${fmt(f.date_debut)} → ${fmt(f.date_fin)}`} />
+                    <Field
+                      label="Type d’offre"
+                      value={nn(f.type_offre?.nom ?? f.type_offre?.libelle)}
+                    />
+                    <Field label="N° offre" value={nn(f.num_offre)} />
+                  </Section>
+                </Grid>
+              )}
 
               {/* ───────────── Dernier appairage ───────────── */}
               {la && (

@@ -170,9 +170,10 @@ export default function FormationsDetailPage() {
                     <Button
                       variant="outlined"
                       size="small"
+                      color="warning"
                       onClick={() => setOpenComments(true)} // ✅ ouverture modal
                     >
-                      Voir ({formation.commentaires.length})
+                      Voir les commentaires({formation.commentaires.length})
                     </Button>
                   ) : (
                     <Button

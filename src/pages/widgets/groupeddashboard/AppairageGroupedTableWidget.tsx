@@ -15,6 +15,7 @@ import {
   TableContainer,
   IconButton,
   Button,
+  useTheme,
 } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import ArchiveIcon from "@mui/icons-material/Archive";
@@ -27,10 +28,10 @@ import {
 } from "../../../types/appairageStats";
 
 /* 🛠 Utils */
-function fmtInt(n?: number | null) {
+function fmtInt(n?: number | null): string {
   return n === undefined || n === null ? "—" : Math.round(n).toString();
 }
-function pct(ok: number, total: number) {
+function pct(ok: number, total: number): string {
   if (!total) return "—";
   const v = Math.max(0, Math.min(100, Math.round((ok * 100) / total)));
   return `${v}%`;
@@ -86,6 +87,7 @@ export default function AppairageGroupedTableWidget({
   defaultFilters,
   title = "Détails des Appairages",
 }: Props) {
+  const theme = useTheme();
   const [by, setBy] = React.useState<AppairageGroupBy>(defaultBy);
   const [filters, setFilters] = React.useState<AppairageFilters>(defaultFilters ?? {});
   const [includeArchived, setIncludeArchived] = React.useState(false);
@@ -123,6 +125,20 @@ export default function AppairageGroupedTableWidget({
       annule: sum("annule"),
     };
   }, [data]);
+
+  // 🎨 Couleurs dynamiques
+  const colorSuccess =
+    theme.palette.mode === "dark" ? theme.palette.success.dark : theme.palette.success.light;
+  const colorError =
+    theme.palette.mode === "dark" ? theme.palette.error.dark : theme.palette.error.light;
+  const colorWarning =
+    theme.palette.mode === "dark" ? theme.palette.warning.dark : theme.palette.warning.light;
+  const colorInfo =
+    theme.palette.mode === "dark" ? theme.palette.info.dark : theme.palette.info.light;
+  const colorHeader =
+    theme.palette.mode === "dark" ? theme.palette.background.default : "#e3f2fd";
+  const colorTotal =
+    theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[100];
 
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -190,13 +206,13 @@ export default function AppairageGroupedTableWidget({
         </Typography>
       ) : error ? (
         <Typography variant="body2" color="error">
-          Erreur: {getErrorMessage(error)}
+          Erreur : {getErrorMessage(error)}
         </Typography>
       ) : !data ? null : (
         <TableContainer sx={{ maxHeight: "70vh" }}>
           <Table stickyHeader size="small" sx={{ minWidth: 1200 }}>
             <TableHead>
-              <TableRow sx={{ bgcolor: "#e3f2fd" }}>
+              <TableRow sx={{ bgcolor: colorHeader }}>
                 <TableCell>Groupe</TableCell>
                 <TableCell>Appairages</TableCell>
                 <TableCell>Candidats</TableCell>
@@ -214,17 +230,20 @@ export default function AppairageGroupedTableWidget({
                 <TableCell>OK</TableCell>
               </TableRow>
             </TableHead>
+
             <TableBody>
               {data.results.map((r, idx) => {
                 const rr = r as RowWithNeeded;
                 const total = toNumber(rr.appairages_total);
                 const ok = toNumber(rr.appairage_ok);
 
-                let tauxColor: string = "inherit";
                 const taux = total ? (ok * 100) / total : 0;
-                if (taux >= 60) tauxColor = "green";
-                else if (taux >= 30) tauxColor = "orange";
-                else tauxColor = "red";
+                const tauxColor =
+                  taux >= 60
+                    ? theme.palette.success.main
+                    : taux >= 30
+                    ? theme.palette.warning.main
+                    : theme.palette.error.main;
 
                 return (
                   <TableRow key={idx} hover>
@@ -241,23 +260,24 @@ export default function AppairageGroupedTableWidget({
                     <TableCell align="right">{fmtInt(rr.a_faire)}</TableCell>
                     <TableCell align="right">{fmtInt(rr.contrat_a_signer)}</TableCell>
                     <TableCell align="right">{fmtInt(rr.contrat_en_attente)}</TableCell>
-                    <TableCell sx={{ bgcolor: "#c8e6c9", fontWeight: 600 }} align="right">
+                    <TableCell align="right" sx={{ bgcolor: colorSuccess, fontWeight: 600 }}>
                       {fmtInt(rr.accepte)}
                     </TableCell>
-                    <TableCell sx={{ bgcolor: "#ffcdd2", fontWeight: 600 }} align="right">
+                    <TableCell align="right" sx={{ bgcolor: colorError, fontWeight: 600 }}>
                       {fmtInt(rr.refuse)}
                     </TableCell>
-                    <TableCell sx={{ bgcolor: "#ffe0b2", fontWeight: 600 }} align="right">
+                    <TableCell align="right" sx={{ bgcolor: colorWarning, fontWeight: 600 }}>
                       {fmtInt(rr.annule)}
                     </TableCell>
-                    <TableCell sx={{ bgcolor: "#bbdefb", fontWeight: 600 }} align="right">
+                    <TableCell align="right" sx={{ bgcolor: colorInfo, fontWeight: 600 }}>
                       {fmtInt(rr.appairage_ok)}
                     </TableCell>
                   </TableRow>
                 );
               })}
+
               {/* Totaux */}
-              <TableRow sx={{ bgcolor: "#f5f5f5", fontWeight: 700 }}>
+              <TableRow sx={{ bgcolor: colorTotal, fontWeight: 700 }}>
                 <TableCell>Total</TableCell>
                 <TableCell align="right">{fmtInt(totals.appairages_total)}</TableCell>
                 <TableCell align="right">{fmtInt(totals.nb_candidats)}</TableCell>
@@ -267,7 +287,12 @@ export default function AppairageGroupedTableWidget({
                   align="right"
                   sx={{
                     fontWeight: 700,
-                    color: totals.taux_ok >= 60 ? "green" : totals.taux_ok >= 30 ? "orange" : "red",
+                    color:
+                      totals.taux_ok >= 60
+                        ? theme.palette.success.main
+                        : totals.taux_ok >= 30
+                        ? theme.palette.warning.main
+                        : theme.palette.error.main,
                   }}
                 >
                   {totals.appairages_total ? `${totals.taux_ok}%` : "—"}

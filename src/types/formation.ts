@@ -182,6 +182,7 @@ export interface FiltresFormationsData {
   type_offres: NomId[];
   activites: CodeLibelle[]; // [{ code: "active", libelle: "Active" }, ...]
   formations?: { id: number; nom: string }[];
+  periodes_a_venir?: Array<{ code: string; libelle: string }>;
 }
 
 export interface FiltresFormationsValues {
@@ -194,6 +195,7 @@ export interface FiltresFormationsValues {
   places_disponibles?: boolean;
   tri?: string;
   page?: number;
+  dans?: string;   
   avec_archivees?: boolean;
   activite?: ActiviteCode;
 }

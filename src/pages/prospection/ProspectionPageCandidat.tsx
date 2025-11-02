@@ -28,7 +28,7 @@ import ProspectionTable from "./ProspectionTable";
 import SearchInput from "../../components/SearchInput";
 import PageTemplate from "../../components/PageTemplate";
 import ExportButtonProspection from "../../components/export_buttons/ExportButtonProspection";
-import ProspectionDetailModal from "./ProspectionDetailModal";
+import ProspectionDetailModalCandidat from "./ProspectionDetailModalCandidat";
 
 export default function ProspectionPageCandidat() {
   const navigate = useNavigate();
@@ -262,7 +262,7 @@ export default function ProspectionPageCandidat() {
       </Dialog>
 
       {/* ───────────── Détail prospection ───────────── */}
-      <ProspectionDetailModal
+      <ProspectionDetailModalCandidat
         open={showDetail}
         onClose={() => setShowDetail(false)}
         prospectionId={detailId}
