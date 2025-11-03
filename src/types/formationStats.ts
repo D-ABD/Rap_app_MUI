@@ -205,14 +205,7 @@ export function getErrorMessage(err: unknown) {
   return "Erreur inconnue";
 }
 
-function pickLabel(obj: Record<string, unknown> | undefined, keys: string[]): string | undefined {
-  if (!obj) return undefined;
-  for (const k of keys) {
-    const v = obj[k];
-    if (typeof v === "string" && v.trim() !== "") return v;
-  }
-  return undefined;
-}
+
 
 export async function getOverview(filters: Filters) {
   const { data } = await api.get<OverviewResponse>("/formation-stats/", {

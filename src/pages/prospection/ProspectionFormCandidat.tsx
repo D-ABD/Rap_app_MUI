@@ -118,7 +118,7 @@ export default function ProspectionFormCandidat({
     
   );
 
-    const [numOffre, setNumOffre] = useState<string | null>(
+    const [numOffre] = useState<string | null>(
     initialValues?.num_offre ?? null
     
   );

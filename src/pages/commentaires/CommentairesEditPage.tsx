@@ -21,7 +21,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useQuill } from "react-quilljs";
-import Quill, {
+import  {
   defaultModules,
   defaultFormats,
 } from "../../utils/registerQuillFormats";
@@ -67,7 +67,7 @@ export default function CommentairesEditPage() {
     if (values.contenu && isEmpty) {
       quill.clipboard.dangerouslyPasteHTML(values.contenu);
     }
-  }, [quill]); // 👈 plus de dépendance sur values.contenu
+  }, [quill, values.contenu]); // ✅ ajout de values.contenu
 
   /* ---------- Chargement du commentaire ---------- */
   useEffect(() => {

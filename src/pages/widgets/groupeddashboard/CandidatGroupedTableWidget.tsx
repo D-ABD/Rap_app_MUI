@@ -37,13 +37,7 @@ const CONTRAT_SIGNE_LABELS: Record<string, string> = {
   valide: "Validé",
 };
 
-const CONTRAT_SIGNE_COLORS = (theme: any): Record<string, string> => ({
-  oui: theme.palette.success.light,
-  non: theme.palette.grey[300],
-  en_cours: theme.palette.warning.light,
-  signe: theme.palette.success.light,
-  valide: theme.palette.success.light,
-});
+
 
 /* Résolution du label */
 function resolveLabel(row: Record<string, unknown>, by: CandidatGroupBy): string {
@@ -137,15 +131,10 @@ export default function CandidatGroupedTableWidget({
 
   const colorSuccess =
     theme.palette.mode === "dark" ? theme.palette.success.dark : theme.palette.success.light;
-  const colorInfo =
-    theme.palette.mode === "dark" ? theme.palette.info.dark : theme.palette.info.light;
-  const colorWarning =
-    theme.palette.mode === "dark" ? theme.palette.warning.dark : theme.palette.warning.light;
   const colorTotal =
     theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[100];
   const colorHeader =
     theme.palette.mode === "dark" ? theme.palette.background.default : "#e3f2fd";
-  const contratColors = CONTRAT_SIGNE_COLORS(theme);
 
   return (
     <Card className={className}>

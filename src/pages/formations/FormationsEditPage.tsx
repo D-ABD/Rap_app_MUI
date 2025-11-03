@@ -95,7 +95,6 @@ const submitFormation = async (values: FormationFormData): Promise<void> => {
     // 🔁 Redirige vers la liste
     navigate("/formations");
   } catch (error: any) {
-    console.error("Erreur updateFormation:", error);
     toast.error("❌ Échec de la mise à jour");
     throw error;
   }

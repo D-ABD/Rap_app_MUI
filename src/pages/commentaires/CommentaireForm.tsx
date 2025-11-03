@@ -19,7 +19,7 @@ import {
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
 
-import Quill, {
+import {
   colorOptions,
 } from "../../utils/registerQuillFormats";
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
