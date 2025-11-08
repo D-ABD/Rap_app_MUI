@@ -129,7 +129,14 @@ export default function FormationGroupedWidget({
   return (
     <Card sx={{ p: 2, width: "100%" }}>
       {/* Header */}
-      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" mb={2} gap={1.5}>
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        flexWrap="wrap"
+        mb={2}
+        gap={1.5}
+      >
         <Typography variant="h6" fontWeight="bold">
           {title}
         </Typography>
@@ -166,7 +173,9 @@ export default function FormationGroupedWidget({
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <Select
             value={localFilters.centre ?? ""}
-            onChange={(e) => setLocalFilters((f) => ({ ...f, centre: e.target.value || undefined }))}
+            onChange={(e) =>
+              setLocalFilters((f) => ({ ...f, centre: e.target.value || undefined }))
+            }
             displayEmpty
             disabled={!dicts}
           >
@@ -184,7 +193,9 @@ export default function FormationGroupedWidget({
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <Select
             value={localFilters.type_offre ?? ""}
-            onChange={(e) => setLocalFilters((f) => ({ ...f, type_offre: e.target.value || undefined }))}
+            onChange={(e) =>
+              setLocalFilters((f) => ({ ...f, type_offre: e.target.value || undefined }))
+            }
             displayEmpty
             disabled={!dicts}
           >
@@ -202,7 +213,9 @@ export default function FormationGroupedWidget({
         <FormControl size="small" sx={{ minWidth: 140 }}>
           <Select
             value={localFilters.statut ?? ""}
-            onChange={(e) => setLocalFilters((f) => ({ ...f, statut: e.target.value || undefined }))}
+            onChange={(e) =>
+              setLocalFilters((f) => ({ ...f, statut: e.target.value || undefined }))
+            }
             displayEmpty
             disabled={!dicts}
           >
@@ -274,7 +287,11 @@ export default function FormationGroupedWidget({
                 const isEven = idx % 2 === 0;
                 const saturation = r.taux_saturation ?? 0;
                 const saturationColor =
-                  saturation < 50 ? "success.main" : saturation < 80 ? "warning.main" : "error.main";
+                  saturation < 50
+                    ? "success.main"
+                    : saturation < 80
+                      ? "warning.main"
+                      : "error.main";
 
                 return (
                   <TableRow
@@ -285,24 +302,23 @@ export default function FormationGroupedWidget({
                     }}
                   >
                     <TableCell
-  sx={{
-    position: "sticky",
-    left: 0,
-    backgroundColor: isEven ? "background.default" : "grey.50",
-    zIndex: 1,
-    fontWeight: 500,
-    minWidth: 180,
-    maxWidth: 240,
-    overflowWrap: "break-word", // ✅ autorise les sauts de ligne
-    wordBreak: "break-word", // ✅ coupe si nécessaire
-    whiteSpace: "normal", // ✅ permet le retour à la ligne
-  }}
->
-  <Typography variant="body2" sx={{ lineHeight: 1.3 }}>
-    {label}
-  </Typography>
-</TableCell>
-
+                      sx={{
+                        position: "sticky",
+                        left: 0,
+                        backgroundColor: isEven ? "background.default" : "grey.50",
+                        zIndex: 1,
+                        fontWeight: 500,
+                        minWidth: 180,
+                        maxWidth: 240,
+                        overflowWrap: "break-word", // ✅ autorise les sauts de ligne
+                        wordBreak: "break-word", // ✅ coupe si nécessaire
+                        whiteSpace: "normal", // ✅ permet le retour à la ligne
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ lineHeight: 1.3 }}>
+                        {label}
+                      </Typography>
+                    </TableCell>
 
                     <TableCell align="right">{toFixed0(r.nb_formations)}</TableCell>
                     <TableCell align="right">{toFixed0(r.total_places_crif)}</TableCell>
@@ -320,7 +336,9 @@ export default function FormationGroupedWidget({
                     <TableCell align="right">{toFixed0(r.nb_test_ok)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_inscrits_gespers)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_apprentissage)}</TableCell>
-                    <TableCell align="right">{toFixed0(r.nb_contrats_professionnalisation)}</TableCell>
+                    <TableCell align="right">
+                      {toFixed0(r.nb_contrats_professionnalisation)}
+                    </TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_poei_poec)}</TableCell>
                     <TableCell align="right">{toFixed0(r.nb_contrats_autres)}</TableCell>
                     <TableCell align="right">{toFixed0(r.app_total)}</TableCell>

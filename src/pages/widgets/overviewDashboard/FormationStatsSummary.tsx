@@ -103,9 +103,7 @@ export default function FormationStatsSummary({
     : "linear-gradient(180deg, #fafafa 0%, #ffffff 100%)";
 
   const statBoxBg = isDark ? "rgba(255,255,255,0.04)" : "background.paper";
-  const statShadow = isDark
-    ? "0 2px 6px rgba(0,0,0,0.5)"
-    : "0 2px 6px rgba(0,0,0,0.05)";
+  const statShadow = isDark ? "0 2px 6px rgba(0,0,0,0.5)" : "0 2px 6px rgba(0,0,0,0.05)";
 
   const stats = [
     { label: "Actives", value: k.nb_actives ?? 0, color: theme.palette.primary.main },
@@ -138,11 +136,7 @@ export default function FormationStatsSummary({
         flexWrap="wrap"
         gap={1.5}
       >
-        <Typography
-          variant="h6"
-          fontWeight={700}
-          sx={{ color: theme.palette.text.primary }}
-        >
+        <Typography variant="h6" fontWeight={700} sx={{ color: theme.palette.text.primary }}>
           {title}
         </Typography>
 
@@ -242,9 +236,7 @@ export default function FormationStatsSummary({
                 boxShadow: statShadow,
                 transition: "all 0.2s ease",
                 "&:hover": {
-                  boxShadow: isDark
-                    ? "0 4px 14px rgba(0,0,0,0.7)"
-                    : "0 4px 12px rgba(0,0,0,0.08)",
+                  boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.7)" : "0 4px 12px rgba(0,0,0,0.08)",
                   transform: "translateY(-2px)",
                 },
               }}

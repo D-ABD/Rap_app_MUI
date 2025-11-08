@@ -135,8 +135,7 @@ export default function AppairageGroupedTableWidget({
     theme.palette.mode === "dark" ? theme.palette.warning.dark : theme.palette.warning.light;
   const colorInfo =
     theme.palette.mode === "dark" ? theme.palette.info.dark : theme.palette.info.light;
-  const colorHeader =
-    theme.palette.mode === "dark" ? theme.palette.background.default : "#e3f2fd";
+  const colorHeader = theme.palette.mode === "dark" ? theme.palette.background.default : "#e3f2fd";
   const colorTotal =
     theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[100];
 
@@ -242,8 +241,8 @@ export default function AppairageGroupedTableWidget({
                   taux >= 60
                     ? theme.palette.success.main
                     : taux >= 30
-                    ? theme.palette.warning.main
-                    : theme.palette.error.main;
+                      ? theme.palette.warning.main
+                      : theme.palette.error.main;
 
                 return (
                   <TableRow key={idx} hover>
@@ -291,8 +290,8 @@ export default function AppairageGroupedTableWidget({
                       totals.taux_ok >= 60
                         ? theme.palette.success.main
                         : totals.taux_ok >= 30
-                        ? theme.palette.warning.main
-                        : theme.palette.error.main,
+                          ? theme.palette.warning.main
+                          : theme.palette.error.main,
                   }}
                 >
                   {totals.appairages_total ? `${totals.taux_ok}%` : "—"}

@@ -12,12 +12,12 @@ j'ai tranferer mon backend sur mon vps et aussi mon front (dist) , par contre je
 RAP_APP_DJ_V2 est une application Django déployée sur un serveur Linux
 (Ubuntu) configuré avec :
 
-- **Backend :** Django + Gunicorn
-- **Serveur web :** Nginx (reverse proxy)
+- **Backend :** 
+- **Serveur web :** 
 - **Base de données :** PostgreSQL
-- **Environnement :** Python venv local (/srv/rap_app_dj_v2/venv/)
-- **Déploiement :** Git + script Bash automatisé (`deploy.sh`)
-- **Sauvegardes :** script planifié (backup_db.sh)
+- **Environnement :** 
+- **Déploiement :** 
+- **Sauvegardes :** 
 
 L’application gère les fonctionnalités métiers du projet RAP_APP,
 et son code source est synchronisé avec un dépôt GitHub privé.
@@ -26,8 +26,8 @@ et son code source est synchronisé avec un dépôt GitHub privé.
 
 ## ⚙️ 2️⃣ Fonctionnement global
 Le serveur exécute Gunicorn en tant que service systemd
-(`gunicorn_rapapp.service`), derrière un reverse proxy Nginx.
-Le code Django vit dans `/srv/rap_app_dj_v2/`.
+(`......`), derrière un reverse proxy Nginx.
+Le code Django vit. dans `/srv/.....
 
 Lorsqu’un déploiement est lancé :
 1. Le code est mis à jour depuis GitHub (`git pull`).
@@ -47,24 +47,15 @@ Lorsqu’un déploiement est lancé :
 ---
 
 ## 🧰 4️⃣ Fichiers et raccourcis utiles
-- `/srv/rap_app_dj_v2/deploy.sh` → déploiement complet
-- `/srv/rap_app_dj_v2/backup_db.sh` → sauvegarde PostgreSQL
-- `/etc/systemd/system/gunicorn_rapapp.service` → service Gunicorn
-- `/etc/nginx/sites-available/rap_app_dj_v2` → conf Nginx
-- `/srv/rap_app_dj_v2/staticfiles/` → fichiers statiques collectés
+
 
 **Alias principaux :**
-- `deploy_rapapp` → déploiement Django rapide
-- `deploylive` → déploiement complet + affichage des logs
-- `backupdb` → lancer manuellement la sauvegarde
-- `logsrap` / `logslive` → visualisation des logs
 
----
 
 ## 🚀 5️⃣ Pour un nouveau développeur
 - Connecte-toi au serveur :  
   ```bash
-  ssh root@147.93.126.119
+  ssh root@....
 
 
 # ================================================================
@@ -134,15 +125,15 @@ psql -U abd -d rap_app_backend < backup_YYYYMMDD.sql
 🧱 6️⃣ EMPLACEMENT DES FICHIERS
 ==================================================
 
-Projet Django ............. /srv/rap_app_dj_v2/
-Environnement virtuel ..... /srv/rap_app_dj_v2/venv/
-Fichiers statiques ........ /srv/rap_app_dj_v2/staticfiles/
-Service Gunicorn .......... /etc/systemd/system/gunicorn_rapapp.service
-Config Nginx .............. /etc/nginx/sites-available/rap_app_dj_v2
-Optimisations Nginx ....... /etc/nginx/conf.d/optimizations.conf
-Logs Gunicorn ............. /var/log/gunicorn/
-Logs Nginx ................ /var/log/nginx/
-Certificats SSL ........... /etc/letsencrypt/live/rap.adserv.fr/
+Projet Django ............. 
+Environnement virtuel ..... 
+Fichiers statiques ........ 
+Service Gunicorn .......... 
+Config Nginx .............. 
+Optimisations Nginx ....... 
+Logs Gunicorn ............. 
+Logs Nginx ................ 
+Certificats SSL ........... 
 
 
 ==================================================
@@ -167,13 +158,13 @@ find /tmp -type f -mtime +7 -delete
 ==================================================
 
 # Lancer une sauvegarde manuelle
-bash /srv/rap_app_dj_v2/backup_db.sh
+
 
 ✅ Liste des sauvegardes :
-ls -lh /srv/rap_app_dj_v2/backups/
+
 
 ✅ Voir le journal de sauvegarde :
-tail -n 30 /var/log/backup_db.log
+
 
 🕒 Planification :
 Sauvegarde automatique tous les jours à 3H du matin  
@@ -225,7 +216,7 @@ checkrap
 alias djapp="cd /home/rap_app/Rap_App_Django/rap_app_project"
 
 # Déployer automatiquement la dernière version du code
-alias deploy_rapapp="cd /home/rap_app/Rap_App_Django && source env/bin/activate && cd rap_app_project && git pull origin main && python manage.py migrate && python manage.py collectstatic --noinput && sudo systemctl restart gunicorn"
+alias deploy_rapapp="cd ...... && source env/bin/activate && cd rap_app_project && git pull origin main && python manage.py migrate && python manage.py collectstatic --noinput && sudo systemctl restart gunicorn"
 
 🔹 Recharger les alias :
 source ~/.bashrc
@@ -239,7 +230,6 @@ alias | grep rapapp
 ==================================================
 
 # Activer l’environnement virtuel
-source /home/rap_app/Rap_App_Django/env/bin/activate
 
 # Lancer le serveur de développement
 python manage.py runserver 0.0.0.0:8000
@@ -349,7 +339,7 @@ account default : gmail
 
 Mot de passe (application Gmail généré dans ton compte Google) :
 --------------------------------------------------
-echo "zibizbfhilateiuk" > /etc/msmtp_pass
+echo "............" > /etc/msmtp_pass
 chmod 600 /etc/msmtp_pass
 --------------------------------------------------
 
@@ -370,7 +360,7 @@ tail -n 20 /var/log/msmtp.log
 ### A. Cron automatique de surveillance
 Un script simple envoie un mail si un service est down :
 
-Fichier : `/srv/rap_app_dj_v2/utils/check_alert.sh`
+Fichier : `/srv/
 --------------------------------------------------
 #!/bin/bash
 if ! systemctl is-active --quiet gunicorn_rapapp; then
@@ -384,7 +374,7 @@ fi
 
 Ajouté dans la crontab root :
 --------------------------------------------------
-*/10 * * * * bash /srv/rap_app_dj_v2/utils/check_alert.sh
+*/10 * * * * bash /srv/..../utils/check_alert.sh
 --------------------------------------------------
 
 ### B. Alertes backup
@@ -410,5 +400,3 @@ fi
 ✅ FIN DU MÉMO
 ==================================================
 
-ssh root@147.93.126.119 "rm -rf /srv/rap_app_front/*"
-scp -r dist/* root@147.93.126.119:/srv/rap_app_front/

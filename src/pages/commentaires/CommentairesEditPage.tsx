@@ -21,10 +21,7 @@ import {
   DialogActions,
 } from "@mui/material";
 import { useQuill } from "react-quilljs";
-import  {
-  defaultModules,
-  defaultFormats,
-} from "../../utils/registerQuillFormats";
+import { defaultModules, defaultFormats } from "../../utils/registerQuillFormats";
 import "quill/dist/quill.snow.css";
 
 import api from "../../api/axios";
@@ -62,8 +59,7 @@ export default function CommentairesEditPage() {
   useEffect(() => {
     if (!quill) return;
 
-    const isEmpty =
-      quill.root.innerHTML === "<p><br></p>" || quill.getText().trim() === "";
+    const isEmpty = quill.root.innerHTML === "<p><br></p>" || quill.getText().trim() === "";
     if (values.contenu && isEmpty) {
       quill.clipboard.dangerouslyPasteHTML(values.contenu);
     }
@@ -80,10 +76,7 @@ export default function CommentairesEditPage() {
     api
       .get(`/commentaires/${id}/`)
       .then((res) => {
-        const data =
-          res.data?.data && typeof res.data.data === "object"
-            ? res.data.data
-            : res.data;
+        const data = res.data?.data && typeof res.data.data === "object" ? res.data.data : res.data;
         if (!data || typeof data !== "object" || !data.id)
           throw new Error("Réponse invalide du serveur");
 
@@ -145,9 +138,7 @@ export default function CommentairesEditPage() {
       setIsArchived(updated?.statut_commentaire === "archive");
 
       toast.success(
-        isArchived
-          ? "💬 Commentaire désarchivé avec succès"
-          : "📦 Commentaire archivé avec succès"
+        isArchived ? "💬 Commentaire désarchivé avec succès" : "📦 Commentaire archivé avec succès"
       );
     } catch {
       toast.error("Erreur lors du changement de statut");
@@ -189,8 +180,7 @@ export default function CommentairesEditPage() {
                 📍 Centre : <strong>{meta?.centre_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
-                📌 Statut :{" "}
-                <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
+                📌 Statut : <strong>{isArchived ? "Archivé" : meta?.statut_nom || "—"}</strong>
               </Typography>
               <Typography variant="body2">
                 🧩 Type d’offre : <strong>{meta?.type_offre_nom || "—"}</strong>
@@ -203,8 +193,7 @@ export default function CommentairesEditPage() {
                 <strong>{meta?.saturation_formation ?? "—"}%</strong>
               </Typography>
               <Typography variant="body2">
-                📈 Saturation actuelle :{" "}
-                <strong>{meta?.taux_saturation ?? "—"}%</strong>
+                📈 Saturation actuelle : <strong>{meta?.taux_saturation ?? "—"}%</strong>
               </Typography>
             </Box>
 
@@ -278,15 +267,10 @@ export default function CommentairesEditPage() {
       >
         <DialogTitle>✅ Votre commentaire a bien été mis à jour</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Que souhaitez-vous faire ensuite ?
-          </DialogContentText>
+          <DialogContentText>Que souhaitez-vous faire ensuite ?</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button
-            onClick={() => navigate(`/formations/${values.formation}`)}
-            variant="outlined"
-          >
+          <Button onClick={() => navigate(`/formations/${values.formation}`)} variant="outlined">
             ← Retour à la formation
           </Button>
           <Button onClick={() => navigate(`/commentaires`)} variant="contained">

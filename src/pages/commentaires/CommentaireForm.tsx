@@ -8,20 +8,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Stack,
-  Typography,
-  Paper,
-} from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography, Paper } from "@mui/material";
 import { useQuill } from "react-quilljs";
 import "quill/dist/quill.snow.css";
 
-import {
-  colorOptions,
-} from "../../utils/registerQuillFormats";
+import { colorOptions } from "../../utils/registerQuillFormats";
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
 import useForm from "../../hooks/useForm";
 import api from "../../api/axios";
@@ -61,11 +52,10 @@ export default function CommentaireForm({
   const [showModal, setShowModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const { values, errors, setErrors, setValues } =
-    useForm<CommentaireFormData>({
-      formation: formationId || "",
-      contenu: contenuInitial || "",
-    });
+  const { values, errors, setErrors, setValues } = useForm<CommentaireFormData>({
+    formation: formationId || "",
+    contenu: contenuInitial || "",
+  });
 
   /* ---------- Initialise Quill ---------- */
   const { quill, quillRef } = useQuill({
@@ -83,8 +73,7 @@ export default function CommentaireForm({
     if (!quill) return;
 
     // ⚙️ Injecte le contenu initial une seule fois
-    const isEmpty =
-      quill.root.innerHTML === "<p><br></p>" || quill.getText().trim() === "";
+    const isEmpty = quill.root.innerHTML === "<p><br></p>" || quill.getText().trim() === "";
     if (contenuInitial && isEmpty) {
       quill.clipboard.dangerouslyPasteHTML(contenuInitial);
     }
@@ -146,9 +135,7 @@ export default function CommentaireForm({
         response?: { data?: Record<string, string[]> };
       };
       if (axiosError.response?.data) {
-        const formattedErrors: Partial<
-          Record<keyof CommentaireFormData, string>
-        > = {};
+        const formattedErrors: Partial<Record<keyof CommentaireFormData, string>> = {};
         for (const key in axiosError.response.data) {
           const val = axiosError.response.data[key];
           if (Array.isArray(val)) {
@@ -179,23 +166,13 @@ export default function CommentaireForm({
                 <Button
                   variant="outlined"
                   onClick={() => setShowModal(true)}
-                  aria-label={
-                    formationNom
-                      ? "Changer de formation"
-                      : "Rechercher une formation"
-                  }
+                  aria-label={formationNom ? "Changer de formation" : "Rechercher une formation"}
                 >
-                  🔍{" "}
-                  {formationNom
-                    ? "Changer de formation"
-                    : "Rechercher une formation"}
+                  🔍 {formationNom ? "Changer de formation" : "Rechercher une formation"}
                 </Button>
 
                 {formationNom && (
-                  <Typography
-                    variant="body2"
-                    sx={{ mt: 1, color: "text.secondary" }}
-                  >
+                  <Typography variant="body2" sx={{ mt: 1, color: "text.secondary" }}>
                     📚 Formation sélectionnée :{" "}
                     <strong style={{ color: "#2e7d32" }}>{formationNom}</strong>
                   </Typography>
@@ -254,27 +231,15 @@ export default function CommentaireForm({
           {/* --- Actions --- */}
           {!readonlyFormation && (
             <Stack direction="row" spacing={2} justifyContent="flex-end" mt={2}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="success"
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <CircularProgress size={20} color="inherit" />
-                ) : (
-                  "💾 Enregistrer"
-                )}
+              <Button type="submit" variant="contained" color="success" disabled={submitting}>
+                {submitting ? <CircularProgress size={20} color="inherit" /> : "💾 Enregistrer"}
               </Button>
 
               <Button
                 type="button"
                 variant="outlined"
                 onClick={() => {
-                  if (
-                    !submitting &&
-                    window.confirm("Annuler les modifications ?")
-                  ) {
+                  if (!submitting && window.confirm("Annuler les modifications ?")) {
                     navigate("/commentaires");
                   }
                 }}

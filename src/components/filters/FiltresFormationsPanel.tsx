@@ -37,7 +37,7 @@ function buildReset(values: FiltresFormationsValues): FiltresFormationsValues {
     statut: undefined,
     type_offre: undefined,
     activite: undefined,
-    dans: undefined,              // 👈 nouveau filtre “période à venir”
+    dans: undefined, // 👈 nouveau filtre “période à venir”
     avec_archivees: false,
     page: 1,
   };

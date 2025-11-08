@@ -25,22 +25,16 @@ type CandidatWithFormation = Candidat & {
   formation_date_fin?: string | null;
 };
 
-const dtfFR =
-  typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
+const dtfFR = typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
 
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 const nn = (s?: string | null) => (s ?? "").toString().trim() || "—";
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Props ---------- */
 interface Props {
@@ -50,7 +44,6 @@ interface Props {
   loading?: boolean;
   onEdit?: (id: number) => void;
 }
-
 
 /* ---------- Sections à afficher ---------- */
 const SECTIONS: {
@@ -85,33 +78,27 @@ const SECTIONS: {
     ],
   },
 
+  {
+    title: "Formation",
+    fields: [
+      { key: "centre_nom", label: "Centre" },
+      { key: "date_rentree", label: "Date de rentrée" },
+      { key: "admissible", label: "Admissible" },
+      { key: "entretien_done", label: "Entretien réalisé" },
+      { key: "test_is_ok", label: "Test d’entrée OK" },
+      { key: "cv_statut_display", label: "Statut du CV" },
+      { key: "disponibilite", label: "Disponibilité" },
+      // Champs issus de formation_info
+      { key: "formation_nom", label: "Nom formation" },
+      { key: "formation_centre_nom", label: "Centre (formation)" },
+      { key: "formation_type_offre_nom", label: "Type d’offre" },
+      { key: "formation_type_offre_libelle", label: "Libellé offre" },
+      { key: "formation_num_offre", label: "N° offre" },
+      { key: "formation_date_debut", label: "Début de formation" },
+      { key: "formation_date_fin", label: "Fin de formation" },
+    ],
+  },
 
-{
-  title: "Formation",
-  fields: [
-    { key: "centre_nom", label: "Centre" },
-    { key: "date_rentree", label: "Date de rentrée" },
-    { key: "admissible", label: "Admissible" },
-    { key: "entretien_done", label: "Entretien réalisé" },
-    { key: "test_is_ok", label: "Test d’entrée OK" },
-    { key: "cv_statut_display", label: "Statut du CV" },
-    { key: "disponibilite", label: "Disponibilité" },
-    // Champs issus de formation_info
-    { key: "formation_nom", label: "Nom formation" },
-    { key: "formation_centre_nom", label: "Centre (formation)" },
-    { key: "formation_type_offre_nom", label: "Type d’offre" },
-    { key: "formation_type_offre_libelle", label: "Libellé offre" },
-    { key: "formation_num_offre", label: "N° offre" },
-    { key: "formation_date_debut", label: "Début de formation" },
-    { key: "formation_date_fin", label: "Fin de formation" },
-  ],
-},
-
-
-
-
-
-  
   {
     title: "Statut et Contrat",
     fields: [
@@ -119,13 +106,12 @@ const SECTIONS: {
       { key: "admissible", label: "Admissible" },
       { key: "type_contrat", label: "Type de contrat" },
       { key: "contrat_signe_display", label: "Contrat signé" },
-    
+
       { key: "entretien_done", label: "Entretien réalisé" },
       { key: "test_is_ok", label: "Test d’entrée OK" },
 
-
       { key: "disponibilite", label: "Disponibilité" },
-      
+
       { key: "cv_statut_display", label: "Statut du CV" },
       { key: "permis_b", label: "Permis B" },
       { key: "rqth", label: "RQTH" },
@@ -133,11 +119,10 @@ const SECTIONS: {
       { key: "communication", label: "Communication ★" },
       { key: "experience", label: "Expérience ★" },
       { key: "csp", label: "CSP ★" },
-
     ],
   },
 
-    {
+  {
     title: "Placement",
     fields: [
       { key: "resultat_placement_display", label: "Résultat placement" },
@@ -163,7 +148,6 @@ const SECTIONS: {
       { key: "situation_avant_contrat", label: "Situation avant contrat" },
       { key: "projet_creation_entreprise", label: "Projet création entreprise" },
 
-
       { key: "regime_social", label: "Régime social" },
       { key: "sportif_haut_niveau", label: "Sportif de haut niveau" },
       { key: "equivalence_jeunes", label: "Équivalence jeunes" },
@@ -172,7 +156,6 @@ const SECTIONS: {
     ],
   },
 
-  
   {
     title: "Représentant légal",
     fields: [
@@ -255,8 +238,8 @@ export default function CandidatDetailModal({
                         typeof val === "boolean"
                           ? yn(val)
                           : key.toLowerCase().includes("date")
-                          ? fmt(val as string)
-                          : nn(val as string);
+                            ? fmt(val as string)
+                            : nn(val as string);
                       return <Field key={key as string} label={label} value={value} />;
                     })}
                   </Section>
@@ -319,10 +302,7 @@ export default function CandidatDetailModal({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}>
         {title}
       </Typography>
       <Divider sx={{ mb: 1 }} />

@@ -23,11 +23,7 @@ export default function CommentairesCreateFromFormationPage() {
   }
 
   return (
-    <PageTemplate
-      title="➕ Créer un commentaire"
-      backButton
-      onBack={() => window.history.back()}
-    >
+    <PageTemplate title="➕ Créer un commentaire" backButton onBack={() => window.history.back()}>
       <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
         {/* 📝 Formulaire */}
         <Box flex={1}>

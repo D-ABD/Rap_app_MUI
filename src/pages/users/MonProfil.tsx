@@ -161,7 +161,6 @@ export default function MonProfil() {
         onChange={(e) => handleChange("bio", e.target.value)}
       />
 
-
       {/* 🔒 Informations RGPD */}
       {user && (
         <Box

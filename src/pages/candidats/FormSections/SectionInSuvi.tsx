@@ -32,10 +32,7 @@ export default function SectionIndicateurs({ form, setForm, meta }: Props) {
 
   return (
     <Card variant="outlined">
-      <CardHeader
-        title="Suivi & situation"
-        subheader="Suivi administratif et niveau du candidat"
-      />
+      <CardHeader title="Suivi & situation" subheader="Suivi administratif et niveau du candidat" />
       <CardContent>
         <Grid container spacing={2}>
           {/* Statut */}

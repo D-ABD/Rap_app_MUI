@@ -34,7 +34,11 @@ const useFormatters = () => {
   const fmt = (iso?: string | null): string => {
     if (!iso) return "—";
     const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
+    return Number.isNaN(d.getTime())
+      ? "—"
+      : dtfFR
+        ? dtfFR.format(d)
+        : d.toLocaleDateString("fr-FR");
   };
 
   const nn = (s?: string | number | null) =>
@@ -56,7 +60,7 @@ type Props = {
 /* ---------- Component ---------- */
 export default function ProspectionDetailModal({ open, onClose, prospectionId, onEdit }: Props) {
   const { fmt, nn, yn } = useFormatters();
-const { data: prospection, loading } = useProspection(prospectionId ?? null);
+  const { data: prospection, loading } = useProspection(prospectionId ?? null);
 
   if (!open) return null;
 
@@ -151,7 +155,10 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                     )}`}
                   />
                   <Field label="Type d’offre" value={nn(prospection.type_offre_display)} />
-                  <Field label="Statut formation" value={nn(prospection.formation_statut_display)} />
+                  <Field
+                    label="Statut formation"
+                    value={nn(prospection.formation_statut_display)}
+                  />
                   <Field
                     label="Places disponibles"
                     value={
@@ -203,8 +210,8 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                           prospection.activite === "archivee"
                             ? "default"
                             : prospection.activite === "active"
-                            ? "success"
-                            : "warning"
+                              ? "success"
+                              : "warning"
                         }
                         sx={{
                           fontWeight: 600,
@@ -261,7 +268,10 @@ const { data: prospection, loading } = useProspection(prospectionId ?? null);
                       )
                     }
                   />
-                  <Field label="Date dernier commentaire" value={fmt(prospection.last_comment_at)} />
+                  <Field
+                    label="Date dernier commentaire"
+                    value={fmt(prospection.last_comment_at)}
+                  />
                   <Field
                     label="Total commentaires"
                     value={String(prospection.comments_count ?? "—")}

@@ -57,7 +57,9 @@ export default function ProspectionCreatePageCandidat() {
       }
       try {
         const res = await api.get<{ id: number; nom: string }>(`/formations/${presetFormation}/`);
-        const nom = res.data?.nom ?? (isRecord(res.data) && typeof res.data.nom === "string" ? res.data.nom : null);
+        const nom =
+          res.data?.nom ??
+          (isRecord(res.data) && typeof res.data.nom === "string" ? res.data.nom : null);
         if (!cancelled) setFormationNom(nom ?? null);
       } catch {
         if (!cancelled) setFormationNom(null);
@@ -133,7 +135,9 @@ export default function ProspectionCreatePageCandidat() {
         <Typography color="error">❌ Impossible d’initialiser le formulaire.</Typography>
       ) : (
         <ProspectionFormCandidat
-          key={["create-cand", presetPartenaire, partenaireNom, presetFormation, formationNom].join("-")}
+          key={["create-cand", presetPartenaire, partenaireNom, presetFormation, formationNom].join(
+            "-"
+          )}
           mode="create"
           initialValues={initialValues}
           onSubmit={handleSubmit}

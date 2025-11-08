@@ -78,12 +78,39 @@ class UnderlineStyle extends Inline {
 
 /* ---------- Palette de couleurs étendue ---------- */
 export const colorOptions = [
-  "#000000", "#444444", "#666666", "#999999", "#cccccc", "#eeeeee", "#ffffff",
-  "#ff0000", "#e60000", "#cc0000", "#990000", "#660000", "#330000",
-  "#ff9900", "#ffcc00", "#ffff00", "#99cc00", "#66cc00", "#339900",
-  "#00cc00", "#00cc66", "#00cc99", "#00cccc", "#0099cc", "#0066cc",
-  "#003399", "#0000cc", "#6600cc", "#9900cc", "#cc00cc", "#cc0099",
-  "#cc0066", "#cc0033",
+  "#000000",
+  "#444444",
+  "#666666",
+  "#999999",
+  "#cccccc",
+  "#eeeeee",
+  "#ffffff",
+  "#ff0000",
+  "#e60000",
+  "#cc0000",
+  "#990000",
+  "#660000",
+  "#330000",
+  "#ff9900",
+  "#ffcc00",
+  "#ffff00",
+  "#99cc00",
+  "#66cc00",
+  "#339900",
+  "#00cc00",
+  "#00cc66",
+  "#00cc99",
+  "#00cccc",
+  "#0099cc",
+  "#0066cc",
+  "#003399",
+  "#0000cc",
+  "#6600cc",
+  "#9900cc",
+  "#cc00cc",
+  "#cc0099",
+  "#cc0066",
+  "#cc0033",
 ];
 
 /* ---------- Modules de base ---------- */
@@ -113,8 +140,8 @@ export const defaultFormats = [
   "blockquote",
   "code-block",
   "list",
-  "bullet",     // ✅ nécessaire pour les listes à puces
-  "ordered",    // ✅ nécessaire pour les listes numérotées
+  "bullet", // ✅ nécessaire pour les listes à puces
+  "ordered", // ✅ nécessaire pour les listes numérotées
   "indent",
   "align",
   "link",

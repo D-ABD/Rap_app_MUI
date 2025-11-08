@@ -18,8 +18,19 @@ export default function CommentaireContent({ html }: Props) {
   // 🧼 Nettoyage HTML — garde styles inline et balises utiles
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
     ALLOWED_TAGS: [
-      "b", "i", "u", "em", "strong", "p", "br",
-      "ul", "ol", "li", "span", "a", "blockquote"
+      "b",
+      "i",
+      "u",
+      "em",
+      "strong",
+      "p",
+      "br",
+      "ul",
+      "ol",
+      "li",
+      "span",
+      "a",
+      "blockquote",
     ],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
   });

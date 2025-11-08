@@ -25,22 +25,16 @@ type CandidatWithFormation = Candidat & {
   formation_date_fin?: string | null;
 };
 
-const dtfFR =
-  typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
+const dtfFR = typeof Intl !== "undefined" ? new Intl.DateTimeFormat("fr-FR") : undefined;
 
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
-  return Number.isNaN(d.getTime())
-    ? "—"
-    : dtfFR
-    ? dtfFR.format(d)
-    : d.toLocaleDateString("fr-FR");
+  return Number.isNaN(d.getTime()) ? "—" : dtfFR ? dtfFR.format(d) : d.toLocaleDateString("fr-FR");
 };
 
 const nn = (s?: string | null) => (s ?? "").toString().trim() || "—";
-const yn = (b?: boolean | null) =>
-  typeof b === "boolean" ? (b ? "Oui" : "Non") : "—";
+const yn = (b?: boolean | null) => (typeof b === "boolean" ? (b ? "Oui" : "Non") : "—");
 
 /* ---------- Props ---------- */
 interface Props {
@@ -235,8 +229,8 @@ export default function CandidatDetailModal({
                         typeof val === "boolean"
                           ? yn(val)
                           : key.toLowerCase().includes("date")
-                          ? fmt(val as string)
-                          : nn(val as string);
+                            ? fmt(val as string)
+                            : nn(val as string);
                       return <Field key={key as string} label={label} value={value} />;
                     })}
                   </Section>
@@ -283,10 +277,7 @@ export default function CandidatDetailModal({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}>
         {title}
       </Typography>
       <Divider sx={{ mb: 1 }} />

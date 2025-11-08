@@ -60,12 +60,7 @@ export default function DashboardPage() {
   /* ---------- Wrapper pour accordéon stylé ---------- */
   const styledAccordion = useMemo(
     () =>
-      (
-        children: React.ReactNode,
-        title: string,
-        color: PaletteColorKey,
-        expanded = false
-      ) => (
+      (children: React.ReactNode, title: string, color: PaletteColorKey, expanded = false) => (
         <Accordion
           defaultExpanded={expanded}
           disableGutters
@@ -133,12 +128,7 @@ export default function DashboardPage() {
           </Button>
         </Box>
 
-
-
-
-              <FormationStatsSummary title="Formations" />
-
-
+        <FormationStatsSummary title="Formations" />
 
         {/* ---------- Accordéons ---------- */}
         {styledAccordion(

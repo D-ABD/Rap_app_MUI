@@ -74,7 +74,7 @@ export type OverviewKpis = {
   candidats: CandidatKpis;
   appairages: AppairageKpis; // ← NEW
   avec_archivees?: boolean;
-    nb_annulees: number;
+  nb_annulees: number;
   nb_archivees: number;
 };
 
@@ -204,8 +204,6 @@ export function getErrorMessage(err: unknown) {
   if (typeof err === "string") return err;
   return "Erreur inconnue";
 }
-
-
 
 export async function getOverview(filters: Filters) {
   const { data } = await api.get<OverviewResponse>("/formation-stats/", {

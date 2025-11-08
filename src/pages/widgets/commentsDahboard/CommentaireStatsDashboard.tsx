@@ -49,8 +49,19 @@ function CommentaireContent({ html }: { html: string }) {
   // Étape 1 — Sanitize HTML
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
     ALLOWED_TAGS: [
-      "b", "i", "u", "em", "strong", "p", "br",
-      "ul", "ol", "li", "span", "a", "blockquote",
+      "b",
+      "i",
+      "u",
+      "em",
+      "strong",
+      "p",
+      "br",
+      "ul",
+      "ol",
+      "li",
+      "span",
+      "a",
+      "blockquote",
     ],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
     FORBID_TAGS: ["script", "style"],
@@ -139,23 +150,17 @@ export default function CommentaireStatsDashboard({
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { data, isLoading, error, refetch, isFetching } =
-    useCommentaireLatest(filters);
+  const { data, isLoading, error, refetch, isFetching } = useCommentaireLatest(filters);
   const results = data?.results ?? [];
   const total = data?.count ?? 0;
 
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(e.target.value, 10));
     setPage(0);
   };
 
-  const paginated = results.slice(
-    page * rowsPerPage,
-    page * rowsPerPage + rowsPerPage
-  );
+  const paginated = results.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
     <Card sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2 }}>
@@ -170,12 +175,7 @@ export default function CommentaireStatsDashboard({
         <Typography variant="subtitle1" fontWeight="bold">
           {title}
         </Typography>
-        <IconButton
-          onClick={() => refetch()}
-          disabled={isFetching}
-          size="small"
-          title="Rafraîchir"
-        >
+        <IconButton onClick={() => refetch()} disabled={isFetching} size="small" title="Rafraîchir">
           <RefreshIcon fontSize="small" />
         </IconButton>
       </Box>

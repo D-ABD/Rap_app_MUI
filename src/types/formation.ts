@@ -195,7 +195,7 @@ export interface FiltresFormationsValues {
   places_disponibles?: boolean;
   tri?: string;
   page?: number;
-  dans?: string;   
+  dans?: string;
   avec_archivees?: boolean;
   activite?: ActiviteCode;
 }

@@ -37,12 +37,9 @@ const CONTRAT_SIGNE_LABELS: Record<string, string> = {
   valide: "Validé",
 };
 
-
-
 /* Résolution du label */
 function resolveLabel(row: Record<string, unknown>, by: CandidatGroupBy): string {
-  if (row.group_label && String(row.group_label).trim() !== "")
-    return String(row.group_label);
+  if (row.group_label && String(row.group_label).trim() !== "") return String(row.group_label);
 
   const numOffre = (row["formation__num_offre"] as string) ?? null;
   switch (by) {
@@ -54,8 +51,8 @@ function resolveLabel(row: Record<string, unknown>, by: CandidatGroupBy): string
       return nomCentre
         ? `${nomCentre}${suffix}`
         : idCentre != null
-        ? `Centre #${idCentre}${suffix}`
-        : `—${suffix}`;
+          ? `Centre #${idCentre}${suffix}`
+          : `—${suffix}`;
     }
     case "departement":
       return (row["departement"] as string) ?? "—";
@@ -133,17 +130,24 @@ export default function CandidatGroupedTableWidget({
     theme.palette.mode === "dark" ? theme.palette.success.dark : theme.palette.success.light;
   const colorTotal =
     theme.palette.mode === "dark" ? theme.palette.grey[800] : theme.palette.grey[100];
-  const colorHeader =
-    theme.palette.mode === "dark" ? theme.palette.background.default : "#e3f2fd";
+  const colorHeader = theme.palette.mode === "dark" ? theme.palette.background.default : "#e3f2fd";
 
   return (
     <Card className={className}>
       <CardHeader
-        title={<Typography variant="subtitle1" fontWeight="bold">{title}</Typography>}
+        title={
+          <Typography variant="subtitle1" fontWeight="bold">
+            {title}
+          </Typography>
+        }
         action={
           showControls && (
             <Box display="flex" gap={1} flexWrap="wrap">
-              <Select size="small" value={by} onChange={(e) => setBy(e.target.value as CandidatGroupBy)}>
+              <Select
+                size="small"
+                value={by}
+                onChange={(e) => setBy(e.target.value as CandidatGroupBy)}
+              >
                 <MenuItem value="centre">Par centre</MenuItem>
                 <MenuItem value="departement">Par département</MenuItem>
                 <MenuItem value="formation">Par formation</MenuItem>

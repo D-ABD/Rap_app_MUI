@@ -120,17 +120,17 @@ export default function ProspectionEditCandidatPage() {
     };
   }, [detail?.formation, detail?.formation_nom]);
 
-const handleUpdate = async (data: ProspectionFormData) => {
-  if (!prospectionId) return;
-  try {
-    await update(data);
-    toast.success("✅ Prospection mise à jour");
-    // Petite pause visuelle avant la redirection (facultatif)
-    setTimeout(() => navigate("/prospections/candidat"), 300);
-  } catch {
-    toast.error("❌ Échec de la mise à jour");
-  }
-};
+  const handleUpdate = async (data: ProspectionFormData) => {
+    if (!prospectionId) return;
+    try {
+      await update(data);
+      toast.success("✅ Prospection mise à jour");
+      // Petite pause visuelle avant la redirection (facultatif)
+      setTimeout(() => navigate("/prospections/candidat"), 300);
+    } catch {
+      toast.error("❌ Échec de la mise à jour");
+    }
+  };
 
   const handleDelete = async () => {
     if (!prospectionId) return;

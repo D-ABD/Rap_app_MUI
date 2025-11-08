@@ -115,13 +115,9 @@ export default function ProspectionFormCandidat({
   );
   const [formationNom, setFormationNom] = useState<string | null>(
     initialValues?.formation_nom ?? null
-    
   );
 
-    const [numOffre] = useState<string | null>(
-    initialValues?.num_offre ?? null
-    
-  );
+  const [numOffre] = useState<string | null>(initialValues?.num_offre ?? null);
   const [ownerUsername, setOwnerUsername] = useState<string | null>(
     initialValues?.owner_username ?? null
   );
@@ -240,15 +236,14 @@ export default function ProspectionFormCandidat({
           </Box>
 
           {!fixedFormationId && (
-          <Box>
-            <Typography variant="body2" gutterBottom>
-              🎓 Formation : <strong>{formationNom ?? "— Non définie"}</strong>
-            </Typography>
-            <Typography variant="body2" gutterBottom>
-              🧾 Numéro d’offre : <strong>{numOffre ?? "— Non défini"}</strong>
-            </Typography>
-          </Box>
-
+            <Box>
+              <Typography variant="body2" gutterBottom>
+                🎓 Formation : <strong>{formationNom ?? "— Non définie"}</strong>
+              </Typography>
+              <Typography variant="body2" gutterBottom>
+                🧾 Numéro d’offre : <strong>{numOffre ?? "— Non défini"}</strong>
+              </Typography>
+            </Box>
           )}
 
           <Box>

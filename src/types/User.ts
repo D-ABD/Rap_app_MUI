@@ -179,7 +179,6 @@ export interface MeUpdatePayload {
   centre?: number | null;
 }
 
-
 export interface MeUpdateResponse {
   success: boolean;
   message: string;

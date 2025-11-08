@@ -135,29 +135,27 @@ export default function PartenaireCandidatCreatePage() {
         )}
       </Box>
 
-<PostCreateChoiceModal
-  open={choiceOpen}
-  onClose={() => setChoiceOpen(false)}
-  resourceLabel="partenaire"
-  persistId={lastCreated?.id}
-  extraContent={
-    lastCreated ? (
-      <Box textAlign="center" mt={1}>
-        <Typography variant="h6" fontWeight="bold" color="primary">
-          {lastCreated.nom}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          a bien été créé avec succès 🎉
-        </Typography>
-      </Box>
-    ) : null
-  }
-  // ✅ Plus de prospection, juste un retour vers la liste
-  primaryHref="/partenaires/candidat"
-  primaryLabel="↩️ Retour à la liste des partenaires"
-/>
-
-
+      <PostCreateChoiceModal
+        open={choiceOpen}
+        onClose={() => setChoiceOpen(false)}
+        resourceLabel="partenaire"
+        persistId={lastCreated?.id}
+        extraContent={
+          lastCreated ? (
+            <Box textAlign="center" mt={1}>
+              <Typography variant="h6" fontWeight="bold" color="primary">
+                {lastCreated.nom}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                a bien été créé avec succès 🎉
+              </Typography>
+            </Box>
+          ) : null
+        }
+        // ✅ Plus de prospection, juste un retour vers la liste
+        primaryHref="/partenaires/candidat"
+        primaryLabel="↩️ Retour à la liste des partenaires"
+      />
     </PageTemplate>
   );
 }

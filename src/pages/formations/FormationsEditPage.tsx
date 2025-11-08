@@ -84,22 +84,21 @@ export default function FormationsEditPage() {
   // ------------------------------------------------------------------
   // 🔹 Soumission du formulaire (mise à jour)
   // ------------------------------------------------------------------
-const submitFormation = async (values: FormationFormData): Promise<void> => {
-  if (!formationId) return;
+  const submitFormation = async (values: FormationFormData): Promise<void> => {
+    if (!formationId) return;
 
-  try {
-    const updated = await updateFormation(values);
-    setLocalDetail(updated);
-    toast.success("✅ Formation mise à jour");
+    try {
+      const updated = await updateFormation(values);
+      setLocalDetail(updated);
+      toast.success("✅ Formation mise à jour");
 
-    // 🔁 Redirige vers la liste
-    navigate("/formations");
-  } catch (error: any) {
-    toast.error("❌ Échec de la mise à jour");
-    throw error;
-  }
-};
-
+      // 🔁 Redirige vers la liste
+      navigate("/formations");
+    } catch (error: any) {
+      toast.error("❌ Échec de la mise à jour");
+      throw error;
+    }
+  };
 
   // ------------------------------------------------------------------
   // 🔹 États de chargement / erreurs
@@ -151,12 +150,7 @@ const submitFormation = async (values: FormationFormData): Promise<void> => {
             {archived ? "♻️ Désarchiver" : "📦 Archiver"}
           </Button>
 
-          <Button
-            variant="outlined"
-            color="error"
-            onClick={deleteCurrent}
-            disabled={removing}
-          >
+          <Button variant="outlined" color="error" onClick={deleteCurrent} disabled={removing}>
             {removing ? "Suppression…" : "Supprimer"}
           </Button>
         </Box>

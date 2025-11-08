@@ -26,7 +26,6 @@ const dtfFR =
       })
     : undefined;
 
-
 const fmt = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(iso);
@@ -47,9 +46,14 @@ type Props = {
 };
 
 /* ---------- Component ---------- */
-export default function ProspectionDetailModalCandidat({ open, onClose, prospectionId, onEdit }: Props) {
+export default function ProspectionDetailModalCandidat({
+  open,
+  onClose,
+  prospectionId,
+  onEdit,
+}: Props) {
   const { data: prospection, loading } = useProspection(prospectionId);
-const navigate = useNavigate();
+  const navigate = useNavigate();
 
   if (!open) return null;
 
@@ -249,15 +253,14 @@ const navigate = useNavigate();
       {/* ---------- Actions ---------- */}
       <DialogActions sx={{ justifyContent: "space-between", px: 3, py: 2 }}>
         {prospection && prospection.id != null && (
-      <Button
-        startIcon={<EditIcon />}
-        variant="contained"
-        color="primary"
-        onClick={() => navigate(`/prospections/${prospection.id}/edit/candidat`)}
-      >
-        Modifier
-      </Button>
-
+          <Button
+            startIcon={<EditIcon />}
+            variant="contained"
+            color="primary"
+            onClick={() => navigate(`/prospections/${prospection.id}/edit/candidat`)}
+          >
+            Modifier
+          </Button>
         )}
 
         {prospection && onEdit && prospection.id != null && (

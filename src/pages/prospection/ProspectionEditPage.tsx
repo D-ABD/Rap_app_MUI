@@ -98,22 +98,21 @@ export default function ProspectionEditPage() {
 
   /* ──────────────────────────────────────────────────────────────── */
 
-const handleUpdate = async (data: ProspectionFormData) => {
-  if (!prospectionId) return;
-  try {
-    const updated = await update(data);
-    setLocalDetail(updated as ProspectionDetailDTO);
-    toast.success("✅ Prospection mise à jour");
+  const handleUpdate = async (data: ProspectionFormData) => {
+    if (!prospectionId) return;
+    try {
+      const updated = await update(data);
+      setLocalDetail(updated as ProspectionDetailDTO);
+      toast.success("✅ Prospection mise à jour");
 
-    // 🔁 Redirection après un court délai (optionnel)
-    setTimeout(() => {
-      navigate("/prospections");
-    }, 400);
-  } catch {
-    toast.error("❌ Échec de la mise à jour");
-  }
-};
-
+      // 🔁 Redirection après un court délai (optionnel)
+      setTimeout(() => {
+        navigate("/prospections");
+      }, 400);
+    } catch {
+      toast.error("❌ Échec de la mise à jour");
+    }
+  };
 
   const handleDelete = async () => {
     if (!prospectionId) return;
@@ -267,9 +266,7 @@ const handleUpdate = async (data: ProspectionFormData) => {
 
           <Grid item xs={12} md={4}>
             <Typography variant="subtitle2">🎓 Formation</Typography>
-            <Typography>
-              {localDetail.formation_nom ?? formationFallback?.nom ?? "—"}
-            </Typography>
+            <Typography>{localDetail.formation_nom ?? formationFallback?.nom ?? "—"}</Typography>
             <Typography>
               🧾 Numéro d’offre :{" "}
               <strong>

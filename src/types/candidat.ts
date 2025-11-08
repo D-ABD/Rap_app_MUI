@@ -112,14 +112,14 @@ export interface Candidat {
   formation_info?: FormationInfo | null;
   centre_id?: number | null;
   centre_nom?: string | null;
-// Champs dérivés de formation (backend 2025-10)
-formation_nom?: string | null;
-formation_centre_nom?: string | null;
-formation_type_offre_nom?: string | null;
-formation_type_offre_libelle?: string | null;
-formation_num_offre?: string | null;
-formation_date_debut?: string | null;
-formation_date_fin?: string | null;
+  // Champs dérivés de formation (backend 2025-10)
+  formation_nom?: string | null;
+  formation_centre_nom?: string | null;
+  formation_type_offre_nom?: string | null;
+  formation_type_offre_libelle?: string | null;
+  formation_num_offre?: string | null;
+  formation_date_debut?: string | null;
+  formation_date_fin?: string | null;
 
   // ───── Infos pour contrats ─────
   situation_avant_contrat?: string | null;
@@ -184,7 +184,6 @@ formation_date_fin?: string | null;
   contrat_signe?: ContratSigneValue | null;
   contrat_signe_display?: string | null;
 
-
   // ───── Système ─────
   date_inscription: string; // ISO
   created_at?: string;
@@ -232,7 +231,7 @@ export type CandidatFormData = Partial<
     | "vu_par_nom"
     | "resultat_placement_display"
     | "cv_statut_display"
-    | "ateliers_counts" 
+    | "ateliers_counts"
   >
 >;
 

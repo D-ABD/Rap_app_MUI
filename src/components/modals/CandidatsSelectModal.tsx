@@ -327,140 +327,139 @@ export default function CandidatsSelectModal({
     }
   };
 
- return (
-  <Dialog open={show} onClose={onClose} fullWidth maxWidth="sm">
-    <DialogTitle>Sélectionner un candidat / stagiaire</DialogTitle>
-    <DialogContent dividers>
-      <TextField
-        fullWidth
-        type="search"
-        placeholder="🔍 Rechercher un candidat (nom, email, formation, centre)…"
-        value={search}
-        onChange={(ev) => setSearch(ev.currentTarget.value)}
-        margin="normal"
-      />
+  return (
+    <Dialog open={show} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>Sélectionner un candidat / stagiaire</DialogTitle>
+      <DialogContent dividers>
+        <TextField
+          fullWidth
+          type="search"
+          placeholder="🔍 Rechercher un candidat (nom, email, formation, centre)…"
+          value={search}
+          onChange={(ev) => setSearch(ev.currentTarget.value)}
+          margin="normal"
+        />
 
-      {loading ? (
-        <Box display="flex" justifyContent="center" py={2}>
-          <CircularProgress />
-        </Box>
-      ) : error ? (
-        <Typography color="error">❌ {error}</Typography>
-      ) : (
-        <List>
-          {/* 🟢 Option spéciale pour désélectionner le candidat */}
-          <ListItem disablePadding>
-            <ListItemButton
-              onClick={() => {
-                onSelect({
-                  id: 0,
-                  nom: "",
-                  prenom: "",
-                  nom_complet: "— Aucun candidat —",
-                  email: null,
-                  formation: null,
-                });
-                onClose();
-              }}
-              sx={{
-                borderBottom: "1px solid #eee",
-                backgroundColor: "#f9fafb",
-                "&:hover": { backgroundColor: "#f3f4f6" },
-              }}
-            >
-              <ListItemText
-                primary={<strong>❌ Aucun candidat (retirer l’attribution)</strong>}
-                secondary="Cette prospection ne sera liée à aucun candidat."
-              />
-            </ListItemButton>
-          </ListItem>
-
-          {/* Liste normale des candidats */}
-          {filtered.map((c) => (
-            <ListItem key={c.id} disablePadding>
+        {loading ? (
+          <Box display="flex" justifyContent="center" py={2}>
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography color="error">❌ {error}</Typography>
+        ) : (
+          <List>
+            {/* 🟢 Option spéciale pour désélectionner le candidat */}
+            <ListItem disablePadding>
               <ListItemButton
                 onClick={() => {
-                  onSelect(c);
+                  onSelect({
+                    id: 0,
+                    nom: "",
+                    prenom: "",
+                    nom_complet: "— Aucun candidat —",
+                    email: null,
+                    formation: null,
+                  });
                   onClose();
                 }}
-                sx={{ borderBottom: "1px solid #eee" }}
+                sx={{
+                  borderBottom: "1px solid #eee",
+                  backgroundColor: "#f9fafb",
+                  "&:hover": { backgroundColor: "#f3f4f6" },
+                }}
               >
                 <ListItemText
-                  primary={
-                    <>
-                      <strong>{c.nom_complet}</strong>
-                      {c.email && <span style={{ color: "#6b7280" }}> ({c.email})</span>}
-                    </>
-                  }
-                  secondary={
-                    <>
-                      {c.formation_nom && `🎓 ${c.formation_nom}`}
-                      {c.formation_num_offre && ` • Offre ${c.formation_num_offre}`}
-                      {c.formation_type_offre && ` • ${c.formation_type_offre}`}
-                      {c.centre_nom && ` • Centre: ${c.centre_nom}`}
-                    </>
-                  }
+                  primary={<strong>❌ Aucun candidat (retirer l’attribution)</strong>}
+                  secondary="Cette prospection ne sera liée à aucun candidat."
                 />
               </ListItemButton>
             </ListItem>
-          ))}
 
-          {filtered.length === 0 && <Typography sx={{ p: 1 }}>Aucun candidat trouvé.</Typography>}
-        </List>
-      )}
+            {/* Liste normale des candidats */}
+            {filtered.map((c) => (
+              <ListItem key={c.id} disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    onSelect(c);
+                    onClose();
+                  }}
+                  sx={{ borderBottom: "1px solid #eee" }}
+                >
+                  <ListItemText
+                    primary={
+                      <>
+                        <strong>{c.nom_complet}</strong>
+                        {c.email && <span style={{ color: "#6b7280" }}> ({c.email})</span>}
+                      </>
+                    }
+                    secondary={
+                      <>
+                        {c.formation_nom && `🎓 ${c.formation_nom}`}
+                        {c.formation_num_offre && ` • Offre ${c.formation_num_offre}`}
+                        {c.formation_type_offre && ` • ${c.formation_type_offre}`}
+                        {c.centre_nom && ` • Centre: ${c.centre_nom}`}
+                      </>
+                    }
+                  />
+                </ListItemButton>
+              </ListItem>
+            ))}
 
-      {canCreate && (
-        <Box sx={{ mt: 2, p: 2, border: "1px dashed #ccc", borderRadius: 1 }}>
-          <Typography variant="subtitle1" gutterBottom>
-            Créer et lier un candidat
-          </Typography>
-          <Grid container spacing={1}>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                placeholder="Prénom *"
-                value={prenom}
-                onChange={(ev) => setPrenom(ev.target.value)}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                placeholder="Nom *"
-                value={nom}
-                onChange={(ev) => setNom(ev.target.value)}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                placeholder="Email"
-                value={email}
-                onChange={(ev) => setEmail(ev.target.value)}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                fullWidth
-                placeholder="Téléphone"
-                value={telephone}
-                onChange={(ev) => setTelephone(ev.target.value)}
-              />
-            </Grid>
-          </Grid>
-          <Button onClick={handleCreate} disabled={createDisabled} sx={{ mt: 1 }}>
-            {creating ? "Création…" : "Créer et sélectionner"}
-          </Button>
-        </Box>
-      )}
-    </DialogContent>
+            {filtered.length === 0 && <Typography sx={{ p: 1 }}>Aucun candidat trouvé.</Typography>}
+          </List>
+        )}
 
-    <DialogActions>
-      <Button onClick={onClose} color="secondary">
-        ❌ Fermer
-      </Button>
-    </DialogActions>
-  </Dialog>
-);
- 
+        {canCreate && (
+          <Box sx={{ mt: 2, p: 2, border: "1px dashed #ccc", borderRadius: 1 }}>
+            <Typography variant="subtitle1" gutterBottom>
+              Créer et lier un candidat
+            </Typography>
+            <Grid container spacing={1}>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  placeholder="Prénom *"
+                  value={prenom}
+                  onChange={(ev) => setPrenom(ev.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  placeholder="Nom *"
+                  value={nom}
+                  onChange={(ev) => setNom(ev.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  placeholder="Email"
+                  value={email}
+                  onChange={(ev) => setEmail(ev.target.value)}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <TextField
+                  fullWidth
+                  placeholder="Téléphone"
+                  value={telephone}
+                  onChange={(ev) => setTelephone(ev.target.value)}
+                />
+              </Grid>
+            </Grid>
+            <Button onClick={handleCreate} disabled={createDisabled} sx={{ mt: 1 }}>
+              {creating ? "Création…" : "Créer et sélectionner"}
+            </Button>
+          </Box>
+        )}
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onClose} color="secondary">
+          ❌ Fermer
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
 }

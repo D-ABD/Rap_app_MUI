@@ -41,8 +41,19 @@ function formatDate(value?: string | null): string {
 function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength?: number }) {
   const sanitized = DOMPurify.sanitize(html || "<em>—</em>", {
     ALLOWED_TAGS: [
-      "b", "i", "u", "em", "strong", "p", "br",
-      "ul", "ol", "li", "span", "a", "blockquote",
+      "b",
+      "i",
+      "u",
+      "em",
+      "strong",
+      "p",
+      "br",
+      "ul",
+      "ol",
+      "li",
+      "span",
+      "a",
+      "blockquote",
     ],
     ALLOWED_ATTR: ["href", "title", "target", "style"],
     FORBID_TAGS: ["script", "style"],
@@ -57,21 +68,21 @@ function CommentaireContent({ html, maxLength = 400 }: { html: string; maxLength
     const safeStyle = style
       .split(";")
       .map((s) => s.trim().toLowerCase())
-      .filter((s) =>
-        s.startsWith("color:") ||
-        s.startsWith("background-color:") ||
-        s.startsWith("font-weight:") ||
-        s.startsWith("font-style:") ||
-        s.startsWith("text-decoration:")
+      .filter(
+        (s) =>
+          s.startsWith("color:") ||
+          s.startsWith("background-color:") ||
+          s.startsWith("font-weight:") ||
+          s.startsWith("font-style:") ||
+          s.startsWith("text-decoration:")
       )
       .join("; ");
     el.setAttribute("style", safeStyle);
   });
 
   const cleanedHTML = tempDiv.innerHTML;
-  const truncated = cleanedHTML.length > maxLength
-    ? cleanedHTML.slice(0, maxLength) + "..."
-    : cleanedHTML;
+  const truncated =
+    cleanedHTML.length > maxLength ? cleanedHTML.slice(0, maxLength) + "..." : cleanedHTML;
 
   return (
     <Tooltip

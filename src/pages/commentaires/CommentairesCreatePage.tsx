@@ -15,11 +15,7 @@ export default function CommentairesCreatePage() {
   const [previewHTML, setPreviewHTML] = useState<string>("");
 
   return (
-    <PageTemplate
-      title="➕ Créer un commentaire"
-      backButton
-      onBack={() => window.history.back()}
-    >
+    <PageTemplate title="➕ Créer un commentaire" backButton onBack={() => window.history.back()}>
       {/* ⚙️ Conteneur principal */}
       <Box display="flex" flexDirection={{ xs: "column", md: "row" }} gap={3}>
         {/* 📝 Formulaire de création */}

@@ -33,7 +33,9 @@ import type {
 } from "../../types/prospection";
 
 import FormationSelectModal from "../../components/modals/FormationSelectModal";
-import CandidatsSelectModal, { type CandidatPick } from "../../components/modals/CandidatsSelectModal";
+import CandidatsSelectModal, {
+  type CandidatPick,
+} from "../../components/modals/CandidatsSelectModal";
 import type { Partenaire } from "../../types/partenaire";
 import PartenaireSelectModal from "../../components/modals/PartenairesSelectModal";
 
@@ -108,10 +110,16 @@ export default function ProspectionForm({
     num_offre: initialValues?.num_offre ?? null,
   });
 
-  const [partenaireNom, setPartenaireNom] = useState<string | null>(initialValues?.partenaire_nom ?? null);
-  const [formationNom, setFormationNom] = useState<string | null>(initialValues?.formation_nom ?? null);
-  const [numOffre, ] = useState<string | null>(initialValues?.num_offre ?? null);
-  const [ownerUsername, setOwnerUsername] = useState<string | null>(initialValues?.owner_username ?? null);
+  const [partenaireNom, setPartenaireNom] = useState<string | null>(
+    initialValues?.partenaire_nom ?? null
+  );
+  const [formationNom, setFormationNom] = useState<string | null>(
+    initialValues?.formation_nom ?? null
+  );
+  const [numOffre] = useState<string | null>(initialValues?.num_offre ?? null);
+  const [ownerUsername, setOwnerUsername] = useState<string | null>(
+    initialValues?.owner_username ?? null
+  );
 
   const [showPartenaireModal, setShowPartenaireModal] = useState(false);
   const [showFormationModal, setShowFormationModal] = useState(false);
@@ -217,7 +225,10 @@ export default function ProspectionForm({
   return (
     <Box component="form" onSubmit={handleSubmit}>
       {/* ─────────── Sélections ─────────── */}
-      <Section icon={<BusinessIcon color="primary" />} title="Entités liées (Partenaire, Formation, Candidat)">
+      <Section
+        icon={<BusinessIcon color="primary" />}
+        title="Entités liées (Partenaire, Formation, Candidat)"
+      >
         <Stack direction="row" spacing={2} flexWrap="wrap">
           {/* Partenaire */}
           <Box>
@@ -433,43 +444,42 @@ export default function ProspectionForm({
         }}
       />
 
-<CandidatsSelectModal
-  show={showOwnerModal}
-  onClose={() => setShowOwnerModal(false)}
-  onSelect={(cand) => {
-    // 🟢 Cas "Aucun candidat" → désattribution
-    if (cand.id === 0) {
-      setForm((fm) => ({
-        ...fm,
-        owner: null,
-        owner_username: null,
-        formation: null,
-        formation_nom: null,
-      }));
-      setOwnerUsername(null);
-      toast.info("Prospection non attribuée à un candidat.");
-      setShowOwnerModal(false);
-      return;
-    }
+      <CandidatsSelectModal
+        show={showOwnerModal}
+        onClose={() => setShowOwnerModal(false)}
+        onSelect={(cand) => {
+          // 🟢 Cas "Aucun candidat" → désattribution
+          if (cand.id === 0) {
+            setForm((fm) => ({
+              ...fm,
+              owner: null,
+              owner_username: null,
+              formation: null,
+              formation_nom: null,
+            }));
+            setOwnerUsername(null);
+            toast.info("Prospection non attribuée à un candidat.");
+            setShowOwnerModal(false);
+            return;
+          }
 
-    // 🧩 Cas normal → candidat avec compte
-    const ownerId = extractOwnerUserId(cand);
-    if (!ownerId) {
-      toast.warning("Ce candidat n'a pas de compte utilisateur lié.");
-      return;
-    }
-    const name = extractCandidateDisplayName(cand);
-    setForm((fm) => ({
-      ...fm,
-      owner: ownerId,
-      formation: cand.formation?.id ?? fm.formation,
-      formation_nom: cand.formation?.nom ?? fm.formation_nom,
-    }));
-    setOwnerUsername(name);
-    setShowOwnerModal(false);
-  }}
-/>
+          // 🧩 Cas normal → candidat avec compte
+          const ownerId = extractOwnerUserId(cand);
+          if (!ownerId) {
+            toast.warning("Ce candidat n'a pas de compte utilisateur lié.");
+            return;
+          }
+          const name = extractCandidateDisplayName(cand);
+          setForm((fm) => ({
+            ...fm,
+            owner: ownerId,
+            formation: cand.formation?.id ?? fm.formation,
+            formation_nom: cand.formation?.nom ?? fm.formation_nom,
+          }));
+          setOwnerUsername(name);
+          setShowOwnerModal(false);
+        }}
+      />
     </Box>
   );
 }
-   

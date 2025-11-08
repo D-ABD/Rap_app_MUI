@@ -32,12 +32,13 @@ function fullName(c: Candidat): string {
 }
 function contratChip(value?: string | null) {
   if (!value) return <Typography color="text.disabled">—</Typography>;
-  const map: Record<string, { label: string; color: "default" | "warning" | "success" | "info" }> = {
-    non: { label: "Non", color: "default" },
-    en_cours: { label: "En cours", color: "warning" },
-    signe: { label: "Signé", color: "info" },
-    valide: { label: "Validé", color: "success" },
-  };
+  const map: Record<string, { label: string; color: "default" | "warning" | "success" | "info" }> =
+    {
+      non: { label: "Non", color: "default" },
+      en_cours: { label: "En cours", color: "warning" },
+      signe: { label: "Signé", color: "info" },
+      valide: { label: "Validé", color: "success" },
+    };
   const { label, color } = map[value] ?? { label: value, color: "default" };
   return <Chip size="small" color={color} label={label} variant="outlined" />;
 }
@@ -283,7 +284,7 @@ export default function CandidatsTable({
             <TableCell>🎓 Formation complète</TableCell>
             <TableCell>📅 Période</TableCell>
             <TableCell>📃 Contrat</TableCell>
-            <TableCell>✍️ Contrat signé</TableCell> 
+            <TableCell>✍️ Contrat signé</TableCell>
             <TableCell>📌 Statut</TableCell>
             <TableCell>📄 CV</TableCell>
             <TableCell>⏳ Disp.</TableCell>
@@ -433,7 +434,7 @@ export default function CandidatsTable({
                     <Typography color="text.disabled">—</Typography>
                   )}
                 </TableCell>
-                  {/* Contrat */}
+                {/* Contrat */}
                 <TableCell>{c.type_contrat || "—"}</TableCell>
                 <TableCell>{contratChip(c.contrat_signe)}</TableCell>
                 {/* Statut */}
