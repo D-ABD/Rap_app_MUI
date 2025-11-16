@@ -37,6 +37,11 @@ import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import HomeIcon from "@mui/icons-material/Home";
+import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects";
+import InsightsIcon from "@mui/icons-material/Insights";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import SchoolIcon from "@mui/icons-material/School";
+import BarChartIcon from "@mui/icons-material/BarChart";
 
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
 
@@ -45,7 +50,7 @@ import { useAuth } from "../hooks/useAuth";
 import { ThemeContext } from "../contexts/ThemeContext";
 import logo from "../assets/logo.png";
 import { breadcrumbLabels } from "../utils/breadcrumbLabels";
-import Footer from "./footer";
+import Footer from "./footer"; 
 
 const drawerWidth = 240;
 
@@ -54,6 +59,8 @@ export default function MainLayout() {
   const [submenuOpen, setSubmenuOpen] = useState<Record<string, boolean>>({});
   const [anchorCrm, setAnchorCrm] = useState<null | HTMLElement>(null);
   const [anchorRevue, setAnchorRevue] = useState<null | HTMLElement>(null);
+  const [anchorDeclic, setAnchorDeclic] = useState<null | HTMLElement>(null);
+  const [anchorPrepa, setAnchorPrepa] = useState<null | HTMLElement>(null);
   const [anchorUser, setAnchorUser] = useState<null | HTMLElement>(null);
 
   const location = useLocation();
@@ -99,11 +106,12 @@ export default function MainLayout() {
     navigate("/login");
   };
 
-  const canSeeAdvanced =
-    !!user &&
-    (user.is_superuser === true ||
-      user.is_staff === true ||
-      ["admin", "superadmin", "staff"].includes((user.role ?? "").toLowerCase()));
+const canSeeAdvanced =
+  !!user &&
+  (user.is_superuser === true ||
+    user.is_staff === true ||
+    ["admin", "superadmin", "staff", "staff_read"].includes((user.role ?? "").toLowerCase()));
+
 
   // ✅ Fil d’Ariane
   const pathnames = location.pathname.split("/").filter((x) => x);
@@ -157,6 +165,59 @@ export default function MainLayout() {
               <Button color="inherit" component={Link} to="/dashboard">
                 Dashboard
               </Button>
+
+              {/* Déclic */}
+              <Button
+                color="inherit"
+                onClick={(e) => setAnchorDeclic(e.currentTarget)}
+                endIcon={<EmojiObjectsIcon />}
+              >
+                Déclic
+              </Button>
+              <Menu
+                anchorEl={anchorDeclic}
+                open={Boolean(anchorDeclic)}
+                onClose={() => setAnchorDeclic(null)}
+                PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
+              >
+                <MenuItem component={Link} to="/declic" onClick={() => setAnchorDeclic(null)}>
+                  <EmojiObjectsIcon fontSize="small" sx={{ mr: 1 }} /> Séances Déclic
+                </MenuItem>
+                <MenuItem
+                  component={Link}
+                  to="/declic/objectifs"
+                  onClick={() => setAnchorDeclic(null)}
+                >
+                  <TrackChangesIcon fontSize="small" sx={{ mr: 1 }} /> Objectifs Déclic
+                </MenuItem>
+              </Menu>
+
+              {/* Prépa Comp */}
+              <Button
+                color="inherit"
+                onClick={(e) => setAnchorPrepa(e.currentTarget)}
+                endIcon={<InsightsIcon />}
+              >
+                Prépa Comp
+              </Button>
+              <Menu
+                anchorEl={anchorPrepa}
+                open={Boolean(anchorPrepa)}
+                onClose={() => setAnchorPrepa(null)}
+                PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
+              >
+                <MenuItem component={Link} to="/prepa/ic" onClick={() => setAnchorPrepa(null)}>
+                  <SchoolIcon fontSize="small" sx={{ mr: 1 }} /> IC Prépa
+                </MenuItem>
+                <MenuItem component={Link} to="/prepa/ateliers" onClick={() => setAnchorPrepa(null)}>
+                  <SchoolIcon fontSize="small" sx={{ mr: 1 }} /> Ateliers1 Prépa
+                </MenuItem>
+
+                <MenuItem component={Link} to="/prepa/objectifs" onClick={() => setAnchorPrepa(null)}>
+                  <BarChartIcon fontSize="small" sx={{ mr: 1 }} /> objectifs Prépa
+                </MenuItem>
+              </Menu>
+
 
               {/* CRM */}
               <Button

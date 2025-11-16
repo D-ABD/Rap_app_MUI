@@ -1,8 +1,12 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { ReactNode } from "react";
+
+
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { ReactNode, useEffect } from "react";
 
 import MainLayout from "../layout/MainLayout";
 import MainLayoutCandidat from "../layout/MainLayoutCandidat";
+import MainLayoutDeclic from "src/layout/MainLayoutDeclic";
+import MainLayoutPrepa from "src/layout/MainLayoutPrepa";
 
 import LoginPage from "../pages/auth/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage";
@@ -58,81 +62,148 @@ import FormationsCommentairesPage from "../pages/formations/componentsFormations
 import PartenairesPage from "../pages/partenaires/PartenairesPage";
 import PartenairesCreatePage from "../pages/partenaires/PartenairesCreatePage";
 import PartenairesEditPage from "../pages/partenaires/PartenairesEditPage";
+import PartenairesCandidatPage from "../pages/partenaires/PartenairesCandidatPage";
+import PartenairesCandidatCreatePage from "../pages/partenaires/PartenairesCandidatCreatePage";
+import PartenairesCandidatEditPage from "../pages/partenaires/PartenairesCandidatEditPage";
 
 import ProspectionPage from "../pages/prospection/ProspectionPage";
 import ProspectionCreatePage from "../pages/prospection/ProspectionCreatePage";
+import ProspectionEditPage from "../pages/prospection/ProspectionEditPage";
+import ProspectionPageCandidat from "../pages/prospection/ProspectionPageCandidat";
 import ProspectionCreatePageCandidat from "../pages/prospection/ProspectionCreatePageCandidat";
 import ProspectionEditCandidatPage from "../pages/prospection/ProspectionEditCandidatPage";
-import ProspectionEditPage from "../pages/prospection/ProspectionEditPage";
 import ProspectionCommentPage from "../pages/prospection/prospectioncomments/ProspectionCommentPage";
 import ProspectionCommentCreatePage from "../pages/prospection/prospectioncomments/ProspectionCommentCreate";
 import ProspectionCommentEditPage from "../pages/prospection/prospectioncomments/ProspectionCommentEdit";
 
+import DocumentsPage from "src/pages/Documents/DocumentsPage";
+import DocumentsCreatePage from "src/pages/Documents/DocumentsCreatePage";
+import DocumentsEditPage from "src/pages/Documents/DocumentsEditPage";
+
+import DeclicPages from "src/pages/declic/DeclicPages";
+import DeclicCreatePage from "src/pages/declic/DeclicCreatePage";
+import DeclicEditPage from "src/pages/declic/DeclicEditPage";
+import ObjectifDeclicPage from "src/pages/declic/ObjectifDeclicPage";
+import ObjectifDeclicEditPage from "src/pages/declic/ObjectifDeclicEditPage";
+
 import PolitiqueConfidentialite from "../pages/PolitiqueConfidentialite";
 import About from "../pages/About";
 import ParametresPage from "../pages/parametres/ParametresPage";
-
-import { useAuth } from "../hooks/useAuth";
 import ForbiddenPage from "../pages/ForbiddenPage";
-import PartenairesCandidatCreatePage from "../pages/partenaires/PartenairesCandidatCreatePage";
-import PartenairesCandidatEditPage from "../pages/partenaires/PartenairesCandidatEditPage";
-import PartenairesCandidatPage from "../pages/partenaires/PartenairesCandidatPage";
-import ProspectionPageCandidat from "../pages/prospection/ProspectionPageCandidat";
-import DocumentsCreatePage from "src/pages/Documents/DocumentsCreatePage";
-import DocumentsEditPage from "src/pages/Documents/DocumentsEditPage";
-import DocumentsPage from "src/pages/Documents/DocumentsPage";
+import { useAuth } from "../hooks/useAuth";
+import DashboardDeclicStaffPage from "src/pages/DashboardDeclicPage";
+import { useLocation } from "react-router-dom";
+import PrepaCreatePage from "src/pages/prepa/PrepaCreatePage";
+import PrepaEditPage from "src/pages/prepa/PrepaEditPage";
+import ObjectifPrepaPage from "src/pages/prepa/ObjectifPrepaPage";
+import ObjectifPrepaEditPage from "src/pages/prepa/ObjectifPrepaEditPage";
+import DashboardPrepaStaffPage from "src/pages/DashboardPrepaPage";
+import PrepaPagesAteliers from "src/pages/prepa/PrepaPagesAteliers";
+import PrepaPagesIC from "src/pages/prepa/PrepaPagesIC";
+import PrepaPages from "src/pages/prepa/PrepaPages";
+import PrepaCreatePageIC from "src/pages/prepa/PrepaCreatePageIC";
+import PrepaCreatePageAteliers from "src/pages/prepa/PrepaCreatePageAteliers";
+import PrepaEditPageIC from "src/pages/prepa/PrepaEditPageIC";
+import PrepaEditPageAteliers from "src/pages/prepa/PrepaEditPageAteliers";
 
-/* ---------- SecureRoute ---------- */
-type AdminOnlyRouteProps = { children: ReactNode };
+/* ------------------------------------------------------- */
+/* ✅ ROUTES PRINCIPALES AVEC REDIRECTION AUTOMATIQUE ROLE */
+/* ------------------------------------------------------- */
 
-function AdminOnlyRoute({ children }: AdminOnlyRouteProps) {
-  const { user } = useAuth();
-
-  const isAdminOnly =
-    !!user &&
-    (user.is_superuser === true ||
-      ["admin", "superadmin"].includes((user.role ?? "").toLowerCase()));
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (!isAdminOnly) return <ForbiddenPage />; // 🚫 page 403
-
-  return <>{children}</>;
-}
-
-type AdminRouteProps = { children: ReactNode };
-
-function AdminRoute({ children }: AdminRouteProps) {
-  const { user } = useAuth();
-
-  const isAdmin =
-    !!user &&
-    (user.is_superuser === true ||
-      user.is_staff === true ||
-      ["admin", "superadmin", "staff"].includes((user.role ?? "").toLowerCase()));
-
-  if (!user) return <Navigate to="/login" replace />;
-  if (!isAdmin) return <ForbiddenPage />; // 🚫 page 403
-
-  return <>{children}</>;
-}
-
-type SecureRouteProps = { children: ReactNode };
-
-function SecureRoute({ children }: SecureRouteProps) {
-  const { user } = useAuth();
-  if (!user) return <Navigate to="/login" replace />;
-  return <>{children}</>;
-}
-
-const secure = (el: ReactNode) => <SecureRoute>{el}</SecureRoute>;
-
-/* ---------- Helper ---------- */
-const isBackOfficeUser = (user?: any) =>
-  !!(user?.is_staff || user?.role === "staff_read" || user?.is_admin || user?.is_superuser);
-
-/* ---------- Routes ---------- */
 export default function AppRoute() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 🔁 Redirection automatique APRÈS CONNEXION uniquement
+  useEffect(() => {
+    if (!user) return;
+
+    // ❗ Ne redirige PAS si on refresh une page qui n’est pas /login
+    if (location.pathname !== "/login") return;
+
+    const role = (user.role ?? "").toLowerCase();
+
+    if (role === "declic_staff") navigate("/dashboard/declic", { replace: true });
+    else if (role === "prepa_staff") navigate("/dashboard/prepa", { replace: true });
+    else if (["staff", "staff_read", "admin", "superadmin"].includes(role))
+      navigate("/dashboard", { replace: true });
+    else if (["candidat", "candidate"].includes(role))
+      navigate("/dashboard/candidat", { replace: true });
+
+  }, [user, navigate, location.pathname]);
+  
+  /* ---------- SecureRoute ---------- */
+  type AdminOnlyRouteProps = { children: ReactNode };
+  type AdminRouteProps = { children: ReactNode };
+  type SecureRouteProps = { children: ReactNode };
+
+  function AdminOnlyRoute({ children }: AdminOnlyRouteProps) {
+    const { user } = useAuth();
+    const isAdminOnly =
+      !!user &&
+      (user.is_superuser === true ||
+        ["admin", "superadmin"].includes((user.role ?? "").toLowerCase()));
+    if (!user) return <Navigate to="/login" replace />;
+    if (!isAdminOnly) return <ForbiddenPage />;
+    return <>{children}</>;
+  }
+
+  function AdminRoute({ children }: AdminRouteProps) {
+    const { user } = useAuth();
+    const isAdmin =
+      !!user &&
+      (user.is_superuser === true ||
+        user.is_staff === true ||
+        ["admin", "superadmin", "staff"].includes((user.role ?? "").toLowerCase()));
+    if (!user) return <Navigate to="/login" replace />;
+    if (!isAdmin) return <ForbiddenPage />;
+    return <>{children}</>;
+  }
+
+  function DeclicRoute({ children }: { children: ReactNode }) {
+    const { user } = useAuth();
+    const allowed =
+      !!user &&
+      (user.is_superuser === true ||
+        ["admin", "superadmin", "staff", "declic_staff"].includes(
+          (user.role ?? "").toLowerCase()
+        ));
+    if (!user) return <Navigate to="/login" replace />;
+    if (!allowed) return <ForbiddenPage />;
+    return <>{children}</>;
+  }
+
+  function SecureRoute({ children }: SecureRouteProps) {
+    const { user } = useAuth();
+    if (!user) return <Navigate to="/login" replace />;
+    return <>{children}</>;
+  }
+
+  const secure = (el: ReactNode) => <SecureRoute>{el}</SecureRoute>;
+
+  /* ---------- Helper : choisir le layout selon le rôle ---------- */
+  const getLayoutForUser = (user?: any) => {
+    const role = (user?.role ?? "").toLowerCase();
+
+    if (["staff", "staff_read", "admin", "superadmin"].includes(role)) return <MainLayout />;
+    if (role === "declic_staff") return <MainLayoutDeclic />;
+    if (role === "prepa_staff") return <MainLayoutPrepa />;
+    return <MainLayoutCandidat />;
+  };
+
+function PrepaRoute({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const allowed =
+    !!user &&
+    (user.is_superuser === true ||
+      ["admin", "superadmin", "staff", "prepa_staff"].includes(
+        (user.role ?? "").toLowerCase()
+      ));
+  if (!user) return <Navigate to="/login" replace />;
+  if (!allowed) return <ForbiddenPage />;
+  return <>{children}</>;
+}
 
   return (
     <Routes>
@@ -143,19 +214,30 @@ export default function AppRoute() {
       <Route path="/about" element={<About />} />
 
       {/* 🔐 Routes protégées */}
-      <Route element={isBackOfficeUser(user) ? <MainLayout /> : <MainLayoutCandidat />}>
+      <Route element={getLayoutForUser(user)}>
         <Route index element={<HomePage />} />
 
         {/* Dashboard */}
         <Route
           path="/dashboard"
-          element={secure(isBackOfficeUser(user) ? <DashboardPage /> : <DashboardCandidatPage />)}
+          element={secure(
+            ["staff", "staff_read", "admin", "superadmin"].includes(
+              (user?.role ?? "").toLowerCase()
+            ) ? (
+              <DashboardPage />
+            ) : (
+              <DashboardCandidatPage />
+            )
+          )}
         />
+        {/* Dashboard candidat explicite */}
+        <Route path="/dashboard/candidat"element={secure(<DashboardCandidatPage />)}/>
+                
 
         {/* Profil */}
         <Route path="/mon-profil" element={secure(<MonProfil />)} />
 
-        {/* 🔒 Paramètres (admin/superadmin only) */}
+        {/* Paramètres */}
         <Route
           path="/parametres"
           element={
@@ -166,103 +248,29 @@ export default function AppRoute() {
         />
 
         {/* Centres */}
-        <Route
-          path="/centres"
-          element={
-            <AdminRoute>
-              <CentresPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/centres/create"
-          element={
-            <AdminRoute>
-              <CentresCreatePage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/centres/:id/edit"
-          element={
-            <AdminRoute>
-              <CentresEditPage />
-            </AdminRoute>
-          }
-        />
+        <Route path="/centres" element={<AdminRoute><CentresPage /></AdminRoute>} />
+        <Route path="/centres/create" element={<AdminRoute><CentresCreatePage /></AdminRoute>} />
+        <Route path="/centres/:id/edit" element={<AdminRoute><CentresEditPage /></AdminRoute>} />
 
         {/* Statuts */}
-        <Route
-          path="/statuts"
-          element={
-            <AdminRoute>
-              <StatutsPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/statuts/create"
-          element={
-            <AdminRoute>
-              <StatutsCreatePage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/statuts/:id/edit"
-          element={
-            <AdminRoute>
-              <StatutsEditPage />
-            </AdminRoute>
-          }
-        />
+        <Route path="/statuts" element={<AdminRoute><StatutsPage /></AdminRoute>} />
+        <Route path="/statuts/create" element={<AdminRoute><StatutsCreatePage /></AdminRoute>} />
+        <Route path="/statuts/:id/edit" element={<AdminRoute><StatutsEditPage /></AdminRoute>} />
 
         {/* TypeOffres */}
-        <Route
-          path="/typeoffres"
-          element={
-            <AdminRoute>
-              <TypeOffresPage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/typeoffres/create"
-          element={
-            <AdminRoute>
-              <TypeOffresCreatePage />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/typeoffres/:id/edit"
-          element={
-            <AdminRoute>
-              <TypeOffresEditPage />
-            </AdminRoute>
-          }
-        />
+        <Route path="/typeoffres" element={<AdminRoute><TypeOffresPage /></AdminRoute>} />
+        <Route path="/typeoffres/create" element={<AdminRoute><TypeOffresCreatePage /></AdminRoute>} />
+        <Route path="/typeoffres/:id/edit" element={<AdminRoute><TypeOffresEditPage /></AdminRoute>} />
 
         {/* Appairages */}
         <Route path="/appairages" element={secure(<AppairagesPage />)} />
         <Route path="/appairages/create" element={secure(<AppairagesCreatePage />)} />
         <Route path="/appairages/:id/edit" element={secure(<AppairagesEditPage />)} />
         <Route path="/appairages/:id" element={secure(<AppairageDetailPage />)} />
-
-        {/* Appairage — Commentaires dédiés */}
         <Route path="/appairage-commentaires" element={secure(<AppairageCommentPage />)} />
-        <Route
-          path="/appairage-commentaires/create"
-          element={secure(<AppairageCommentCreatePage />)}
-        />
-        <Route
-          path="/appairage-commentaires/:id/edit"
-          element={secure(<AppairageCommentEditPage />)}
-        />
-        <Route
-          path="/appairage-commentaires/create/:appairageId"
-          element={secure(<AppairageCommentCreatePage />)}
-        />
+        <Route path="/appairage-commentaires/create" element={secure(<AppairageCommentCreatePage />)} />
+        <Route path="/appairage-commentaires/:id/edit" element={secure(<AppairageCommentEditPage />)} />
+        <Route path="/appairage-commentaires/create/:appairageId" element={secure(<AppairageCommentCreatePage />)} />
 
         {/* Ateliers TRE */}
         <Route path="/ateliers-tre" element={secure(<AteliersTrePage />)} />
@@ -278,48 +286,26 @@ export default function AppRoute() {
         <Route path="/partenaires" element={secure(<PartenairesPage />)} />
         <Route path="/partenaires/create" element={secure(<PartenairesCreatePage />)} />
         <Route path="/partenaires/:id/edit" element={secure(<PartenairesEditPage />)} />
-
         <Route path="/partenaires/candidat" element={secure(<PartenairesCandidatPage />)} />
-        <Route
-          path="/partenaires/create/candidat"
-          element={secure(<PartenairesCandidatCreatePage />)}
-        />
-        <Route
-          path="/partenaires/:id/edit/candidat"
-          element={secure(<PartenairesCandidatEditPage />)}
-        />
+        <Route path="/partenaires/create/candidat" element={secure(<PartenairesCandidatCreatePage />)} />
+        <Route path="/partenaires/:id/edit/candidat" element={secure(<PartenairesCandidatEditPage />)} />
 
-        {/* Prospections */}
+        {/* Prospection */}
         <Route path="/prospections" element={secure(<ProspectionPage />)} />
         <Route path="/prospections/create" element={secure(<ProspectionCreatePage />)} />
         <Route path="/prospections/:id/edit" element={secure(<ProspectionEditPage />)} />
-
         <Route path="/prospections/candidat" element={secure(<ProspectionPageCandidat />)} />
         <Route path="/prospections/create/candidat" element={<ProspectionCreatePageCandidat />} />
         <Route path="/prospections/:id/edit/candidat" element={<ProspectionEditCandidatPage />} />
-
-        {/* Prospection — Commentaires dédiés */}
         <Route path="/prospection-commentaires" element={secure(<ProspectionCommentPage />)} />
-        <Route
-          path="/prospection-commentaires/create"
-          element={secure(<ProspectionCommentCreatePage />)}
-        />
-        <Route
-          path="/prospection-commentaires/:id/edit"
-          element={secure(<ProspectionCommentEditPage />)}
-        />
-        <Route
-          path="/prospection-commentaires/create/:prospectionId"
-          element={secure(<ProspectionCommentCreatePage />)}
-        />
+        <Route path="/prospection-commentaires/create" element={secure(<ProspectionCommentCreatePage />)} />
+        <Route path="/prospection-commentaires/:id/edit" element={secure(<ProspectionCommentEditPage />)} />
+        <Route path="/prospection-commentaires/create/:prospectionId" element={secure(<ProspectionCommentCreatePage />)} />
 
         {/* Commentaires */}
         <Route path="/commentaires" element={secure(<CommentairesPage />)} />
         <Route path="/commentaires/create" element={secure(<CommentairesCreatePage />)} />
-        <Route
-          path="/commentaires/create/:formationId"
-          element={secure(<CommentairesCreateFromFormationPage />)}
-        />
+        <Route path="/commentaires/create/:formationId" element={secure(<CommentairesCreateFromFormationPage />)} />
         <Route path="/commentaires/:id/edit" element={secure(<CommentairesEditPage />)} />
 
         {/* Formations */}
@@ -327,11 +313,9 @@ export default function AppRoute() {
         <Route path="/formations/create" element={secure(<FormationsCreatePage />)} />
         <Route path="/formations/:id/edit" element={secure(<FormationsEditPage />)} />
         <Route path="/formations/:id" element={secure(<FormationDetailPage />)} />
-        <Route
-          path="/formations/:formationId/commentaires"
-          element={secure(<FormationsCommentairesPage />)}
-        />
+        <Route path="/formations/:formationId/commentaires" element={secure(<FormationsCommentairesPage />)} />
 
+        {/* Documents */}
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/documents/create" element={<DocumentsCreatePage />} />
         <Route path="/documents/edit/:id" element={<DocumentsEditPage />} />
@@ -341,12 +325,42 @@ export default function AppRoute() {
         <Route path="/users/create" element={secure(<UsersCreatePage />)} />
         <Route path="/users/:id/edit" element={secure(<UsersEditPage />)} />
 
-        {/* CERFA */}
-        {/*
-        <Route path="/cerfa" element={secure(<CerfaPage />)} />
-        <Route path="/cerfa/:id/edit" element={secure(<CerfaEditPage />)} />
-        */}
+        {/* Déclic */}
+        <Route path="/declic" element={<DeclicRoute><DeclicPages /></DeclicRoute>} />
+        <Route path="/declic/create" element={<DeclicRoute><DeclicCreatePage /></DeclicRoute>} />
+        <Route path="/declic/:id/edit" element={<DeclicRoute><DeclicEditPage /></DeclicRoute>} />
+        <Route path="/declic/objectifs" element={<DeclicRoute><ObjectifDeclicPage /></DeclicRoute>} />
+        <Route path="/declic/objectifs/:id/edit" element={<DeclicRoute><ObjectifDeclicEditPage /></DeclicRoute>} />
+
+        {/* Dashboard Déclic Staff */}
+        <Route path="/dashboard/declic"element={<DeclicRoute><DashboardDeclicStaffPage /></DeclicRoute>}/>
+      
+            {/* Prépa */} 
+      <Route path="/prepa" element={<PrepaRoute><PrepaPages /></PrepaRoute>} />
+      <Route path="/prepa/ic" element={<PrepaRoute><PrepaPagesIC /></PrepaRoute>} />
+      <Route path="/prepa/ateliers" element={<PrepaRoute><PrepaPagesAteliers /></PrepaRoute>} />
+
+      <Route path="/prepa/create" element={<PrepaRoute><PrepaCreatePage /></PrepaRoute>} />
+      <Route path="/prepa/create/ic" element={<PrepaRoute><PrepaCreatePageIC /></PrepaRoute>} />
+      <Route path="/prepa/create/ateliers" element={<PrepaRoute><PrepaCreatePageAteliers /></PrepaRoute>} />
+
+      <Route path="/prepa/:id/edit" element={<PrepaRoute><PrepaEditPage /></PrepaRoute>} />
+      <Route path="/prepa/:id/edit/IC" element={<PrepaRoute><PrepaEditPageIC /></PrepaRoute>} />
+      <Route path="/prepa/:id/edit/Ateliers" element={<PrepaRoute><PrepaEditPageAteliers /></PrepaRoute>} />
+
+      {/* Objectifs Prépa */}
+      <Route path="/prepa/objectifs" element={<PrepaRoute><ObjectifPrepaPage /></PrepaRoute>} />
+      <Route path="/prepa/objectifs/:id/edit" element={<PrepaRoute><ObjectifPrepaEditPage /></PrepaRoute>} />
+
+      {/* Dashboard Prépa Staff */}
+      <Route
+        path="/dashboard/prepa"
+        element={<PrepaRoute><DashboardPrepaStaffPage /></PrepaRoute>}
+      />
       </Route>
+
+
+
 
       {/* 🚫 403 + 404 */}
       <Route path="/403" element={<ForbiddenPage />} />

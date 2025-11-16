@@ -12,6 +12,10 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import BusinessIcon from "@mui/icons-material/Business";
 import CommentIcon from "@mui/icons-material/Comment";
 import AssignmentIcon from "@mui/icons-material/Assignment";
+import EmojiObjectsIcon from "@mui/icons-material/EmojiObjects";
+import InsightsIcon from "@mui/icons-material/Insights";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import BarChartIcon from "@mui/icons-material/BarChart";
 
 export interface SidebarItem {
   label: string;
@@ -32,6 +36,51 @@ export const sidebarItems: SidebarItem[] = [
     path: "/dashboard",
     icon: <DashboardIcon sx={{ color: "secondary.main" }} />,
   },
+
+
+  // 🔹 Déclic avec sous-menu
+  {
+    label: "Déclic",
+    icon: <EmojiObjectsIcon sx={{ color: "warning.main" }} />,
+    children: [
+      {
+        label: "Séances Déclic",
+        path: "/declic",
+        icon: <EmojiObjectsIcon sx={{ color: "warning.main" }} />,
+      },
+      {
+        label: "Objectifs Déclic",
+        path: "/declic/objectifs",
+        icon: <TrackChangesIcon sx={{ color: "warning.main" }} />,
+      },
+    ],
+  },
+
+  // 🔹 Prépa Comp avec sous-menu
+  {
+    label: "Prépa Comp",
+    icon: <InsightsIcon sx={{ color: "success.main" }} />,
+    children: [
+      {
+        label: "IC Prépa",
+        path: "/prepa/ic",
+        icon: <SchoolIcon sx={{ color: "success.main" }} />,
+      },
+
+      {
+        label: "Atelier1 Prépa",
+        path: "/prepa/ateliers",
+        icon: <SchoolIcon sx={{ color: "success.main" }} />,
+      },
+
+      {
+        label: "Objectifs Prépa",
+        path: "/prepa/objectifs",
+        icon: <BarChartIcon sx={{ color: "success.main" }} />,
+      },
+    ],
+  },
+
   {
     label: "CRM",
     icon: <SearchIcon sx={{ color: "info.main" }} />,

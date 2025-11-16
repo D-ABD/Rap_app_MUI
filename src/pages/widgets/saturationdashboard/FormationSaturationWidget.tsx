@@ -2,10 +2,10 @@
 import * as React from "react";
 import {
   Filters,
-  GroupRow,
   useFormationOverview,
   useFormationGrouped,
 } from "../../../types/formationStats";
+
 import {
   Box,
   Typography,
@@ -14,11 +14,17 @@ import {
   Select,
   FormControl,
   Button,
+  Stack,
+  Tooltip,
 } from "@mui/material";
+
 import SpeedIcon from "@mui/icons-material/Speed";
-import ArchiveIcon from "@mui/icons-material/Archive"; // 🆕 import
+import ArchiveIcon from "@mui/icons-material/Archive";
 import DashboardTemplateSaturation from "../../../components/dashboard/DashboardTemplateSaturation";
 
+/* --------------------------
+🔢 Utils
+--------------------------- */
 function toFixed0(n?: number) {
   return n == null ? "—" : Math.round(n).toString();
 }
@@ -30,136 +36,154 @@ function omit<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): 
 }
 
 function ColoredProgressBar({ value }: { value: number }) {
-  let color: "success" | "warning" | "error" = "success";
-  if (value >= 80) color = "error";
-  else if (value >= 50) color = "warning";
+  const status =
+    value >= 80 ? "error" : value >= 50 ? "warning" : "success";
 
   return (
     <LinearProgress
       variant="determinate"
       value={value}
-      color={color}
+      color={status}
       sx={{ height: 6, borderRadius: 3 }}
     />
   );
 }
 
+/* --------------------------
+📌 Composant principal
+--------------------------- */
 export default function FormationSaturationWidget({
-  title = "Formations - Saturation globale",
+  title = "Saturation des formations",
   filters,
 }: {
   title?: string;
   filters?: Filters;
 }) {
   const [localFilters, setLocalFilters] = React.useState<Filters>(filters ?? {});
-
-  const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
+    !!filters?.avec_archivees
+  );
 
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
   }, [filters]);
 
-  // ⚙️ Fusion filtres + flag archivées
+  // Filtres combinés (norme interne)
   const effectiveFilters = React.useMemo(
     () => ({ ...localFilters, avec_archivees: includeArchived }),
     [localFilters, includeArchived]
   );
 
-  const centreQuery = useFormationGrouped("centre", omit(effectiveFilters, ["centre"] as const));
+  /* --------------------------
+  📊 DATA
+  --------------------------- */
+  const centreQuery = useFormationGrouped(
+    "centre",
+    omit(effectiveFilters, ["centre"] as const)
+  );
   const deptQuery = useFormationGrouped(
     "departement",
     omit(effectiveFilters, ["departement"] as const)
   );
 
-  const { data, isLoading, error, isFetching } = useFormationOverview(effectiveFilters);
-
+  const { data, isLoading, isFetching, error } = useFormationOverview(effectiveFilters);
   const k = data?.kpis;
 
-  // 🎨 couleur du titre selon le taux
-  let toneColor: "success.main" | "warning.main" | "error.main" | "text.secondary" =
+  /* --------------------------
+  🎨 Couleur du titre
+  --------------------------- */
+  let toneColor: "text.secondary" | "success.main" | "warning.main" | "error.main" =
     "text.secondary";
+
   if (k?.taux_saturation != null) {
     if (k.taux_saturation < 50) toneColor = "success.main";
     else if (k.taux_saturation < 80) toneColor = "warning.main";
     else toneColor = "error.main";
   }
 
-  // 🔘 Filtres + bouton archivées
+  /* --------------------------
+  🧭 Options centre / département
+  --------------------------- */
+  const centreOptions = React.useMemo(() => {
+    return centreQuery.data?.results
+      ?.filter((r) => r.group_key || r["centre__nom"])
+      .map((r) => ({
+        value: String(r.group_key ?? r.centre_id),
+        label: r["centre__nom"] ?? r.group_label ?? `Centre ${r.centre_id}`,
+      }));
+  }, [centreQuery.data]);
+
+  const deptOptions = React.useMemo(() => {
+    return deptQuery.data?.results
+      ?.filter((r) => r.group_key || r.departement)
+      .map((r) => ({
+        value: String(r.group_key ?? r.departement),
+        label: r.group_label ?? r.departement,
+      }));
+  }, [deptQuery.data]);
+
+  /* --------------------------
+  🎛️ BARRE DE FILTRES
+  --------------------------- */
   const filtersBar = (
-    <>
-      {/* Sélecteur de centre */}
-      <FormControl size="small" sx={{ minWidth: 140 }}>
+    <Stack direction="row" spacing={2} flexWrap="wrap" alignItems="center">
+      {/* Centre */}
+      <FormControl size="small" sx={{ minWidth: 160 }}>
         <Select
-          aria-label="Filtrer par centre"
           value={localFilters.centre ?? ""}
           onChange={(e) =>
-            setLocalFilters((f) => ({
-              ...f,
-              centre: e.target.value || undefined,
-            }))
+            setLocalFilters((f) => ({ ...f, centre: e.target.value || undefined }))
           }
           disabled={centreQuery.isLoading}
           displayEmpty
         >
           <MenuItem value="">Tous centres</MenuItem>
-          {centreQuery.data?.results?.map((r: GroupRow, i: number) => {
-            const value = r.group_key ?? r.centre_id;
-            const label =
-              (typeof r["centre__nom"] === "string" && r["centre__nom"]) ||
-              (typeof r.group_label === "string" && r.group_label) ||
-              (r.centre_id ? `Centre #${r.centre_id}` : undefined);
-            return value && label ? (
-              <MenuItem key={i} value={String(value)}>
-                {label}
-              </MenuItem>
-            ) : null;
-          })}
+          {centreOptions?.map((opt, i) => (
+            <MenuItem key={i} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
-      {/* Sélecteur de département */}
-      <FormControl size="small" sx={{ minWidth: 120 }}>
+      {/* Département */}
+      <FormControl size="small" sx={{ minWidth: 140 }}>
         <Select
-          aria-label="Filtrer par département"
           value={localFilters.departement ?? ""}
           onChange={(e) =>
-            setLocalFilters((f) => ({
-              ...f,
-              departement: e.target.value || undefined,
-            }))
+            setLocalFilters((f) => ({ ...f, departement: e.target.value || undefined }))
           }
           disabled={deptQuery.isLoading}
           displayEmpty
         >
           <MenuItem value="">Tous départements</MenuItem>
-          {deptQuery.data?.results?.map((r: GroupRow, i: number) => {
-            const value = r.group_key ?? r.departement;
-            const label =
-              (typeof r.group_label === "string" && r.group_label) ||
-              (typeof r.departement === "string" && r.departement) ||
-              undefined;
-            return value && label ? (
-              <MenuItem key={i} value={String(value)}>
-                {label}
-              </MenuItem>
-            ) : null;
-          })}
+          {deptOptions?.map((opt, i) => (
+            <MenuItem key={i} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
 
-      {/* Bouton Archivées */}
-      <Button
-        size="small"
-        variant={includeArchived ? "contained" : "outlined"}
-        color={includeArchived ? "secondary" : "inherit"}
-        onClick={() => setIncludeArchived((v) => !v)}
-        startIcon={<ArchiveIcon fontSize="small" />}
-      >
-        {includeArchived ? "Retirer archivées" : "Ajouter archivées"}
-      </Button>
-    </>
+      {/* Archivées */}
+      <Tooltip title="Afficher / masquer les formations archivées">
+        <Button
+          size="small"
+          variant={includeArchived ? "contained" : "outlined"}
+          color={includeArchived ? "secondary" : "inherit"}
+          onClick={() => setIncludeArchived((v) => !v)}
+          startIcon={<ArchiveIcon fontSize="small" />}
+          sx={{ whiteSpace: "nowrap" }}
+        >
+          {includeArchived ? "Arch. incluses" : "Arch. exclues"}
+        </Button>
+      </Tooltip>
+    </Stack>
   );
 
+  /* --------------------------
+  🎛️ RENDU
+  --------------------------- */
   return (
     <DashboardTemplateSaturation
       title={title}
@@ -171,24 +195,29 @@ export default function FormationSaturationWidget({
     >
       {k && (
         <Box display="flex" alignItems="center" gap={2}>
-          {/* Icône ronde */}
+          {/* 🟦 Pastille icône */}
           <Box
             sx={{
-              width: 48,
-              height: 48,
+              width: 54,
+              height: 54,
               borderRadius: "50%",
               bgcolor: "primary.light",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
+              transition: "0.2s ease",
+              "&:hover": {
+                bgcolor: "primary.main",
+                transform: "scale(1.05)",
+              },
             }}
           >
             <SpeedIcon color="primary" />
           </Box>
 
-          {/* Valeurs */}
+          {/* 📊 Valeurs */}
           <Box flex={1}>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 0.5 }}>
               {toFixed0(k.taux_saturation)}%
             </Typography>
             <ColoredProgressBar value={k.taux_saturation} />

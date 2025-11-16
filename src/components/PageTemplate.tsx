@@ -1,3 +1,4 @@
+// ui_rap_app_mui/src/components/PageTemplate.tsx
 import React from "react";
 import { Box, Stack, Typography, Button, IconButton, Collapse, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";

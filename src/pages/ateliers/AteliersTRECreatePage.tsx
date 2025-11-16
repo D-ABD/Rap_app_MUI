@@ -13,7 +13,7 @@ import AtelierTREForm from "./AteliersTREForm";
 import PageTemplate from "../../components/PageTemplate";
 
 type CreatedAtelierLite = {
-  id: number;
+  id: number; 
   type_atelier?: string | null;
   date_atelier?: string | null;
   centre?: number | null;

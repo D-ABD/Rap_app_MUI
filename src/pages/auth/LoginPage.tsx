@@ -1,4 +1,3 @@
-// src/pages/auth/LoginPage.tsx
 import { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import axios from "axios";
@@ -14,17 +13,39 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // 🔹 Typage minimal pour éviter les erreurs TS
+  type LoggedUser = {
+    role?: string;
+    is_superuser?: boolean;
+    is_staff?: boolean;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      await login(email, password);
-      navigate("/dashboard");
+      // ✅ Authentification
+      const result = (await login(email, password)) as unknown as LoggedUser;
+
+      // ✅ Détermination du rôle
+      const role = (result?.role ?? "").toLowerCase();
+
+      // ✅ Redirection en fonction du rôle
+      if (["declic_staff"].includes(role)) {
+        navigate("/dashboard/declic", { replace: true });
+      } else if (["prepa_staff"].includes(role)) {
+        navigate("/dashboard/prepa", { replace: true });
+      } else if (["staff", "staff_read", "admin", "superadmin"].includes(role)) {
+        navigate("/dashboard", { replace: true });
+      } else if (["candidat", "candidate"].includes(role)) {
+        navigate("/dashboard/candidat", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true }); // fallback
+      }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        // ✅ Typage explicite de la structure de l'erreur backend
         const data = err.response?.data as { detail?: string } | undefined;
         const msg = data?.detail || "Identifiants incorrects.";
         setError(msg);
@@ -107,6 +128,7 @@ export default function LoginPage() {
             Créer un compte
           </Link>
         </Typography>
+
         <Typography variant="caption" align="center" display="block" sx={{ mt: 2 }}>
           En vous connectant, vous acceptez nos{" "}
           <Link component={RouterLink} to="/politique-confidentialite" target="_blank">

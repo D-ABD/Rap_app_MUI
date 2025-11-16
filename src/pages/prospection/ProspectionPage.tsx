@@ -139,58 +139,69 @@ export default function ProspectionPage() {
       title="📈 Prospections"
       refreshButton
       onRefresh={() => setReloadKey((k) => k + 1)}
-      actions={
-        <Stack direction="row" spacing={1} flexWrap="wrap">
-          <Button variant="outlined" onClick={() => setShowFilters((v) => !v)}>
-            {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
-            {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
-          </Button>
+actions={
+  <Stack direction="row" spacing={1} flexWrap="wrap">
 
-          <SearchInput
-            placeholder="🔍 Rechercher..."
-            value={filters.search || ""}
-            onChange={(e) => {
-              setFilters({ ...filters, search: e.target.value });
-              setPage(1);
-            }}
-          />
+    {/* 🟦 Bouton RETOUR (même style que Partenaires) */}
+    <Button
+      variant="outlined"
+      onClick={() => navigate(-1)}
+      startIcon={<span>←</span>}
+    >
+      Retour
+    </Button>
 
-          <ExportButtonProspection data={prospections} selectedIds={selectedIds} />
+    <Button variant="outlined" onClick={() => setShowFilters((v) => !v)}>
+      {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
+      {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
+    </Button>
 
-          <Select
-            size="small"
-            value={pageSize}
-            onChange={(e) => {
-              setPageSize(Number(e.target.value));
-              setPage(1);
-            }}
-          >
-            {[5, 10, 20].map((s) => (
-              <MenuItem key={s} value={s}>
-                {s} / page
-              </MenuItem>
-            ))}
-          </Select>
+    <SearchInput
+      placeholder="🔍 Rechercher..."
+      value={filters.search || ""}
+      onChange={(e) => {
+        setFilters({ ...filters, search: e.target.value });
+        setPage(1);
+      }}
+    />
 
-          <Button variant="contained" onClick={redirectToCreate}>
-            ➕ Nouvelle prospection
-          </Button>
+    <ExportButtonProspection data={prospections} selectedIds={selectedIds} />
 
-          {selectedIds.length > 0 && (
-            <>
-              <Button color="error" variant="contained" onClick={() => setShowConfirm(true)}>
-                🗑️ Supprimer ({selectedIds.length})
-              </Button>
-              <Button variant="outlined" onClick={selectAll}>
-                ✅ Tout sélectionner
-              </Button>
-              <Button variant="outlined" onClick={clearSelection}>
-                ❌ Annuler
-              </Button>
-            </>
-          )}
-        </Stack>
-      }
+    <Select
+      size="small"
+      value={pageSize}
+      onChange={(e) => {
+        setPageSize(Number(e.target.value));
+        setPage(1);
+      }}
+    >
+      {[5, 10, 20].map((s) => (
+        <MenuItem key={s} value={s}>
+          {s} / page
+        </MenuItem>
+      ))}
+    </Select>
+
+    <Button variant="contained" onClick={redirectToCreate}>
+      ➕ Nouvelle prospection
+    </Button>
+
+    {selectedIds.length > 0 && (
+      <>
+        <Button color="error" variant="contained" onClick={() => setShowConfirm(true)}>
+          🗑️ Supprimer ({selectedIds.length})
+        </Button>
+        <Button variant="outlined" onClick={selectAll}>
+          ✅ Tout sélectionner
+        </Button>
+        <Button variant="outlined" onClick={clearSelection}>
+          ❌ Annuler
+        </Button>
+      </>
+    )}
+  </Stack>
+}
+
       filters={
         showFilters &&
         (filtresLoading ? (

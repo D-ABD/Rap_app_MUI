@@ -9,6 +9,8 @@ export type CustomUserRole =
   | "stagiaire"
   | "candidat"
   | "candidatuser" // ← seulement si backend le renvoie
+  | "declic_staff"
+  | "prepa_staff"
   | "test"; // ← seulement si backend le renvoie
 
 // ✅ Interface principale utilisée dans tout le frontend
@@ -33,6 +35,7 @@ export interface User {
   is_staff_read?: boolean; // ✅ corrige la casse pour coller à l’API
   is_superuser?: boolean;
   is_admin?: boolean;
+
   last_login?: string;
   formation?: {
     id: number;

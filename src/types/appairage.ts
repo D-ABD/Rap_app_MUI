@@ -246,4 +246,8 @@ export interface AppairageFiltresValues {
   created_by?: number;
   avec_archivees?: boolean; // 👈 ajouté
   activite?: AppairageActivite; // ✅ ajouté
+
+  annee?: number;
+  date_min?: string; // format YYYY-MM-DD
+  date_max?: string;
 }

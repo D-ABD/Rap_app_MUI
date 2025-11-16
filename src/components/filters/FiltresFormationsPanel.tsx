@@ -35,6 +35,7 @@ function buildReset(values: FiltresFormationsValues): FiltresFormationsValues {
     texte: "",
     centre: undefined,
     statut: undefined,
+    annee: undefined,
     type_offre: undefined,
     activite: undefined,
     dans: undefined, // 👈 nouveau filtre “période à venir”
@@ -107,6 +108,20 @@ export default function FiltresFormationsPanel({
           })) ?? []),
         ]),
       },
+
+      {
+  key: "annee" as const,
+  label: "📆 Année",
+  type: "select",
+  options: [
+    { value: "", label: "Toutes les années" },
+    { value: 2023, label: "2023" },
+    { value: 2024, label: "2024" },
+    { value: 2025, label: "2025" },
+    { value: 2026, label: "2026" },
+  ],
+},
+
       // ⚙️ Filtre dynamique selon l’activité renvoyée par le backend
       {
         key: "activite" as const,
