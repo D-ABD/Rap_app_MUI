@@ -19,9 +19,13 @@ type Props = {
 export default function DocumentPreview({ url, nom }: Props) {
   const [open, setOpen] = useState(false);
 
+  // Si pas d’URL → message clair
   if (!url) return <Typography color="text.secondary">Aucun fichier</Typography>;
 
-  const extension = url.toLowerCase().split(".").pop() || "";
+  // Sécurise les opérations string
+  const safeUrl = url ?? "";
+
+  const extension = safeUrl.toLowerCase().split(".").pop() || "";
   const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(extension);
   const isPdf = extension === "pdf";
 
@@ -29,6 +33,7 @@ export default function DocumentPreview({ url, nom }: Props) {
     e.preventDefault();
     setOpen(true);
   };
+
   const handleClose = () => setOpen(false);
 
   return (
@@ -36,7 +41,7 @@ export default function DocumentPreview({ url, nom }: Props) {
       {isImage ? (
         <Box
           component="img"
-          src={url}
+          src={safeUrl}
           alt={nom || "aperçu"}
           sx={{
             maxWidth: 80,
@@ -54,25 +59,40 @@ export default function DocumentPreview({ url, nom }: Props) {
           📄 Voir PDF
         </Button>
       ) : (
-        <Button variant="text" component="a" href={url} target="_blank" rel="noopener noreferrer">
+        <Button
+          variant="text"
+          component="a"
+          href={safeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           📎 Télécharger
         </Button>
       )}
 
       <Dialog open={open} onClose={handleClose} maxWidth="lg" fullWidth>
         <DialogTitle
-          sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
         >
-          <Typography variant="h6">{nom || "Aperçu"}</Typography>
+          <Typography variant="h6" component="span">
+            {nom || "Aperçu"}
+          </Typography>
+
           <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
+
         <DialogContent dividers>
+          {/* IMAGE */}
           {isImage && (
             <Box
               component="img"
-              src={url}
+              src={safeUrl}
               alt={nom || "aperçu"}
               sx={{
                 maxWidth: "90vw",
@@ -82,12 +102,18 @@ export default function DocumentPreview({ url, nom }: Props) {
               }}
             />
           )}
+
+          {/* PDF */}
           {isPdf && (
             <Box
               component="iframe"
-              src={url}
+              src={safeUrl}
               title={nom || "aperçu PDF"}
-              sx={{ width: "90vw", height: "80vh", border: "none" }}
+              sx={{
+                width: "90vw",
+                height: "80vh",
+                border: "none",
+              }}
             />
           )}
         </DialogContent>

@@ -135,9 +135,7 @@ export default function ObjectifPrepaForm({ open, onClose, id }: Props) {
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {form.id ? "Modifier l’objectif Prépa" : "Nouvel objectif Prépa"}
-        </DialogTitle>
+        <DialogTitle>{form.id ? "Modifier l’objectif Prépa" : "Nouvel objectif Prépa"}</DialogTitle>
 
         <DialogContent dividers>
           <Paper sx={{ p: 2, mb: 2 }}>
@@ -155,10 +153,7 @@ export default function ObjectifPrepaForm({ open, onClose, id }: Props) {
                   required
                   value={form.annee ?? new Date().getFullYear()}
                   onChange={(e) =>
-                    handleChange(
-                      "annee",
-                      Number(e.target.value) || new Date().getFullYear()
-                    )
+                    handleChange("annee", Number(e.target.value) || new Date().getFullYear())
                   }
                 />
               </Grid>
@@ -171,9 +166,7 @@ export default function ObjectifPrepaForm({ open, onClose, id }: Props) {
                   fullWidth
                   required
                   value={form.valeur_objectif ?? ""}
-                  onChange={(e) =>
-                    handleChange("valeur_objectif", Number(e.target.value) || 0)
-                  }
+                  onChange={(e) => handleChange("valeur_objectif", Number(e.target.value) || 0)}
                 />
               </Grid>
 
@@ -192,10 +185,7 @@ export default function ObjectifPrepaForm({ open, onClose, id }: Props) {
                   InputProps={{ readOnly: true }}
                 />
                 <Stack direction="row" spacing={1} mt={1}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setShowCentreModal(true)}
-                  >
+                  <Button variant="outlined" onClick={() => setShowCentreModal(true)}>
                     🏫 Sélectionner un centre
                   </Button>
                   {form.centre_id && (
@@ -273,9 +263,7 @@ export default function ObjectifPrepaForm({ open, onClose, id }: Props) {
             centre_id: c.id,
             departement: c.departement ?? f.departement,
           }));
-          setCentreLabel(
-            `${c.nom ?? c.label ?? `Centre #${c.id}`} (${c.departement ?? ""})`
-          );
+          setCentreLabel(`${c.nom ?? c.label ?? `Centre #${c.id}`} (${c.departement ?? ""})`);
           setShowCentreModal(false);
         }}
       />

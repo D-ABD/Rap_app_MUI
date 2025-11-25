@@ -35,6 +35,9 @@ export default function PolitiqueConfidentialite() {
 
         <Divider sx={{ my: 3 }} />
 
+        {/* ---------------------------- */}
+        {/* 🔹 SECTION 1 */}
+        {/* ---------------------------- */}
         <Typography variant="h6" gutterBottom>
           1. Données collectées
         </Typography>
@@ -46,19 +49,29 @@ export default function PolitiqueConfidentialite() {
           partenaires associés).
         </Typography>
 
+        {/* ---------------------------- */}
+        {/* 🔹 SECTION 2 */}
+        {/* ---------------------------- */}
         <Typography variant="h6" gutterBottom>
           2. Finalités du traitement
         </Typography>
-        <Typography variant="body2" paragraph>
-          Vos données sont utilisées exclusivement pour :
+
+        {/* ❗ Correction : ul sorti de Typography */}
+        <Box component="div" sx={{ mb: 2 }} color="text.secondary">
+          <Typography variant="body2">
+            Vos données sont utilisées exclusivement pour :
+          </Typography>
           <ul>
             <li>vous permettre d’accéder à votre espace personnel ;</li>
             <li>assurer le suivi de votre parcours et de vos prospections ;</li>
             <li>améliorer la qualité des services proposés ;</li>
             <li>garantir la sécurité et la traçabilité des actions sur la plateforme.</li>
           </ul>
-        </Typography>
+        </Box>
 
+        {/* ---------------------------- */}
+        {/* 🔹 SECTION 3 */}
+        {/* ---------------------------- */}
         <Typography variant="h6" gutterBottom>
           3. Durée de conservation
         </Typography>
@@ -69,6 +82,9 @@ export default function PolitiqueConfidentialite() {
           ou le formulaire de contact.
         </Typography>
 
+        {/* ---------------------------- */}
+        {/* 🔹 SECTION 4 */}
+        {/* ---------------------------- */}
         <Typography variant="h6" gutterBottom>
           4. Partage et confidentialité
         </Typography>
@@ -79,6 +95,9 @@ export default function PolitiqueConfidentialite() {
           (hébergement, messagerie, statistiques internes).
         </Typography>
 
+        {/* ---------------------------- */}
+        {/* 🔹 SECTION 5 */}
+        {/* ---------------------------- */}
         <Typography variant="h6" gutterBottom>
           5. Sécurité des données
         </Typography>
@@ -88,6 +107,9 @@ export default function PolitiqueConfidentialite() {
           données contre toute perte, utilisation abusive ou accès non autorisé.
         </Typography>
 
+        {/* ---------------------------- */}
+        {/* 🔹 SECTION 6 */}
+        {/* ---------------------------- */}
         <Typography variant="h6" gutterBottom>
           6. Vos droits
         </Typography>

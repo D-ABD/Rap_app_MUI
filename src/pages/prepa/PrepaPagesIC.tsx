@@ -20,11 +20,7 @@ import {
 import PageTemplate from "src/components/PageTemplate";
 import usePagination from "src/hooks/usePagination";
 
-import {
-  usePrepaFiltersOptions,
-  usePrepaList,
-  useDeletePrepa,
-} from "src/hooks/usePrepa";
+import { usePrepaFiltersOptions, usePrepaList, useDeletePrepa } from "src/hooks/usePrepa";
 
 import { Prepa } from "src/types/prepa";
 import type { PrepaFiltresValues } from "src/types/prepa";
@@ -44,8 +40,7 @@ export default function PrepaPageIC() {
     page: 1,
   });
 
-  const { data: filterOptions, isLoading: loadingFilters } =
-    usePrepaFiltersOptions();
+  const { data: filterOptions, isLoading: loadingFilters } = usePrepaFiltersOptions();
 
   // Toggle panneau filtres
   const [showFilters, setShowFilters] = useState<boolean>(() => {
@@ -57,8 +52,7 @@ export default function PrepaPageIC() {
   }, [showFilters]);
 
   // Pagination
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   // 🔵 Filtre automatique : IC uniquement
   const effectiveFilters = useMemo(() => {
@@ -121,18 +115,12 @@ export default function PrepaPageIC() {
 
   return (
     <PageTemplate
-    
       title="Informations Collectives (IC)"
       refreshButton
       onRefresh={() => setFilters({ ...filters })}
       actions={
-        
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <Button
-            variant="outlined"
-            onClick={() => navigate(-1)}
-            startIcon={<span>←</span>}
-          >
+          <Button variant="outlined" onClick={() => navigate(-1)} startIcon={<span>←</span>}>
             Retour
           </Button>
 
@@ -178,11 +166,7 @@ export default function PrepaPageIC() {
               Page {page} / {totalPages} ({count} résultats)
             </Typography>
 
-            <Pagination
-              page={page}
-              count={totalPages}
-              onChange={(_, v) => setPage(v)}
-            />
+            <Pagination page={page} count={totalPages} onChange={(_, v) => setPage(v)} />
           </Stack>
         )
       }

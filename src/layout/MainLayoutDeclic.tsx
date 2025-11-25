@@ -122,9 +122,7 @@ export default function MainLayoutDeclic() {
                   sx={{
                     textTransform: "none",
                     fontWeight: isActive(item.path) ? 700 : 500,
-                    borderBottom: isActive(item.path)
-                      ? "2px solid white"
-                      : "2px solid transparent",
+                    borderBottom: isActive(item.path) ? "2px solid white" : "2px solid transparent",
                     "&:hover": { borderBottom: "2px solid white" },
                   }}
                 >

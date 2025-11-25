@@ -7,11 +7,7 @@ export default function PrepaPage() {
 
   return (
     <PageTemplate title="Prépa" centered>
-      <Button
-        variant="outlined"
-        onClick={() => navigate(-1)}
-        startIcon={<span>←</span>}
-      >
+      <Button variant="outlined" onClick={() => navigate(-1)} startIcon={<span>←</span>}>
         Retour
       </Button>
 
@@ -21,12 +17,7 @@ export default function PrepaPage() {
         </Typography>
 
         <Stack spacing={2} width="100%" maxWidth={400}>
-          <Button
-            variant="contained"
-            size="large"
-            fullWidth
-            onClick={() => navigate("/prepa/ic")}
-          >
+          <Button variant="contained" size="large" fullWidth onClick={() => navigate("/prepa/ic")}>
             🟦 Informations Collectives (IC)
           </Button>
 

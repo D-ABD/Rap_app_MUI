@@ -42,13 +42,7 @@ interface Props {
 }
 
 /* ─────────── Component ─────────── */
-export default function PrepaDetailModal({
-  open,
-  onClose,
-  prepa,
-  loading = false,
-  onEdit,
-}: Props) {
+export default function PrepaDetailModal({ open, onClose, prepa, loading = false, onEdit }: Props) {
   if (!open) return null;
 
   return (
@@ -96,9 +90,15 @@ export default function PrepaDetailModal({
               {/* ───────────── Informations générales ───────────── */}
               <Grid item xs={12}>
                 <Section title="Informations générales">
-                  <Field label="Type d’activité" value={nn(prepa.type_prepa_display ?? prepa.type_prepa)} />
+                  <Field
+                    label="Type d’activité"
+                    value={nn(prepa.type_prepa_display ?? prepa.type_prepa)}
+                  />
                   <Field label="Date de la séance" value={fmt(prepa.date_prepa)} />
-                  <Field label="Centre" value={nn(prepa.centre_nom ?? prepa.centre?.nom ?? prepa.centre_id)} />
+                  <Field
+                    label="Centre"
+                    value={nn(prepa.centre_nom ?? prepa.centre?.nom ?? prepa.centre_id)}
+                  />
                   <Field label="Commentaire" value={nn(prepa.commentaire)} />
                 </Section>
               </Grid>
@@ -145,9 +145,7 @@ export default function PrepaDetailModal({
                   <Field
                     label="Taux d’adhésion"
                     value={
-                      prepa.taux_adhesion != null
-                        ? `${prepa.taux_adhesion.toFixed(1)} %`
-                        : "—"
+                      prepa.taux_adhesion != null ? `${prepa.taux_adhesion.toFixed(1)} %` : "—"
                     }
                   />
                   <Field

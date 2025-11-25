@@ -231,9 +231,7 @@ export default function PrepaStatsSummary({
                 transition: "all 0.2s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
-                  boxShadow: isDark
-                    ? "0 4px 14px rgba(0,0,0,0.7)"
-                    : "0 4px 12px rgba(0,0,0,0.08)",
+                  boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.7)" : "0 4px 12px rgba(0,0,0,0.08)",
                 },
               }}
             >

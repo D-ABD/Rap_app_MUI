@@ -113,15 +113,12 @@ export default function DeclicStatsSummary({
       value: reste,
       color: theme.palette.warning.main,
     },
-  {
-    label: "Présence ateliers (%)",
-    value: resume.taux_presence_declic ?? "—",  
-    color: theme.palette.secondary.main,
-  },
+    {
+      label: "Présence ateliers (%)",
+      value: resume.taux_presence_declic ?? "—",
+      color: theme.palette.secondary.main,
+    },
   ];
-
-
-
 
   return (
     <Card
@@ -239,9 +236,7 @@ export default function DeclicStatsSummary({
                 transition: "all 0.2s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
-                  boxShadow: isDark
-                    ? "0 4px 14px rgba(0,0,0,0.7)"
-                    : "0 4px 12px rgba(0,0,0,0.08)",
+                  boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.7)" : "0 4px 12px rgba(0,0,0,0.08)",
                 },
               }}
             >

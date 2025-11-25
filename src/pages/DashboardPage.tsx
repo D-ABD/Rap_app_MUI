@@ -65,12 +65,7 @@ export default function DashboardPage() {
   ----------------------------*/
   const styledAccordion = useMemo(
     () =>
-      (
-        children: React.ReactNode,
-        title: string,
-        color: PaletteColorKey,
-        expanded = false
-      ) => (
+      (children: React.ReactNode, title: string, color: PaletteColorKey, expanded = false) => (
         <Accordion
           defaultExpanded={expanded}
           disableGutters
@@ -93,9 +88,7 @@ export default function DashboardPage() {
               backgroundColor: theme.palette[color].light,
               "&:hover": {
                 backgroundColor: theme.palette[color].main,
-                color: theme.palette.getContrastText(
-                  theme.palette[color].main
-                ),
+                color: theme.palette.getContrastText(theme.palette[color].main),
               },
             }}
           >
@@ -122,7 +115,6 @@ export default function DashboardPage() {
   return (
     <PageWrapper maxWidth="xl">
       <Box display="flex" flexDirection="column">
-
         {/* ================================================ */}
         {/* 🏁 HERO SECTION */}
         {/* ================================================ */}
@@ -136,27 +128,37 @@ export default function DashboardPage() {
           </Typography>
 
           <Typography variant="body1" color="text.secondary" mt={0.5}>
-            Suivez vos formations, candidats, prospections, ateliers,
-            et vos dispositifs Prépa / Déclic.
+            Suivez vos formations, candidats, prospections, ateliers, et vos dispositifs Prépa /
+            Déclic.
           </Typography>
 
           <Stack direction="row" spacing={2} mt={3} flexWrap="wrap">
             <Button variant="contained" component={RouterLink} to="/formations">
               Formations
             </Button>
-            <Button variant="outlined" component={RouterLink} to="/prospections">
+            <Button variant="contained" component={RouterLink} to="/candidats">
+              Candidats
+            </Button>
+            
+            <Button variant="contained" component={RouterLink} to="/prospections">
               Prospections
             </Button>
-            <Button variant="outlined" component={RouterLink} to="/appairages">
+            <Button variant="contained" component={RouterLink} to="/appairages">
               Appairages
             </Button>
-            <Button variant="outlined" component={RouterLink} to="/prepa">
+
+            <Button variant="contained" component={RouterLink} to="/cvtheque">
+              Cvtheque
+            </Button>
+
+            
+            <Button variant="contained" component={RouterLink} to="/prepa">
               Prépa
             </Button>
-            <Button variant="outlined" component={RouterLink} to="/declic">
+            <Button variant="contained" component={RouterLink} to="/declic">
               Déclic
             </Button>
-            <Button component={RouterLink} to="/parametres">
+            <Button  variant="contained"component={RouterLink} to="/parametres">
               Paramètres
             </Button>
           </Stack>
@@ -169,8 +171,6 @@ export default function DashboardPage() {
         {/* ===================================================== */}
 
         <Grid container spacing={2} mb={10}>
-       
-
           <Grid item xs={8} md={6} lg={4}>
             <DeclicStatsSummary title="Déclic — Synthèse" />
           </Grid>

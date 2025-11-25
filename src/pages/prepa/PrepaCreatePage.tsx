@@ -60,8 +60,7 @@ export default function PrepaCreatePage() {
       const axiosErr = error as AxiosError<unknown>;
       const data = axiosErr.response?.data;
       const parsed = data ? extractApiMessage(data) : null;
-      const msg =
-        parsed ?? axiosErr.message ?? "Erreur lors de la création de l’activité Prépa";
+      const msg = parsed ?? axiosErr.message ?? "Erreur lors de la création de l’activité Prépa";
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -81,10 +80,7 @@ export default function PrepaCreatePage() {
     <PageTemplate title="➕ Nouvelle activité Prépa" backButton onBack={() => navigate(-1)}>
       {/* ✅ Affichage du centre sélectionné */}
       {selectedCentre && (
-        <Typography
-          variant="subtitle1"
-          sx={{ mb: 2, color: "text.secondary", fontWeight: 500 }}
-        >
+        <Typography variant="subtitle1" sx={{ mb: 2, color: "text.secondary", fontWeight: 500 }}>
           🏫 Centre sélectionné : <strong>{selectedCentre}</strong>
         </Typography>
       )}

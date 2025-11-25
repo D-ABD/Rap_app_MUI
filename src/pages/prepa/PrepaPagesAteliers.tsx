@@ -19,11 +19,7 @@ import {
 
 import PageTemplate from "src/components/PageTemplate";
 import usePagination from "src/hooks/usePagination";
-import {
-  usePrepaFiltersOptions,
-  usePrepaList,
-  useDeletePrepa,
-} from "src/hooks/usePrepa";
+import { usePrepaFiltersOptions, usePrepaList, useDeletePrepa } from "src/hooks/usePrepa";
 
 import { Prepa } from "src/types/prepa";
 import type { PrepaFiltresValues } from "src/types/prepa";
@@ -37,7 +33,7 @@ import FiltresPrepaPanel from "src/components/filters/FiltresPrepaPanel";
 export default function PrepaPageAteliers() {
   const navigate = useNavigate();
 
-  // Filtres 
+  // Filtres
   const [filters, setFilters] = useState<PrepaFiltresValues>({
     ordering: "-date_prepa",
     page: 1,
@@ -57,25 +53,19 @@ export default function PrepaPageAteliers() {
   }, [showFilters]);
 
   // Pagination
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   // Filtres appliqués pour ATELIERS
-const effectiveFilters = useMemo(() => {
-  const { type_prepa: _ignored, ...safeFilters } = filters;
+  const effectiveFilters = useMemo(() => {
+    const { type_prepa: _ignored, ...safeFilters } = filters;
 
-  return {
-    ...safeFilters,
-    page,
-    page_size: pageSize,
-    type_prepa: [
-      "atelier_1",
-
-    ],
-  };
-}, [filters, page, pageSize]);
-
-
+    return {
+      ...safeFilters,
+      page,
+      page_size: pageSize,
+      type_prepa: ["atelier_1"],
+    };
+  }, [filters, page, pageSize]);
 
   // Données
   const { data, loading, error } = usePrepaList(effectiveFilters);
@@ -132,11 +122,7 @@ const effectiveFilters = useMemo(() => {
       onRefresh={() => setFilters({ ...filters })}
       actions={
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <Button
-            variant="outlined"
-            onClick={() => navigate(-1)}
-            startIcon={<span>←</span>}
-          >
+          <Button variant="outlined" onClick={() => navigate(-1)} startIcon={<span>←</span>}>
             Retour
           </Button>
 

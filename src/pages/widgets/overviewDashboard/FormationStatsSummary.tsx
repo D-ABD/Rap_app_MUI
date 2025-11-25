@@ -158,8 +158,6 @@ export default function FormationStatsSummary({
 
       {/* Filtres */}
       <Box display="flex" gap={2} mb={3} flexWrap="wrap">
-
-        
         {/* Centre */}
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <Select

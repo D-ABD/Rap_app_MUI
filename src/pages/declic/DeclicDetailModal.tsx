@@ -96,13 +96,15 @@ export default function DeclicDetailModal({
               {/* ───────────── Informations générales ───────────── */}
               <Grid item xs={12}>
                 <Section title="Informations générales">
-                  <Field label="Type d’activité" value={nn(declic.type_declic_display ?? declic.type_declic)} />
+                  <Field
+                    label="Type d’activité"
+                    value={nn(declic.type_declic_display ?? declic.type_declic)}
+                  />
                   <Field label="Date de la séance" value={fmt(declic.date_declic)} />
                   <Field label="Centre" value={nn(declic.centre?.nom ?? declic.centre_id)} />
                   <Field label="Commentaire" value={nn(declic.commentaire)} />
                 </Section>
               </Grid>
-
 
               {/* ───────────── Données Ateliers Déclic ───────────── */}
               <Grid item xs={12}>
@@ -113,17 +115,14 @@ export default function DeclicDetailModal({
                 </Section>
               </Grid>
 
- 
-                 <Field
-                  label="Taux de présence (atelier)"
-                  value={
-                    declic.taux_presence_atelier != null
-                      ? `${declic.taux_presence_atelier.toFixed(1)} %`
-                      : "—"
-                  }
-                />
-                 
-      
+              <Field
+                label="Taux de présence (atelier)"
+                value={
+                  declic.taux_presence_atelier != null
+                    ? `${declic.taux_presence_atelier.toFixed(1)} %`
+                    : "—"
+                }
+              />
 
               {/* ───────────── Objectifs annuels ───────────── */}
               <Grid item xs={12}>

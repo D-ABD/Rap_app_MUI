@@ -462,11 +462,6 @@ export function useCandidatFiltres() {
       try {
         const DEV = import.meta.env.DEV;
 
-        if (DEV) {
-          // eslint-disable-next-line no-console
-          console.debug("[useCandidatFiltres] fetching meta, formations, users…");
-        }
-
         const [metaRes, formationsRes, usersRes] = await Promise.all([
           api.get(`${API_BASE}/candidats/meta/`),
           api.get(`${API_BASE}/formations/liste-simple/`),

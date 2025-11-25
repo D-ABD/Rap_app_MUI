@@ -102,43 +102,20 @@ export default function DeclicTable({
 
   /* ---------- Totaux globaux ---------- */
 
-  const totalInscrits = items.reduce(
-    (s, d) => s + (d.nb_inscrits_declic ?? 0),
-    0
-  );
+  const totalInscrits = items.reduce((s, d) => s + (d.nb_inscrits_declic ?? 0), 0);
 
-  const totalPresents = items.reduce(
-    (s, d) => s + (d.nb_presents_declic ?? 0),
-    0
-  );
+  const totalPresents = items.reduce((s, d) => s + (d.nb_presents_declic ?? 0), 0);
 
-  const totalAbsents = items.reduce(
-    (s, d) => s + (d.nb_absents_declic ?? 0),
-    0
-  );
-
-
-
-
-
+  const totalAbsents = items.reduce((s, d) => s + (d.nb_absents_declic ?? 0), 0);
 
   /* --- Taux Atelier --- */
-  const totalPresentsAt = items.reduce(
-    (s, d) => s + (d.nb_presents_declic ?? 0),
-    0
-  );
-  const totalAbsentsAt = items.reduce(
-    (s, d) => s + (d.nb_absents_declic ?? 0),
-    0
-  );
+  const totalPresentsAt = items.reduce((s, d) => s + (d.nb_presents_declic ?? 0), 0);
+  const totalAbsentsAt = items.reduce((s, d) => s + (d.nb_absents_declic ?? 0), 0);
 
   const tauxAtGlobal =
     totalPresentsAt + totalAbsentsAt > 0
       ? ((totalPresentsAt / (totalPresentsAt + totalAbsentsAt)) * 100).toFixed(1)
       : "—";
-
-
-
 
   if (!items.length) {
     return (
@@ -286,9 +263,7 @@ export default function DeclicTable({
                     width: W_TYPE,
                   }}
                 >
-                  <Typography fontWeight={600}>
-                    {d.type_declic_display}
-                  </Typography>
+                  <Typography fontWeight={600}>{d.type_declic_display}</Typography>
                 </TableCell>
 
                 {/* Sticky 3 : Date */}
@@ -346,31 +321,28 @@ export default function DeclicTable({
                   />
                 </TableCell>
 
-
                 {/* Présence globale */}
                 <TableCell>
                   <Chip
                     size="small"
                     color={
-                      ( (d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0) ) > 0 &&
-                      (
-                        ((d.nb_presents_declic ?? 0) /
-                          ((d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0))) *
-                        100
-                      ) >= 70
+                      (d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0) > 0 &&
+                      ((d.nb_presents_declic ?? 0) /
+                        ((d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0))) *
+                        100 >=
+                        70
                         ? "success"
                         : "warning"
                     }
                     label={fmt(
-                      ( (d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0) ) > 0
+                      (d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0) > 0
                         ? ((d.nb_presents_declic ?? 0) /
                             ((d.nb_presents_declic ?? 0) + (d.nb_absents_declic ?? 0))) *
-                          100
+                            100
                         : null
                     )}
                   />
                 </TableCell>
-
 
                 {/* Actions */}
                 <TableCell onClick={(e) => e.stopPropagation()}>
@@ -379,20 +351,12 @@ export default function DeclicTable({
                       <VisibilityIcon fontSize="inherit" />
                     </IconButton>
 
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => goEdit(d.id)}
-                    >
+                    <IconButton size="small" color="primary" onClick={() => goEdit(d.id)}>
                       <EditIcon fontSize="inherit" />
                     </IconButton>
 
                     {onDelete && (
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDelete(d.id)}
-                      >
+                      <IconButton size="small" color="error" onClick={() => onDelete(d.id)}>
                         <DeleteIcon fontSize="inherit" />
                       </IconButton>
                     )}
@@ -440,9 +404,6 @@ export default function DeclicTable({
                 {tauxAtGlobal} %
               </Typography>
             </TableCell>
-
-           
-
 
             <TableCell align="center">—</TableCell>
           </TableRow>

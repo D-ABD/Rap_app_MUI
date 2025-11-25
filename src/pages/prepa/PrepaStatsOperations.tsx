@@ -239,9 +239,7 @@ export default function PrepaStatsOperations({
                 transition: "all 0.2s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
-                  boxShadow: isDark
-                    ? "0 4px 14px rgba(0,0,0,0.7)"
-                    : "0 4px 12px rgba(0,0,0,0.08)",
+                  boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.7)" : "0 4px 12px rgba(0,0,0,0.08)",
                 },
               }}
             >
@@ -254,9 +252,7 @@ export default function PrepaStatsOperations({
                   lineHeight: 1.2,
                 }}
               >
-                {typeof s.value === "number"
-                  ? s.value.toLocaleString("fr-FR")
-                  : s.value}
+                {typeof s.value === "number" ? s.value.toLocaleString("fr-FR") : s.value}
               </Typography>
 
               <Typography

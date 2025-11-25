@@ -152,13 +152,15 @@ export default function AppRoute() {
       {/* 🔐 Routes protégées */}
       <Route
         element={
-          user?.role === "declic_staff"
-            ? <MainLayoutDeclic />
-            : user?.role === "prepa_staff"
-            ? <MainLayoutPrepa />
-            : isBackOfficeUser(user)
-            ? <MainLayout />
-            : <MainLayoutCandidat />
+          user?.role === "declic_staff" ? (
+            <MainLayoutDeclic />
+          ) : user?.role === "prepa_staff" ? (
+            <MainLayoutPrepa />
+          ) : isBackOfficeUser(user) ? (
+            <MainLayout />
+          ) : (
+            <MainLayoutCandidat />
+          )
         }
       >
         <Route index element={<HomePage />} />
@@ -360,23 +362,56 @@ export default function AppRoute() {
 
         {/* Déclic */}
         {/* Déclic */}
-<Route path="/declic"element={<AdminRoute><DeclicPages /></AdminRoute>}/>
+        <Route
+          path="/declic"
+          element={
+            <AdminRoute>
+              <DeclicPages />
+            </AdminRoute>
+          }
+        />
 
-<Route path="/declic/create" element={<AdminRoute><DeclicCreatePage /></AdminRoute>}/>
+        <Route
+          path="/declic/create"
+          element={
+            <AdminRoute>
+              <DeclicCreatePage />
+            </AdminRoute>
+          }
+        />
 
-<Route path="/declic/:id/edit" element={<AdminRoute><DeclicEditPage /></AdminRoute>}/>
+        <Route
+          path="/declic/:id/edit"
+          element={
+            <AdminRoute>
+              <DeclicEditPage />
+            </AdminRoute>
+          }
+        />
 
+        <Route
+          path="/declic/objectifs"
+          element={
+            <AdminRoute>
+              <ObjectifDeclicPage />
+            </AdminRoute>
+          }
+        />
 
-<Route path="/declic/objectifs"element={<AdminRoute><ObjectifDeclicPage /></AdminRoute>}/>
-
-<Route path="/declic/objectifs/:id/edit"element={<AdminRoute><ObjectifDeclicEditPage /></AdminRoute>}
-/>
+        <Route
+          path="/declic/objectifs/:id/edit"
+          element={
+            <AdminRoute>
+              <ObjectifDeclicEditPage />
+            </AdminRoute>
+          }
+        />
         {/* CERFA */}
         {/*
         <Route path="/cerfa" element={secure(<CerfaPage />)} />
         <Route path="/cerfa/:id/edit" element={secure(<CerfaEditPage />)} />
         */}
-      </Route> 
+      </Route>
 
       {/* 🚫 403 + 404 */}
       <Route path="/403" element={<ForbiddenPage />} />

@@ -1,6 +1,16 @@
 import {
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Checkbox, Typography, IconButton, Stack, Paper, Chip
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Checkbox,
+  Typography,
+  IconButton,
+  Stack,
+  Paper,
+  Chip,
 } from "@mui/material";
 import { useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -76,10 +86,8 @@ export default function PrepaTableAteliers({
 
   const toggleOne = useCallback(
     (id: number, checked: boolean) => {
-      if (checked && !selectedSet.has(id))
-        onSelectionChange([...selectedIds, id]);
-      if (!checked && selectedSet.has(id))
-        onSelectionChange(selectedIds.filter((x) => x !== id));
+      if (checked && !selectedSet.has(id)) onSelectionChange([...selectedIds, id]);
+      if (!checked && selectedSet.has(id)) onSelectionChange(selectedIds.filter((x) => x !== id));
     },
     [onSelectionChange, selectedIds, selectedSet]
   );
@@ -102,8 +110,7 @@ export default function PrepaTableAteliers({
     );
   }
 
-  const fmt = (v?: number | null) =>
-    v != null ? `${v.toFixed(1)} %` : "—";
+  const fmt = (v?: number | null) => (v != null ? `${v.toFixed(1)} %` : "—");
 
   /* ---------- Sticky Column Offsets ---------- */
   const W_CHECK = 50;
@@ -112,10 +119,7 @@ export default function PrepaTableAteliers({
   const W_CENTRE = 200;
 
   return (
-    <TableContainer
-      component={Paper}
-      sx={{ maxHeight: maxHeight ?? "70vh", position: "relative" }}
-    >
+    <TableContainer component={Paper} sx={{ maxHeight: maxHeight ?? "70vh", position: "relative" }}>
       <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
@@ -189,9 +193,7 @@ export default function PrepaTableAteliers({
 
             const tauxPresence =
               d.nb_presents_prepa + d.nb_absents_prepa > 0
-                ? (d.nb_presents_prepa /
-                    (d.nb_presents_prepa + d.nb_absents_prepa)) *
-                  100
+                ? (d.nb_presents_prepa / (d.nb_presents_prepa + d.nb_absents_prepa)) * 100
                 : null;
 
             return (
@@ -228,9 +230,7 @@ export default function PrepaTableAteliers({
                     backgroundColor: "#fff",
                   }}
                 >
-                  <Typography fontWeight={600}>
-                    {d.type_prepa_display}
-                  </Typography>
+                  <Typography fontWeight={600}>{d.type_prepa_display}</Typography>
                 </TableCell>
 
                 <TableCell
@@ -286,11 +286,7 @@ export default function PrepaTableAteliers({
                 <TableCell>
                   <Chip
                     size="small"
-                    color={
-                      tauxPresence != null && tauxPresence >= 70
-                        ? "success"
-                        : "warning"
-                    }
+                    color={tauxPresence != null && tauxPresence >= 70 ? "success" : "warning"}
                     label={fmt(tauxPresence)}
                   />
                 </TableCell>
@@ -301,20 +297,12 @@ export default function PrepaTableAteliers({
                       <VisibilityIcon fontSize="inherit" />
                     </IconButton>
 
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => goEdit(d.id)}
-                    >
+                    <IconButton size="small" color="primary" onClick={() => goEdit(d.id)}>
                       <EditIcon fontSize="inherit" />
                     </IconButton>
 
                     {onDelete && (
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDelete(d.id)}
-                      >
+                      <IconButton size="small" color="error" onClick={() => onDelete(d.id)}>
                         <DeleteIcon fontSize="inherit" />
                       </IconButton>
                     )}

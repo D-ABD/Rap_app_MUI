@@ -2,15 +2,7 @@
 // 📊 PrepaGroupedWidget — statistiques groupées Prépa (corrigé, sans objectifs)
 // -----------------------------------------------------------------------------
 import * as React from "react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Typography,
-  Box,
-  Button,
-  IconButton,
-} from "@mui/material";
+import { Card, CardHeader, CardContent, Typography, Box, Button, IconButton } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 import {
@@ -24,8 +16,7 @@ import {
 } from "src/types/prepaStats";
 
 // 🔹 Helpers
-const fmt = (n?: number | null) =>
-  n === undefined || n === null ? "—" : Math.round(n).toString();
+const fmt = (n?: number | null) => (n === undefined || n === null ? "—" : Math.round(n).toString());
 
 type PrepaTypeKey = keyof typeof PREPA_TYPE_LABELS;
 
@@ -37,12 +28,7 @@ export default function PrepaGroupedWidget() {
   const [by, setBy] = React.useState<PrepaGroupBy>("centre");
   const [filters, setFilters] = React.useState<PrepaFilters>(initialRef.current);
 
-  const {
-    data: grouped,
-    isLoading,
-    error,
-    refetch,
-  } = usePrepaGrouped(by, filters);
+  const { data: grouped, isLoading, error, refetch } = usePrepaGrouped(by, filters);
 
   const { data: centresGrouped } = usePrepaGrouped("centre", {
     ...filters,
@@ -98,8 +84,7 @@ export default function PrepaGroupedWidget() {
       nb_adhesions: 0,
       taux_presence_info: null,
       taux_adhesion: null,
-      taux_presence_prepa:
-        totalInscrits > 0 ? (totalPresents / totalInscrits) * 100 : null,
+      taux_presence_prepa: totalInscrits > 0 ? (totalPresents / totalInscrits) * 100 : null,
       taux_retention: null,
     };
 
@@ -227,8 +212,7 @@ export default function PrepaGroupedWidget() {
               <tbody>
                 {resultsWithTotal.map((r, idx) => {
                   const isTotal =
-                    typeof r.group_key === "string" &&
-                    r.group_key.toLowerCase() === "total";
+                    typeof r.group_key === "string" && r.group_key.toLowerCase() === "total";
 
                   return (
                     <tr
@@ -242,15 +226,9 @@ export default function PrepaGroupedWidget() {
                         {isTotal ? "Total" : resolveGroupLabel(r)}
                       </td>
 
-                      <td style={{ background: "#fff9c4" }}>
-                        {fmt(r.nb_inscrits_prepa)}
-                      </td>
-                      <td style={{ background: "#c8e6c9" }}>
-                        {fmt(r.nb_presents_prepa)}
-                      </td>
-                      <td style={{ background: "#ffcdd2" }}>
-                        {fmt(r.nb_absents_prepa)}
-                      </td>
+                      <td style={{ background: "#fff9c4" }}>{fmt(r.nb_inscrits_prepa)}</td>
+                      <td style={{ background: "#c8e6c9" }}>{fmt(r.nb_presents_prepa)}</td>
+                      <td style={{ background: "#ffcdd2" }}>{fmt(r.nb_absents_prepa)}</td>
 
                       <td style={{ background: "#bbdefb" }}>
                         {r.taux_presence_prepa != null
@@ -259,20 +237,14 @@ export default function PrepaGroupedWidget() {
                       </td>
 
                       <td style={{ background: "#fff9c4" }}>
-                        {r.taux_adhesion != null
-                          ? `${r.taux_adhesion.toFixed(1)} %`
-                          : "—"}
+                        {r.taux_adhesion != null ? `${r.taux_adhesion.toFixed(1)} %` : "—"}
                       </td>
 
                       <td style={{ background: "#d1c4e9" }}>
-                        {r.taux_retention != null
-                          ? `${r.taux_retention.toFixed(1)} %`
-                          : "—"}
+                        {r.taux_retention != null ? `${r.taux_retention.toFixed(1)} %` : "—"}
                       </td>
 
-                      <td style={{ fontWeight: isTotal ? 700 : 500 }}>
-                        {fmt(r.total)}
-                      </td>
+                      <td style={{ fontWeight: isTotal ? 700 : 500 }}>{fmt(r.total)}</td>
                     </tr>
                   );
                 })}

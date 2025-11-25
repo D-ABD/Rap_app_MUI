@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { useAuth } from "../hooks/useAuth";
+
 import HomeIcon from "@mui/icons-material/Home";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import SearchIcon from "@mui/icons-material/Search";
@@ -24,21 +25,24 @@ export interface SidebarItem {
   children?: SidebarItem[];
 }
 
-/* ───────────── Version de base ───────────── */
+/* ────────────────────────────────────────── */
+/*                MENU LATÉRAL                */
+/* ────────────────────────────────────────── */
+
 export const sidebarItems: SidebarItem[] = [
   {
     label: "Accueil",
     path: "/",
     icon: <HomeIcon sx={{ color: "primary.main" }} />,
   },
+
   {
     label: "Dashboard",
     path: "/dashboard",
     icon: <DashboardIcon sx={{ color: "secondary.main" }} />,
   },
 
-
-  // 🔹 Déclic avec sous-menu
+  /* 🔹 Déclic */
   {
     label: "Déclic",
     icon: <EmojiObjectsIcon sx={{ color: "warning.main" }} />,
@@ -56,7 +60,7 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
 
-  // 🔹 Prépa Comp avec sous-menu
+  /* 🔹 Prépa Comp */
   {
     label: "Prépa Comp",
     icon: <InsightsIcon sx={{ color: "success.main" }} />,
@@ -66,13 +70,11 @@ export const sidebarItems: SidebarItem[] = [
         path: "/prepa/ic",
         icon: <SchoolIcon sx={{ color: "success.main" }} />,
       },
-
       {
         label: "Atelier1 Prépa",
         path: "/prepa/ateliers",
         icon: <SchoolIcon sx={{ color: "success.main" }} />,
       },
-
       {
         label: "Objectifs Prépa",
         path: "/prepa/objectifs",
@@ -81,6 +83,7 @@ export const sidebarItems: SidebarItem[] = [
     ],
   },
 
+  /* 🔹 CRM */
   {
     label: "CRM",
     icon: <SearchIcon sx={{ color: "info.main" }} />,
@@ -120,9 +123,28 @@ export const sidebarItems: SidebarItem[] = [
         path: "/ateliers-tre",
         icon: <SchoolIcon sx={{ color: "info.main" }} />,
       },
-      // { label: "Contrats CERFA", path: "/cerfa", icon: <PictureAsPdfIcon sx={{ color: "info.main" }} /> },
     ],
   },
+
+  /* 🔹 CVThèque (PLACÉ ICI, au bon niveau) */
+  {
+    label: "CVThèque",
+    icon: <DescriptionIcon sx={{ color: "primary.main" }} />,
+    children: [
+      {
+        label: "Liste des CV",
+        path: "/cvtheque",
+        icon: <DescriptionIcon fontSize="small" />,
+      },
+      {
+        label: "Ajouter un CV",
+        path: "/cvtheque/create",
+        icon: <DescriptionIcon fontSize="small" />,
+      },
+    ],
+  },
+
+  /* 🔹 Revue d'offres */
   {
     label: "Revue d’offres",
     icon: <FolderIcon sx={{ color: "secondary.main" }} />,
@@ -144,6 +166,8 @@ export const sidebarItems: SidebarItem[] = [
       },
     ],
   },
+
+  /* 🔹 Paramètres */
   {
     label: "Paramètres",
     path: "/parametres",
@@ -151,7 +175,10 @@ export const sidebarItems: SidebarItem[] = [
   },
 ];
 
-/* ───────────── Hook dynamique selon rôle ───────────── */
+/* ────────────────────────────────────────── */
+/*       ADAPTATION DYNAMIQUE POUR STAFF      */
+/* ────────────────────────────────────────── */
+
 export function useSidebarItems(): SidebarItem[] {
   const { user } = useAuth();
   const isStaff = user?.is_staff || user?.is_superuser || user?.role === "admin";

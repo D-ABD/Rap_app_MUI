@@ -153,37 +153,36 @@ export const AppairageFilters: React.FC<Props> = ({
           ]
         : []),
 
-        // 📅 🔥 FILTRE PAR ANNÉE
-        {
-          key: "annee",
-          label: "📅 Année",
-          type: "select",
-          options: [
-            { value: "", label: "— Toutes —" },
-            { value: 2023, label: "2023" },
-            { value: 2024, label: "2024" },
-            { value: 2025, label: "2025" },
-            { value: 2026, label: "2026" },
-          ],
-          tooltip: "Filtrer selon l’année de l’appairage",
-        },
+      // 📅 🔥 FILTRE PAR ANNÉE
+      {
+        key: "annee",
+        label: "📅 Année",
+        type: "select",
+        options: [
+          { value: "", label: "— Toutes —" },
+          { value: 2023, label: "2023" },
+          { value: 2024, label: "2024" },
+          { value: 2025, label: "2025" },
+          { value: 2026, label: "2026" },
+        ],
+        tooltip: "Filtrer selon l’année de l’appairage",
+      },
 
-        // 📆 DATE MIN
-        {
-          key: "date_min",
-          label: "📆 Date min",
-          type: "date",
-          tooltip: "Afficher les appairages après cette date",
-        },
+      // 📆 DATE MIN
+      {
+        key: "date_min",
+        label: "📆 Date min",
+        type: "date",
+        tooltip: "Afficher les appairages après cette date",
+      },
 
-        // 📆 DATE MAX
-        {
-          key: "date_max",
-          label: "📆 Date max",
-          type: "date",
-          tooltip: "Afficher les appairages avant cette date",
-        },
-
+      // 📆 DATE MAX
+      {
+        key: "date_max",
+        label: "📆 Date max",
+        type: "date",
+        tooltip: "Afficher les appairages avant cette date",
+      },
 
       // ✅ Nouveau sélecteur activité : Actif / Archivé / Tous
       {

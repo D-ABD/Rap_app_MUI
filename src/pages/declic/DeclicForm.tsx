@@ -63,9 +63,7 @@ export default function DeclicForm({
   /* ===================== CHOIX DYNAMIQUES ===================== */
   const typeChoices = useMemo(
     () =>
-      meta?.type_declic_choices?.length
-        ? meta.type_declic_choices
-        : TYPE_DEClic_CHOICES_FALLBACK,
+      meta?.type_declic_choices?.length ? meta.type_declic_choices : TYPE_DEClic_CHOICES_FALLBACK,
     [meta?.type_declic_choices]
   );
 
@@ -76,10 +74,7 @@ export default function DeclicForm({
 
   useEffect(() => {
     // Atelier : absents = inscrits - présents
-    if (
-      form.nb_inscrits_declic !== undefined &&
-      form.nb_presents_declic !== undefined
-    ) {
+    if (form.nb_inscrits_declic !== undefined && form.nb_presents_declic !== undefined) {
       setForm((prev) => ({
         ...prev,
         nb_absents_declic: Math.max(
@@ -93,9 +88,7 @@ export default function DeclicForm({
   /* ===================== MISE À JOUR CENTRE LABEL ===================== */
   useEffect(() => {
     if (form.centre_id && meta?.centre_choices?.length) {
-      const opt = meta.centre_choices.find(
-        (c) => Number(c.value) === form.centre_id
-      );
+      const opt = meta.centre_choices.find((c) => Number(c.value) === form.centre_id);
       setCentreLabel(opt?.label ?? `#${form.centre_id}`);
       if (opt?.label) onCentreChange?.(opt.label);
     } else {
@@ -131,9 +124,7 @@ export default function DeclicForm({
                 fullWidth
                 required
                 value={form.type_declic ?? ""}
-                onChange={(e) =>
-                  handleChange("type_declic", e.target.value as string)
-                }
+                onChange={(e) => handleChange("type_declic", e.target.value as string)}
               >
                 {typeChoices.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
@@ -162,16 +153,11 @@ export default function DeclicForm({
               <TextField
                 fullWidth
                 placeholder="— Aucun centre sélectionné —"
-                value={
-                  centreLabel || (form.centre_id ? `#${form.centre_id}` : "")
-                }
+                value={centreLabel || (form.centre_id ? `#${form.centre_id}` : "")}
                 InputProps={{ readOnly: true }}
               />
               <Stack direction="row" spacing={1} mt={1}>
-                <Button
-                  variant="outlined"
-                  onClick={() => setShowCentreModal(true)}
-                >
+                <Button variant="outlined" onClick={() => setShowCentreModal(true)}>
                   🏫 Sélectionner un centre
                 </Button>
                 {form.centre_id && (
@@ -192,7 +178,6 @@ export default function DeclicForm({
           </Grid>
         </Paper>
 
-
         {/* --- Ateliers Déclic --- */}
         <Collapse in={isAtelier} unmountOnExit>
           <Paper sx={{ p: 2, mb: 2 }}>
@@ -209,10 +194,7 @@ export default function DeclicForm({
                     label={label}
                     value={(form as any)[key] ?? ""}
                     onChange={(e) =>
-                      handleChange(
-                        key as keyof Declic,
-                        Number(e.target.value) as any
-                      )
+                      handleChange(key as keyof Declic, Number(e.target.value) as any)
                     }
                   />
                 </Grid>
@@ -265,9 +247,7 @@ export default function DeclicForm({
         onSelect={(centre) => {
           const c = centre as unknown as CentreLight;
           handleChange("centre_id", c.id);
-          const label = `${c.nom ?? "Centre"}${
-            c.departement ? ` (${c.departement})` : ""
-          }`;
+          const label = `${c.nom ?? "Centre"}${c.departement ? ` (${c.departement})` : ""}`;
           setCentreLabel(label);
           onCentreChange?.(label);
           setShowCentreModal(false);

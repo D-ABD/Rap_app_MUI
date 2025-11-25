@@ -189,7 +189,7 @@ export interface FiltresFormationsValues {
   texte?: string;
   centre?: number;
   statut?: number;
-  annee?: number;  
+  annee?: number;
   type_offre?: number;
   date_debut?: string;
   date_fin?: string;

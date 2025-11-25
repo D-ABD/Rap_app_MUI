@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import { Card, CardHeader, CardContent, Grid, Box, Button, TextField } from "@mui/material";
 import type { CandidatFormData } from "../../../types/candidat";
 import { formatFormation } from "./utils";
@@ -13,26 +13,32 @@ interface Props {
   formationInfo: FormationPick | null;
 }
 
-export default function SectionFormation({
+function SectionFormation({
   form,
   setForm,
   canEditFormation,
   setShowFormationModal,
   formationInfo,
 }: Props) {
-  const formationLabel = formationInfo
-    ? formatFormation(formationInfo)
-    : form.formation
-      ? `#${form.formation}`
-      : "";
+  // Memo: ne se recalcule que quand form.formation ou formationInfo change
+  const formationLabel = useMemo(() => {
+    if (formationInfo) return formatFormation(formationInfo);
+    if (form.formation) return `#${form.formation}`;
+    return "";
+  }, [formationInfo, form.formation]);
+
+  const openModal = useCallback(() => setShowFormationModal(true), [setShowFormationModal]);
+
+  const clearFormation = useCallback(
+    () => setForm((f) => ({ ...f, formation: undefined })),
+    [setForm]
+  );
 
   return (
     <Card variant="outlined">
       <CardHeader
         title="Formation"
-        subheader={
-          !canEditFormation ? "La formation n’est pas modifiable pour votre rôle." : undefined
-        }
+        subheader={!canEditFormation ? "La formation n’est pas modifiable pour votre rôle." : undefined}
       />
       <CardContent>
         <Grid container spacing={2}>
@@ -45,17 +51,15 @@ export default function SectionFormation({
               InputProps={{ readOnly: true }}
               placeholder={canEditFormation ? "— Aucune sélection —" : "Non modifiable"}
             />
+
             {canEditFormation && (
               <Box display="flex" gap={1} mt={1}>
-                <Button variant="outlined" onClick={() => setShowFormationModal(true)}>
+                <Button variant="outlined" onClick={openModal}>
                   🔍 Sélectionner
                 </Button>
+
                 {form.formation && (
-                  <Button
-                    color="error"
-                    variant="outlined"
-                    onClick={() => setForm((f) => ({ ...f, formation: undefined }))}
-                  >
+                  <Button color="error" variant="outlined" onClick={clearFormation}>
                     ✖ Effacer
                   </Button>
                 )}
@@ -63,7 +67,7 @@ export default function SectionFormation({
             )}
           </Grid>
 
-          {/* Champs individuels une fois la formation sélectionnée */}
+          {/* Champs auto après sélection */}
           {formationInfo && (
             <>
               <Grid item xs={12} md={6}>
@@ -74,6 +78,7 @@ export default function SectionFormation({
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -82,6 +87,7 @@ export default function SectionFormation({
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -90,6 +96,7 @@ export default function SectionFormation({
                   InputProps={{ readOnly: true }}
                 />
               </Grid>
+
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
@@ -105,3 +112,5 @@ export default function SectionFormation({
     </Card>
   );
 }
+
+export default React.memo(SectionFormation);

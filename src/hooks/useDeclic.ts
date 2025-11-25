@@ -4,11 +4,7 @@
 import { useEffect, useState } from "react";
 import api from "src/api/axios";
 import axios, { AxiosError } from "axios";
-import type {
-  Choice,
-  Declic,
-  DeclicStats,
-} from "src/types/declic";
+import type { Choice, Declic, DeclicStats } from "src/types/declic";
 import { toast } from "react-toastify";
 import { useQuery } from "@tanstack/react-query";
 
@@ -26,10 +22,8 @@ const isAbort = (e: unknown) =>
 const isAxiosErr = (e: unknown): e is AxiosError<unknown> =>
   typeof axios.isAxiosError === "function" && axios.isAxiosError(e);
 
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null;
-const hasArrayProp = (o: Record<string, unknown>, k: string) =>
-  Array.isArray(o[k]);
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
+const hasArrayProp = (o: Record<string, unknown>, k: string) => Array.isArray(o[k]);
 
 // ────────────────────────────────────────────────────────────────
 // 🧩 Normalisation API (pagination, results, etc.)
@@ -87,7 +81,6 @@ export interface DeclicFilters {
   page_size?: number;
   ordering?: string;
 }
-
 
 export function useDeclicList(filters: Partial<DeclicFilters> = {}) {
   const [data, setData] = useState<{ count: number; results: Declic[] } | null>(null);
@@ -180,7 +173,6 @@ export function useDeleteDeclic() {
   return { remove };
 }
 
-
 // ────────────────────────────────────────────────────────────────
 // 📊 useDeclicStats — statistiques globales
 // ────────────────────────────────────────────────────────────────
@@ -223,8 +215,6 @@ export function useDeclicStats(annee?: number) {
 
   return data;
 }
-
-
 
 // ────────────────────────────────────────────────────────────────
 // 📤 Export Excel (.xlsx)
@@ -296,7 +286,12 @@ export function useDeclicMeta() {
 export interface DeclicFiltersOptions {
   annees: number[];
   departements: { value: string; label: string }[];
-  centres: { value: number; label: string; departement?: string | null; code_postal?: string | null }[];
+  centres: {
+    value: number;
+    label: string;
+    departement?: string | null;
+    code_postal?: string | null;
+  }[];
   type_declic: Choice[];
 }
 

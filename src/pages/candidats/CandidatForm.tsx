@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   Box,
   Accordion,
@@ -16,14 +16,16 @@ import UsersSelectModal, { UserPick } from "../../components/modals/UsersSelectM
 // Sections
 import { mapFormationInfo } from "./FormSections/utils";
 import SectionIdentite from "./FormSections/SectionIdentite";
-import SectionAdresse from "./FormSections/SectionAdresse";
-import SectionFormation from "./FormSections/SectionFormation";
-import SectionInfosContrat from "./FormSections/SectionInfosContrat";
 import SectionIndicateurs from "./FormSections/SectionInSuvi";
-import SectionRepresentant from "./FormSections/SectionRepresentant";
 import SectionNotes from "./FormSections/SectionNotes";
 import ActionsBar from "./FormSections/ActionsBar";
 import SectionAssignations from "./FormSections/SectionAssignations";
+
+// ------------------ MEMO ------------------
+const MemoIdentite = React.memo(SectionIdentite);
+const MemoIndicateurs = React.memo(SectionIndicateurs);
+const MemoNotes = React.memo(SectionNotes);
+const MemoAssignations = React.memo(SectionAssignations);
 
 type Props = {
   initialValues?: CandidatFormData;
@@ -45,7 +47,28 @@ export default function CandidatForm({
   onSubmit,
   onCancel,
 }: Props) {
-  const [form, setForm] = useState<CandidatFormData>({ ...initialValues });
+
+  // ---------------------------------------------------------------------
+  // FORM STATE
+  // ---------------------------------------------------------------------
+  const formRef = useRef<CandidatFormData>(initialValues ?? ({} as CandidatFormData));
+  const [, forceRender] = useState(0);
+
+  const setForm = useCallback(
+    (updater: Partial<CandidatFormData> | ((prev: CandidatFormData) => CandidatFormData)) => {
+      const current = formRef.current;
+      formRef.current =
+        typeof updater === "function" ? updater(current) : { ...current, ...updater };
+      forceRender((n) => n + 1);
+    },
+    []
+  );
+
+  const form = formRef.current;
+
+  // ---------------------------------------------------------------------
+  // STATES
+  // ---------------------------------------------------------------------
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [showFormationModal, setShowFormationModal] = useState(false);
@@ -53,190 +76,149 @@ export default function CandidatForm({
   const [formationInfo, setFormationInfo] = useState<FormationPick | null>(
     mapFormationInfo(initialFormationInfo)
   );
-
   const [openSection, setOpenSection] = useState<string | false>("identite");
-  const toggleSection = (section: string) =>
-    setOpenSection((prev) => (prev === section ? false : section));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    setGlobalError(null);
-    try {
-      await onSubmit(form);
-    } catch (err: any) {
-      if (err.response?.status === 400 && typeof err.response.data === "object") {
-        setErrors(err.response.data);
-        if (err.response.data.non_field_errors) {
-          setGlobalError(err.response.data.non_field_errors.join(", "));
-        }
-      } else {
-        setGlobalError("Une erreur inattendue est survenue.");
+  // ---------------------------------------------------------------------
+  // toggleSection
+  // ---------------------------------------------------------------------
+  const toggleSection = useCallback(
+    (section: string) => {
+      setOpenSection((prev) => (prev === section ? false : section));
+    },
+    []
+  );
+
+  // ---------------------------------------------------------------------
+  // handleSubmit — formation obligatoire
+  // ---------------------------------------------------------------------
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setErrors({});
+      setGlobalError(null);
+
+      if (!form.formation) {
+        setOpenSection("identite");
+        setGlobalError("Veuillez sélectionner une formation.");
+        return;
       }
-    }
-  };
 
-  const handleSelectFormation = (pick: FormationPick) => {
+      try {
+        await onSubmit(form);
+      } catch (err: any) {
+        if (err.response?.status === 400 && typeof err.response.data === "object") {
+          setErrors(err.response.data);
+
+          if (err.response.data.non_field_errors) {
+            setGlobalError(err.response.data.non_field_errors.join(", "));
+          }
+        } else {
+          setGlobalError("Une erreur inattendue est survenue.");
+        }
+      }
+    },
+    [form, onSubmit]
+  );
+
+  // ---------------------------------------------------------------------
+  // select formation
+  // ---------------------------------------------------------------------
+  const handleSelectFormation = useCallback((pick: FormationPick) => {
     setForm((f) => ({ ...f, formation: pick.id }));
     setFormationInfo(pick);
     setShowFormationModal(false);
-  };
+  }, [setForm]);
 
-  const handleSelectUser = (pick: UserPick) => {
+  // ---------------------------------------------------------------------
+  // select vu_par
+  // ---------------------------------------------------------------------
+  const handleSelectUser = useCallback((pick: UserPick) => {
     setForm((f) => ({ ...f, vu_par: pick.id }));
     setShowUsersModal(false);
-  };
+  }, [setForm]);
 
+  // ---------------------------------------------------------------------
+  // RENDER
+  // ---------------------------------------------------------------------
   return (
     <Box component="form" onSubmit={handleSubmit} display="grid" gap={2}>
-      {/* ✅ Message d’aide global permanent */}
+
       <Alert severity="info" sx={{ mb: 1 }}>
-        Les champs marqués d’un * sont obligatoires. Remplissez au minimum les sections{" "}
-        <b>Identité</b>, <b>Adresse</b> et <b>Formation</b>.
+        Les champs marqués d’un * sont obligatoires. Remplissez au minimum la section{" "}
+        <b>Identité + Formation</b>.
       </Alert>
 
-      {/* ✅ Erreur globale en haut */}
       {globalError && <Alert severity="error">{globalError}</Alert>}
 
-      {/* Section Identité */}
+      {/* Identité (inclut Adresse + Formation) */}
       <Accordion
         expanded={openSection === "identite"}
         onChange={() => toggleSection("identite")}
-        sx={{
-          borderLeft: errors.nom || errors.prenom ? "3px solid red" : undefined,
-        }}
+        TransitionProps={{ unmountOnExit: false }}
+        sx={{ borderLeft: errors.nom || errors.prenom ? "3px solid red" : undefined }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600} color={errors.nom || errors.prenom ? "error" : undefined}>
-            Identité
-          </Typography>
+          <Typography fontWeight={600}>Identité & Formation</Typography>
         </AccordionSummary>
-        <AccordionDetails>
-          <SectionIdentite form={form} setForm={setForm} meta={meta} />
-        </AccordionDetails>
-      </Accordion>
 
-      {/* Section Adresse */}
-      <Accordion
-        expanded={openSection === "adresse"}
-        onChange={() => toggleSection("adresse")}
-        sx={{
-          borderLeft:
-            errors.ville || errors.code_postal || errors.street_name ? "3px solid red" : undefined,
-        }}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography
-            fontWeight={600}
-            color={errors.ville || errors.code_postal || errors.street_name ? "error" : undefined}
-          >
-            Adresse
-          </Typography>
-        </AccordionSummary>
         <AccordionDetails>
-          <SectionAdresse form={form} setForm={setForm} />
-          {/* Aide ou erreurs visibles */}
-          {errors.code_postal && (
-            <Typography color="error" variant="body2">
-              Code postal : {errors.code_postal[0]}
-            </Typography>
-          )}
-          {errors.ville && (
-            <Typography color="error" variant="body2">
-              Ville : {errors.ville[0]}
-            </Typography>
-          )}
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Section Formation */}
-      <Accordion expanded={openSection === "formation"} onChange={() => toggleSection("formation")}>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Formation</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <SectionFormation
+          <MemoIdentite
             form={form}
             setForm={setForm}
+            meta={meta}
+
             canEditFormation={canEditFormation}
             showFormationModal={showFormationModal}
             setShowFormationModal={setShowFormationModal}
             formationInfo={formationInfo}
           />
-          {/* ✅ Aide explicative persistante */}
-          <Typography variant="body2" color="text.secondary" mt={1}>
-            ℹ️ Sélectionnez une formation pour remplir automatiquement le centre, le numéro d’offre,
-            et le type d’offre.
-          </Typography>
         </AccordionDetails>
       </Accordion>
 
-      {/* Section Suivi */}
-      <Accordion expanded={openSection === "suivi"} onChange={() => toggleSection("suivi")}>
+      {/* Suivi */}
+      <Accordion
+        expanded={openSection === "suivi"}
+        onChange={() => toggleSection("suivi")}
+        TransitionProps={{ unmountOnExit: false }}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Suivi administratif</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <SectionIndicateurs form={form} setForm={setForm} meta={meta} />
+          <MemoIndicateurs form={form} setForm={setForm} meta={meta} />
         </AccordionDetails>
       </Accordion>
 
-      {/* Section Infos Contrat */}
-      <Accordion
-        expanded={openSection === "infosContrat"}
-        onChange={() => toggleSection("infosContrat")}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Informations complémentaires / CERFA</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <SectionInfosContrat form={form} setForm={setForm} />
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Section Représentant */}
-      <Accordion
-        expanded={openSection === "representant"}
-        onChange={() => toggleSection("representant")}
-      >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography fontWeight={600}>Représentant légal (si mineur)</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <SectionRepresentant form={form} setForm={setForm} />
-        </AccordionDetails>
-      </Accordion>
-
-      {/* Section Assignations */}
+      {/* Assignations */}
       <Accordion
         expanded={openSection === "assignations"}
         onChange={() => toggleSection("assignations")}
+        TransitionProps={{ unmountOnExit: false }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Assignations / visibilité</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <SectionAssignations
+          <MemoAssignations
             form={form}
             setForm={setForm}
             showUsersModal={showUsersModal}
             setShowUsersModal={setShowUsersModal}
           />
-          {/* ✅ Aide persistante et claire */}
-          <Typography variant="body2" color="text.secondary" mt={1}>
-            ℹ️ Recherche par nom ou email. Seuls les rôles <b>staff</b>, <b>admin</b> et{" "}
-            <b>superadmin</b> sont proposés.
-          </Typography>
         </AccordionDetails>
       </Accordion>
 
-      {/* Section Notes */}
-      <Accordion expanded={openSection === "notes"} onChange={() => toggleSection("notes")}>
+      {/* Notes */}
+      <Accordion
+        expanded={openSection === "notes"}
+        onChange={() => toggleSection("notes")}
+        TransitionProps={{ unmountOnExit: false }}
+      >
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography fontWeight={600}>Notes internes</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <SectionNotes form={form} setForm={setForm} />
+          <MemoNotes form={form} setForm={setForm} />
         </AccordionDetails>
       </Accordion>
 
@@ -248,6 +230,7 @@ export default function CandidatForm({
         onClose={() => setShowFormationModal(false)}
         onSelect={handleSelectFormation}
       />
+
       <UsersSelectModal
         show={showUsersModal}
         onClose={() => setShowUsersModal(false)}

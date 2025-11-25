@@ -68,7 +68,7 @@ export default function ObjectifDeclicForm({ open, onClose, id }: Props) {
         ...found,
         centre_id: found.centre_id ?? found.centre?.id, // ✅ Ajout du centre_id
       });
-      setCentreLabel( found.centre?.nom ?? "");
+      setCentreLabel(found.centre?.nom ?? "");
     }
   }, [id, objectifs]);
 
@@ -155,10 +155,7 @@ export default function ObjectifDeclicForm({ open, onClose, id }: Props) {
                   required
                   value={form.annee ?? new Date().getFullYear()}
                   onChange={(e) =>
-                    handleChange(
-                      "annee",
-                      Number(e.target.value) || new Date().getFullYear()
-                    )
+                    handleChange("annee", Number(e.target.value) || new Date().getFullYear())
                   }
                 />
               </Grid>
@@ -171,9 +168,7 @@ export default function ObjectifDeclicForm({ open, onClose, id }: Props) {
                   fullWidth
                   required
                   value={form.valeur_objectif ?? ""}
-                  onChange={(e) =>
-                    handleChange("valeur_objectif", Number(e.target.value) || 0)
-                  }
+                  onChange={(e) => handleChange("valeur_objectif", Number(e.target.value) || 0)}
                 />
               </Grid>
 
@@ -184,18 +179,12 @@ export default function ObjectifDeclicForm({ open, onClose, id }: Props) {
                   fullWidth
                   placeholder="— Aucun centre sélectionné —"
                   value={
-                    centreLabel ||
-                
-                    form.centre?.nom ||
-                    (form.centre_id ? `#${form.centre_id}` : "")
+                    centreLabel || form.centre?.nom || (form.centre_id ? `#${form.centre_id}` : "")
                   }
                   InputProps={{ readOnly: true }}
                 />
                 <Stack direction="row" spacing={1} mt={1}>
-                  <Button
-                    variant="outlined"
-                    onClick={() => setShowCentreModal(true)}
-                  >
+                  <Button variant="outlined" onClick={() => setShowCentreModal(true)}>
                     🏫 Sélectionner un centre
                   </Button>
                   {form.centre_id && (
@@ -273,9 +262,7 @@ export default function ObjectifDeclicForm({ open, onClose, id }: Props) {
             centre_id: c.id,
             departement: c.departement ?? f.departement,
           }));
-          setCentreLabel(
-            `${c.nom ?? c.label ?? `Centre #${c.id}`} (${c.departement ?? ""})`
-          );
+          setCentreLabel(`${c.nom ?? c.label ?? `Centre #${c.id}`} (${c.departement ?? ""})`);
           setShowCentreModal(false);
         }}
       />

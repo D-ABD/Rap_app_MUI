@@ -5,20 +5,14 @@ import { AxiosError } from "axios";
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
 
 import type { Prepa } from "src/types/prepa";
-import {
-  usePrepaDetail,
-  useUpdatePrepa,
-  useDeletePrepa,
-  usePrepaMeta,
-} from "src/hooks/usePrepa";
+import { usePrepaDetail, useUpdatePrepa, useDeletePrepa, usePrepaMeta } from "src/hooks/usePrepa";
 import PageTemplate from "src/components/PageTemplate";
 import PrepaForm from "./PrepaForm";
 
 /* ─────────────────────────────── */
 /* 🔧 Helpers pour les erreurs API */
 /* ─────────────────────────────── */
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null;
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
 
@@ -29,9 +23,7 @@ function extractApiMessage(data: unknown): string | null {
   if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage;
 
   const maybeErrors = (data as { errors?: unknown }).errors;
-  const errorsObj = isRecord(maybeErrors)
-    ? (maybeErrors as Record<string, unknown>)
-    : data;
+  const errorsObj = isRecord(maybeErrors) ? (maybeErrors as Record<string, unknown>) : data;
 
   const parts: string[] = [];
   for (const [field, val] of Object.entries(errorsObj)) {
@@ -76,9 +68,7 @@ export default function PrepaEditPage() {
       navigate("/prepa");
     } catch (e) {
       const axiosErr = e as AxiosError<unknown>;
-      const parsed = axiosErr.response?.data
-        ? extractApiMessage(axiosErr.response.data)
-        : null;
+      const parsed = axiosErr.response?.data ? extractApiMessage(axiosErr.response.data) : null;
       toast.error(parsed ?? axiosErr.message ?? "Erreur lors de la mise à jour");
     } finally {
       setSubmitting(false);
@@ -142,10 +132,7 @@ export default function PrepaEditPage() {
   const initialValues: Partial<Prepa> = {
     type_prepa: data.type_prepa ?? "info_collective",
     date_prepa: data.date_prepa?.trim() ? data.date_prepa : "",
-    centre_id:
-      typeof data.centre_id === "number"
-        ? data.centre_id
-        : data.centre?.id ?? undefined,
+    centre_id: typeof data.centre_id === "number" ? data.centre_id : (data.centre?.id ?? undefined),
     commentaire: data.commentaire ?? "",
     nombre_places_ouvertes: data.nombre_places_ouvertes ?? 0,
     nombre_prescriptions: data.nombre_prescriptions ?? 0,
@@ -173,10 +160,7 @@ export default function PrepaEditPage() {
     >
       {/* ✅ Affichage du centre sélectionné */}
       {selectedCentre && (
-        <Typography
-          variant="subtitle1"
-          sx={{ mb: 2, color: "text.secondary", fontWeight: 500 }}
-        >
+        <Typography variant="subtitle1" sx={{ mb: 2, color: "text.secondary", fontWeight: 500 }}>
           🏫 Centre sélectionné : <strong>{selectedCentre}</strong>
         </Typography>
       )}

@@ -30,14 +30,11 @@ export default function ObjectifPrepaTable({ data }: Props) {
     0
   );
   const totalReste = data.reduce((sum, o) => sum + (o.reste_a_faire ?? 0), 0);
-  const totalTaux =
-    totalObjectif > 0 ? ((totalRealisation / totalObjectif) * 100).toFixed(1) : "-";
+  const totalTaux = totalObjectif > 0 ? ((totalRealisation / totalObjectif) * 100).toFixed(1) : "-";
 
   // 🔢 Formatage
-  const fmtTaux = (val?: number | null) =>
-    val != null ? `${val.toFixed(1)} %` : "—";
-  const fmtNum = (n?: number | null) =>
-    typeof n === "number" ? n.toLocaleString("fr-FR") : "—";
+  const fmtTaux = (val?: number | null) => (val != null ? `${val.toFixed(1)} %` : "—");
+  const fmtNum = (n?: number | null) => (typeof n === "number" ? n.toLocaleString("fr-FR") : "—");
 
   return (
     <>
@@ -83,14 +80,7 @@ export default function ObjectifPrepaTable({ data }: Props) {
                     borderBottom: "2px solid #e0e0e0",
                     backgroundColor: "#f4f6f8",
                     position: idx < 3 ? "sticky" : "static",
-                    left:
-                      idx === 0
-                        ? 0
-                        : idx === 1
-                        ? 100
-                        : idx === 2
-                        ? 280
-                        : "auto",
+                    left: idx === 0 ? 0 : idx === 1 ? 100 : idx === 2 ? 280 : "auto",
                     zIndex: idx < 3 ? 2 : 1,
                   }}
                 >
@@ -153,14 +143,10 @@ export default function ObjectifPrepaTable({ data }: Props) {
                 </TableCell>
 
                 {/* Objectif */}
-                <TableCell align="right">
-                  {fmtNum(obj.valeur_objectif)}
-                </TableCell>
+                <TableCell align="right">{fmtNum(obj.valeur_objectif)}</TableCell>
 
                 {/* Réalisé */}
-                <TableCell align="right">
-                  {fmtNum(obj.data_prepa?.presents)}
-                </TableCell>
+                <TableCell align="right">{fmtNum(obj.data_prepa?.presents)}</TableCell>
 
                 {/* Taux atteinte */}
                 <TableCell
@@ -170,8 +156,8 @@ export default function ObjectifPrepaTable({ data }: Props) {
                       obj.taux_atteinte != null && obj.taux_atteinte >= 100
                         ? "success.main"
                         : obj.taux_atteinte != null && obj.taux_atteinte < 70
-                        ? "error.main"
-                        : "warning.main",
+                          ? "error.main"
+                          : "warning.main",
                     fontWeight: 600,
                   }}
                 >

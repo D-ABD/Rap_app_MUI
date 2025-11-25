@@ -5,23 +5,39 @@ import { getTokens, storeTokens, clearTokens } from "./tokenStorage";
 // 🌍 Base URL depuis les variables d’environnement
 const API_BASE_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
 
-// 🔧 Créer une instance Axios principale
+// 🔧 Instance Axios principale
 const api: AxiosInstance = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   withCredentials: true,
-  headers: { "Content-Type": "application/json" },
+  headers: {}, // ❗️ IMPORTANT : ne pas forcer application/json
 });
 
-// 🔑 Ajout automatique du token d’accès
+// 🔑 Token Access
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const { access } = getTokens();
-  if (access) config.headers.Authorization = `Bearer ${access}`;
+
+  if (access) {
+    config.headers.Authorization = `Bearer ${access}`;
+  }
+
+  // ❗️ TRÈS IMPORTANT
+  // Si on envoie du FormData → supprimer Content-Type
+  // pour laisser Axios générer le multipart/form-data
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  }
+
   return config;
 });
 
-// ⚙️ Gestion du rafraîchissement de token
+// -----------------------------------------------------
+// 🔄 Interceptor : token refresh
+// -----------------------------------------------------
 let isRefreshing = false;
-let failedQueue: { resolve: (token?: string) => void; reject: (error: any) => void }[] = [];
+let failedQueue: {
+  resolve: (token?: string) => void;
+  reject: (error: any) => void;
+}[] = [];
 
 const processQueue = (error: any, token: string | null = null) => {
   failedQueue.forEach((prom) => {
@@ -30,10 +46,10 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// 🧩 Instance sans interceptors pour éviter les boucles lors du refresh
+// Instance sans interceptors (pour éviter les boucles)
 const axiosNoAuth = axios.create({
   baseURL: `${API_BASE_URL}/api`,
-  headers: { "Content-Type": "application/json" },
+  headers: {},
 });
 
 api.interceptors.response.use(
@@ -41,7 +57,6 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // 🛑 Cas d’erreur 401 (token expiré)
     if (error.response?.status === 401 && !originalRequest._retry) {
       const { refresh } = getTokens();
 
@@ -52,7 +67,6 @@ api.interceptors.response.use(
       }
 
       if (isRefreshing) {
-        // En attente du refresh en cours
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -67,7 +81,6 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // ⚙️ Utiliser axiosNoAuth pour éviter le double interceptor
         const res = await axiosNoAuth.post("/token/refresh/", { refresh });
         const newAccess = res.data.access;
 
@@ -75,7 +88,6 @@ api.interceptors.response.use(
         api.defaults.headers.common.Authorization = `Bearer ${newAccess}`;
         processQueue(null, newAccess);
 
-        // Relancer la requête initiale
         originalRequest.headers.Authorization = `Bearer ${newAccess}`;
         return api(originalRequest);
       } catch (err) {

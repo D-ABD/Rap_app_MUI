@@ -2,15 +2,7 @@
 // 📊 DeclicGroupedWidget — version corrigée et complète (Atelier 1, rétention, totaux justes)
 // -----------------------------------------------------------------------------
 import * as React from "react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Typography,
-  Box,
-  Button,
-  IconButton,
-} from "@mui/material";
+import { Card, CardHeader, CardContent, Typography, Box, Button, IconButton } from "@mui/material";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
 import {
@@ -24,8 +16,7 @@ import {
 } from "src/types/declicStats"; // ✅ veille à pointer vers ton fichier dans src/api ou src/hooks selon ton projet
 
 // 🔹 Helpers d’affichage
-const fmt = (n?: number | null) =>
-  n === undefined || n === null ? "—" : Math.round(n).toString();
+const fmt = (n?: number | null) => (n === undefined || n === null ? "—" : Math.round(n).toString());
 
 type DeclicTypeKey = keyof typeof DECLIC_TYPE_LABELS;
 
@@ -37,12 +28,7 @@ export default function DeclicGroupedWidget() {
   const [by, setBy] = React.useState<DeclicGroupBy>("centre");
   const [filters, setFilters] = React.useState<DeclicFilters>(initialRef.current);
 
-  const {
-    data: grouped,
-    isLoading,
-    error,
-    refetch,
-  } = useDeclicGrouped(by, filters);
+  const { data: grouped, isLoading, error, refetch } = useDeclicGrouped(by, filters);
 
   const { data: centresGrouped } = useDeclicGrouped("centre", {
     ...filters,
@@ -95,8 +81,7 @@ export default function DeclicGroupedWidget() {
       nb_presents_declic: nbAt1,
       nb_absents_declic: nbAt6,
       taux_presence_declic: null,
-      taux_retention: 
-        nbAt1 > 0 && nbAt6 > 0 ? (nbAt6 / nbAt1) * 100 : null, // 🧮 taux rétention global
+      taux_retention: nbAt1 > 0 && nbAt6 > 0 ? (nbAt6 / nbAt1) * 100 : null, // 🧮 taux rétention global
     };
 
     return [...grouped.results, totalRow];
@@ -225,8 +210,7 @@ export default function DeclicGroupedWidget() {
               <tbody>
                 {resultsWithTotal.map((r, idx) => {
                   const isTotal =
-                    typeof r.group_key === "string" &&
-                    r.group_key.toLowerCase() === "total";
+                    typeof r.group_key === "string" && r.group_key.toLowerCase() === "total";
                   return (
                     <tr
                       key={idx}
@@ -237,20 +221,17 @@ export default function DeclicGroupedWidget() {
                     >
                       <td style={{ padding: "6px 8px" }}>
                         {isTotal ? "Total" : resolveGroupLabel(r)}
-                  
                       </td>
                       <td style={{ background: "#c8e6c9" }}>{fmt(r.nb_presents_declic)}</td>
                       <td style={{ background: "#ffcdd2" }}>{fmt(r.nb_absents_declic)}</td>
-         
+
                       <td style={{ background: "#bbdefb" }}>
                         {r.taux_presence_declic != null
                           ? `${r.taux_presence_declic.toFixed(1)} %`
                           : "—"}
                       </td>
                       <td style={{ background: "#d1c4e9" }}>
-                        {r.taux_retention != null
-                          ? `${r.taux_retention.toFixed(1)} %`
-                          : "—"}
+                        {r.taux_retention != null ? `${r.taux_retention.toFixed(1)} %` : "—"}
                       </td>
                       <td style={{ fontWeight: isTotal ? 700 : 500 }}>{fmt(r.total)}</td>
                     </tr>

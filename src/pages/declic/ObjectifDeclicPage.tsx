@@ -21,10 +21,7 @@ import ExportButtonObjectifsDeclic from "src/components/export_buttons/ExportBut
 import usePagination from "src/hooks/usePagination";
 import ObjectifDeclicForm from "./ObjectifDeclicForm";
 
-import {
-  useObjectifsDeclic,
-  useObjectifsDeclicFiltersOptions,
-} from "src/hooks/useDeclicObjectifs";
+import { useObjectifsDeclic, useObjectifsDeclicFiltersOptions } from "src/hooks/useDeclicObjectifs";
 
 import type { ObjectifDeclicFiltresValues } from "src/types/declic";
 
@@ -50,8 +47,7 @@ export default function ObjectifDeclicPage() {
   }, [showFilters]);
 
   // 🔢 Pagination locale
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   // 🔍 Filtres envoyés à l’API
   const effectiveFilters = useMemo(
@@ -125,11 +121,7 @@ export default function ObjectifDeclicPage() {
       actionsRight={
         <Stack direction="row" spacing={1} flexWrap="wrap">
           {/* 🔎 Bouton filtres */}
-          <Button
-            variant="outlined"
-            onClick={() => setShowFilters((v) => !v)}
-            size="small"
-          >
+          <Button variant="outlined" onClick={() => setShowFilters((v) => !v)} size="small">
             {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
             {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
           </Button>

@@ -20,7 +20,7 @@ export default function DashboardPrepaStaffPage() {
         </Typography>
 
         <Typography variant="h6" mt={1}>
-          Bonjour {user?.first_name || user?.email || "👋"}, 
+          Bonjour {user?.first_name || user?.email || "👋"},
         </Typography>
 
         <Typography variant="body1" color="text.secondary" mt={0.5}>
@@ -29,21 +29,11 @@ export default function DashboardPrepaStaffPage() {
 
         {/* Actions rapides */}
         <Stack direction="row" spacing={2} mt={3} flexWrap="wrap">
-          <Button
-            variant="contained"
-            color="primary"
-            component={RouterLink}
-            to="/prepa"
-          >
+          <Button variant="contained" color="primary" component={RouterLink} to="/prepa">
             Voir les séances Prépa
           </Button>
 
-          <Button
-            variant="outlined"
-            color="secondary"
-            component={RouterLink}
-            to="/prepa/objectif"
-          >
+          <Button variant="outlined" color="secondary" component={RouterLink} to="/prepa/objectif">
             Gérer les objectifs
           </Button>
         </Stack>

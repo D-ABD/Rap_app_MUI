@@ -87,10 +87,8 @@ export default function PrepaTableIC({
 
   const toggleOne = useCallback(
     (id: number, checked: boolean) => {
-      if (checked && !selectedSet.has(id))
-        onSelectionChange([...selectedIds, id]);
-      if (!checked && selectedSet.has(id))
-        onSelectionChange(selectedIds.filter((x) => x !== id));
+      if (checked && !selectedSet.has(id)) onSelectionChange([...selectedIds, id]);
+      if (!checked && selectedSet.has(id)) onSelectionChange(selectedIds.filter((x) => x !== id));
     },
     [onSelectionChange, selectedIds, selectedSet]
   );
@@ -107,9 +105,7 @@ export default function PrepaTableIC({
       : "—";
 
   const tauxAdhesionGlobal =
-    totalPresents > 0
-      ? ((totalAdhesions / totalPresents) * 100).toFixed(1)
-      : "—";
+    totalPresents > 0 ? ((totalAdhesions / totalPresents) * 100).toFixed(1) : "—";
 
   if (!items.length) {
     return (
@@ -119,8 +115,7 @@ export default function PrepaTableIC({
     );
   }
 
-  const fmt = (v?: number | null) =>
-    v != null ? `${v.toFixed(1)} %` : "—";
+  const fmt = (v?: number | null) => (v != null ? `${v.toFixed(1)} %` : "—");
 
   /* ---------- Sticky Column Offsets ---------- */
   const W_CHECK = 50;
@@ -211,14 +206,9 @@ export default function PrepaTableIC({
             const dateTxt = formatDateFR(d.date_prepa);
 
             const tauxPresence =
-              d.presents + d.absents > 0
-                ? (d.presents / (d.presents + d.absents)) * 100
-                : null;
+              d.presents + d.absents > 0 ? (d.presents / (d.presents + d.absents)) * 100 : null;
 
-            const tauxAdhesion =
-              d.presents > 0
-                ? (d.nb_adhesions / d.presents) * 100
-                : null;
+            const tauxAdhesion = d.presents > 0 ? (d.nb_adhesions / d.presents) * 100 : null;
 
             return (
               <TableRow
@@ -254,9 +244,7 @@ export default function PrepaTableIC({
                     backgroundColor: "#fff",
                   }}
                 >
-                  <Typography fontWeight={600}>
-                    {d.type_prepa_display}
-                  </Typography>
+                  <Typography fontWeight={600}>{d.type_prepa_display}</Typography>
                 </TableCell>
 
                 <TableCell
@@ -312,11 +300,7 @@ export default function PrepaTableIC({
                 <TableCell>
                   <Chip
                     size="small"
-                    color={
-                      tauxAdhesion != null && tauxAdhesion >= 70
-                        ? "success"
-                        : "warning"
-                    }
+                    color={tauxAdhesion != null && tauxAdhesion >= 70 ? "success" : "warning"}
                     label={fmt(tauxAdhesion)}
                   />
                 </TableCell>
@@ -325,11 +309,7 @@ export default function PrepaTableIC({
                 <TableCell>
                   <Chip
                     size="small"
-                    color={
-                      tauxPresence != null && tauxPresence >= 70
-                        ? "success"
-                        : "warning"
-                    }
+                    color={tauxPresence != null && tauxPresence >= 70 ? "success" : "warning"}
                     label={fmt(tauxPresence)}
                   />
                 </TableCell>
@@ -341,20 +321,12 @@ export default function PrepaTableIC({
                       <VisibilityIcon fontSize="inherit" />
                     </IconButton>
 
-                    <IconButton
-                      size="small"
-                      color="primary"
-                      onClick={() => goEdit(d.id)}
-                    >
+                    <IconButton size="small" color="primary" onClick={() => goEdit(d.id)}>
                       <EditIcon fontSize="inherit" />
                     </IconButton>
 
                     {onDelete && (
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => onDelete(d.id)}
-                      >
+                      <IconButton size="small" color="error" onClick={() => onDelete(d.id)}>
                         <DeleteIcon fontSize="inherit" />
                       </IconButton>
                     )}

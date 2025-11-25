@@ -24,6 +24,7 @@ import {
   Stack,
   Paper,
 } from "@mui/material";
+import DescriptionIcon from "@mui/icons-material/Description";
 
 import MenuIcon from "@mui/icons-material/Menu";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -50,7 +51,7 @@ import { useAuth } from "../hooks/useAuth";
 import { ThemeContext } from "../contexts/ThemeContext";
 import logo from "../assets/logo.png";
 import { breadcrumbLabels } from "../utils/breadcrumbLabels";
-import Footer from "./footer"; 
+import Footer from "./footer";
 
 const drawerWidth = 240;
 
@@ -62,6 +63,7 @@ export default function MainLayout() {
   const [anchorDeclic, setAnchorDeclic] = useState<null | HTMLElement>(null);
   const [anchorPrepa, setAnchorPrepa] = useState<null | HTMLElement>(null);
   const [anchorUser, setAnchorUser] = useState<null | HTMLElement>(null);
+  const [anchorCvtheque, setAnchorCvtheque] = useState<null | HTMLElement>(null);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -106,12 +108,11 @@ export default function MainLayout() {
     navigate("/login");
   };
 
-const canSeeAdvanced =
-  !!user &&
-  (user.is_superuser === true ||
-    user.is_staff === true ||
-    ["admin", "superadmin", "staff", "staff_read"].includes((user.role ?? "").toLowerCase()));
-
+  const canSeeAdvanced =
+    !!user &&
+    (user.is_superuser === true ||
+      user.is_staff === true ||
+      ["admin", "superadmin", "staff", "staff_read"].includes((user.role ?? "").toLowerCase()));
 
   // ✅ Fil d’Ariane
   const pathnames = location.pathname.split("/").filter((x) => x);
@@ -209,15 +210,53 @@ const canSeeAdvanced =
                 <MenuItem component={Link} to="/prepa/ic" onClick={() => setAnchorPrepa(null)}>
                   <SchoolIcon fontSize="small" sx={{ mr: 1 }} /> IC Prépa
                 </MenuItem>
-                <MenuItem component={Link} to="/prepa/ateliers" onClick={() => setAnchorPrepa(null)}>
+                <MenuItem
+                  component={Link}
+                  to="/prepa/ateliers"
+                  onClick={() => setAnchorPrepa(null)}
+                >
                   <SchoolIcon fontSize="small" sx={{ mr: 1 }} /> Ateliers1 Prépa
                 </MenuItem>
 
-                <MenuItem component={Link} to="/prepa/objectifs" onClick={() => setAnchorPrepa(null)}>
+                <MenuItem
+                  component={Link}
+                  to="/prepa/objectifs"
+                  onClick={() => setAnchorPrepa(null)}
+                >
                   <BarChartIcon fontSize="small" sx={{ mr: 1 }} /> objectifs Prépa
                 </MenuItem>
               </Menu>
 
+              {/* CVThèque */}
+              <Button
+                color="inherit"
+                onClick={(e) => setAnchorCvtheque(e.currentTarget)}
+                endIcon={<DescriptionIcon />}
+              >
+                CVThèque
+              </Button>
+              <Menu
+                anchorEl={anchorCvtheque}
+                open={Boolean(anchorCvtheque)}
+                onClose={() => setAnchorCvtheque(null)}
+                PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
+              >
+                <MenuItem
+                  component={Link}
+                  to="/cvtheque"
+                  onClick={() => setAnchorCvtheque(null)}
+                >
+                  <DescriptionIcon fontSize="small" sx={{ mr: 1 }} /> Liste des CV
+                </MenuItem>
+
+                <MenuItem
+                  component={Link}
+                  to="/cvtheque/create"
+                  onClick={() => setAnchorCvtheque(null)}
+                >
+                  <DescriptionIcon fontSize="small" sx={{ mr: 1 }} /> Ajouter un CV
+                </MenuItem>
+              </Menu>
 
               {/* CRM */}
               <Button

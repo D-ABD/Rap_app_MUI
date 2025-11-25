@@ -19,10 +19,7 @@ import ObjectifPrepaTable from "./ObjectifPrepaTable";
 import usePagination from "src/hooks/usePagination";
 import ObjectifPrepaForm from "./ObjectifPrepaForm";
 
-import {
-  useObjectifsPrepa,
-  useObjectifsPrepaFiltersOptions,
-} from "src/hooks/usePrepaObjectifs";
+import { useObjectifsPrepa, useObjectifsPrepaFiltersOptions } from "src/hooks/usePrepaObjectifs";
 
 import type { ObjectifPrepaFiltresValues } from "src/types/prepa";
 import FiltresObjectifsPrepaPanel from "src/components/filters/FiltresObjectifsPrepaPanel";
@@ -50,8 +47,7 @@ export default function ObjectifPrepaPage() {
   }, [showFilters]);
 
   // 🔢 Pagination locale
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   // 🔍 Filtres envoyés à l’API
   const effectiveFilters = useMemo(
@@ -111,7 +107,6 @@ export default function ObjectifPrepaPage() {
       subtitle={`Suivi des objectifs ${filters.annee ?? new Date().getFullYear()}`}
       refreshButton
       onRefresh={() => refetch()}
-      
       filters={
         showFilters && (
           <FiltresObjectifsPrepaPanel
@@ -125,14 +120,8 @@ export default function ObjectifPrepaPage() {
       showFilters={showFilters}
       actionsRight={
         <Stack direction="row" spacing={1} flexWrap="wrap">
-
-
           {/* 🔎 Bouton filtres */}
-          <Button
-            variant="outlined"
-            onClick={() => setShowFilters((v) => !v)}
-            size="small"
-          >
+          <Button variant="outlined" onClick={() => setShowFilters((v) => !v)} size="small">
             {showFilters ? "🫣 Masquer filtres" : "🔎 Afficher filtres"}
             {activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ""}
           </Button>

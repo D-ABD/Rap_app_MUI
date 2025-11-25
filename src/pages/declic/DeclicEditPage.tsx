@@ -17,8 +17,7 @@ import DeclicForm from "./DeclicForm";
 /* ─────────────────────────────── */
 /* 🔧 Helpers pour les erreurs API */
 /* ─────────────────────────────── */
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null;
+const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
 const isStringArray = (v: unknown): v is string[] =>
   Array.isArray(v) && v.every((x) => typeof x === "string");
 
@@ -29,9 +28,7 @@ function extractApiMessage(data: unknown): string | null {
   if (typeof maybeMessage === "string" && maybeMessage.trim()) return maybeMessage;
 
   const maybeErrors = (data as { errors?: unknown }).errors;
-  const errorsObj = isRecord(maybeErrors)
-    ? (maybeErrors as Record<string, unknown>)
-    : data;
+  const errorsObj = isRecord(maybeErrors) ? (maybeErrors as Record<string, unknown>) : data;
 
   const parts: string[] = [];
   for (const [field, val] of Object.entries(errorsObj)) {
@@ -76,9 +73,7 @@ export default function DeclicEditPage() {
       navigate("/declic");
     } catch (e) {
       const axiosErr = e as AxiosError<unknown>;
-      const parsed = axiosErr.response?.data
-        ? extractApiMessage(axiosErr.response.data)
-        : null;
+      const parsed = axiosErr.response?.data ? extractApiMessage(axiosErr.response.data) : null;
       toast.error(parsed ?? axiosErr.message ?? "Erreur lors de la mise à jour");
     } finally {
       setSubmitting(false);
@@ -142,10 +137,7 @@ export default function DeclicEditPage() {
   const initialValues: Partial<Declic> = {
     type_declic: data.type_declic ?? "info_collective",
     date_declic: data.date_declic?.trim() ? data.date_declic : "",
-    centre_id:
-      typeof data.centre_id === "number"
-        ? data.centre_id
-        : data.centre?.id ?? undefined,
+    centre_id: typeof data.centre_id === "number" ? data.centre_id : (data.centre?.id ?? undefined),
     commentaire: data.commentaire ?? "",
     nb_inscrits_declic: data.nb_inscrits_declic ?? 0,
     nb_presents_declic: data.nb_presents_declic ?? 0,
@@ -168,10 +160,7 @@ export default function DeclicEditPage() {
     >
       {/* ✅ Affichage du centre sélectionné */}
       {selectedCentre && (
-        <Typography
-          variant="subtitle1"
-          sx={{ mb: 2, color: "text.secondary", fontWeight: 500 }}
-        >
+        <Typography variant="subtitle1" sx={{ mb: 2, color: "text.secondary", fontWeight: 500 }}>
           🏫 Centre sélectionné : <strong>{selectedCentre}</strong>
         </Typography>
       )}

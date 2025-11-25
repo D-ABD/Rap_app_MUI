@@ -141,8 +141,7 @@ export default function FiltresDeclicPanel({
               onChange={(e) =>
                 onChange({
                   ...values,
-                  annee:
-                    e.target.value === "" ? undefined : Number(e.target.value),
+                  annee: e.target.value === "" ? undefined : Number(e.target.value),
                   page: 1,
                 })
               }
@@ -164,10 +163,7 @@ export default function FiltresDeclicPanel({
               onChange={(e) =>
                 onChange({
                   ...values,
-                  type_declic:
-                    e.target.value === ""
-                      ? undefined
-                      : (e.target.value as TypeDeclic),
+                  type_declic: e.target.value === "" ? undefined : (e.target.value as TypeDeclic),
                   page: 1,
                 })
               }
@@ -195,8 +191,7 @@ export default function FiltresDeclicPanel({
                 onChange={(e) =>
                   onChange({
                     ...values,
-                    departement:
-                      e.target.value === "" ? undefined : e.target.value,
+                    departement: e.target.value === "" ? undefined : e.target.value,
                     page: 1,
                   })
                 }
@@ -220,10 +215,7 @@ export default function FiltresDeclicPanel({
                 onChange={(e) =>
                   onChange({
                     ...values,
-                    centre:
-                      e.target.value === ""
-                        ? undefined
-                        : Number(e.target.value),
+                    centre: e.target.value === "" ? undefined : Number(e.target.value),
                     page: 1,
                   })
                 }

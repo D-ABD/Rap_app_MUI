@@ -26,21 +26,20 @@ export type DeclicFilters = {
   departement?: string; // ✅ Ajouté
 };
 
-
 // ───────────────────────────────────────────────
 // 📊 Structures de réponse — conformes au ViewSet
 // ───────────────────────────────────────────────
 export type DeclicGroupBy = "centre" | "departement" | "type_declic";
 
 export type DeclicGroupRow = {
-  id?: number | string; 
+  id?: number | string;
   group_key?: string | number | null;
   total: number;
   nb_inscrits_declic: number;
   nb_presents_declic: number;
   nb_absents_declic: number;
   taux_presence_declic: number | null;
-    /** 🔹 Taux de rétention (Atelier 1 → Atelier 6) */
+  /** 🔹 Taux de rétention (Atelier 1 → Atelier 6) */
   taux_retention?: number | null;
 };
 
@@ -69,10 +68,10 @@ export type DeclicResumeResponse = {
   taux_atteinte_total: number;
   reste_a_faire_total: number;
   taux_presence_ateliers_total: number | null;
-  taux_presence_declic: number;    // ateliers
-  taux_presence_global: number;    // IC + ateliers
+  taux_presence_declic: number; // ateliers
+  taux_presence_global: number; // IC + ateliers
 
-  taux_retention: number;          // atelier 1 → atelier 6
+  taux_retention: number; // atelier 1 → atelier 6
 
   // 🔥 Détails
   par_centre: DeclicResumeCentre[];

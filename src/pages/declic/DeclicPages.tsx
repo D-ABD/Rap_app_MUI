@@ -29,14 +29,14 @@ import DeclicDetailModal from "./DeclicDetailModal";
 import ExportButtonDeclic from "src/components/export_buttons/ExportButtonDeclic";
 
 export default function DeclicPage() {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   // ───────────── Filtres (avec typage complet) ─────────────
   const [filters, setFilters] = useState<DeclicFiltresValues>({
     ordering: "-date_declic",
     page: 1,
-  }); 
- 
+  });
+
   // 🔹 Récupération dynamique des options de filtres
   const { data: filterOptions, isLoading: loadingFilters } = useDeclicFiltersOptions();
 
@@ -53,8 +53,7 @@ export default function DeclicPage() {
   }, [showFilters]);
 
   // ───────────── Pagination ─────────────
-  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } =
-    usePagination();
+  const { page, setPage, pageSize, setPageSize, count, setCount, totalPages } = usePagination();
 
   const effectiveFilters = useMemo(
     () => ({ ...filters, page, page_size: pageSize }),

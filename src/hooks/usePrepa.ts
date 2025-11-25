@@ -20,10 +20,8 @@ const isAbort = (e: unknown) =>
   (e instanceof DOMException && e.name === "AbortError") ||
   (axios.isAxiosError(e) && e.code === "ERR_CANCELED");
 
-const isObject = (v: unknown): v is Record<string, unknown> =>
-  typeof v === "object" && v !== null;
-const hasArrayProp = (o: Record<string, unknown>, k: string) =>
-  Array.isArray(o[k]);
+const isObject = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null;
+const hasArrayProp = (o: Record<string, unknown>, k: string) => Array.isArray(o[k]);
 
 // ────────────────────────────────────────────────────────────────
 // 🧩 Normalisation API (pagination, results, etc.)
@@ -299,7 +297,6 @@ export function usePrepaListIC(filters: Partial<PrepaFilters> = {}) {
 export function usePrepaListAteliers(filters: Partial<PrepaFilters> = {}) {
   return usePrepaList({
     ...filters,
-    type_prepa:
-      "atelier_1,atelier_2,atelier_3,atelier_4,atelier_5,atelier_6,autre",
+    type_prepa: "atelier_1,atelier_2,atelier_3,atelier_4,atelier_5,atelier_6,autre",
   });
 }

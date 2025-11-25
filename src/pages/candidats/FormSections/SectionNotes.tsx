@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { Card, CardHeader, CardContent, TextField } from "@mui/material";
 import type { CandidatFormData } from "../../../types/candidat";
 
@@ -7,7 +7,15 @@ interface Props {
   setForm: React.Dispatch<React.SetStateAction<CandidatFormData>>;
 }
 
-export default function SectionNotes({ form, setForm }: Props) {
+function SectionNotes({ form, setForm }: Props) {
+  const updateNotes = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setForm((f) => ({ ...f, notes: value }));
+    },
+    [setForm]
+  );
+
   return (
     <Card variant="outlined">
       <CardHeader
@@ -21,9 +29,11 @@ export default function SectionNotes({ form, setForm }: Props) {
           minRows={4}
           placeholder="Saisir une note…"
           value={form.notes ?? ""}
-          onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+          onChange={updateNotes}
         />
       </CardContent>
     </Card>
   );
 }
+
+export default React.memo(SectionNotes);

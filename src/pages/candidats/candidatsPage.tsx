@@ -43,9 +43,9 @@ export default function CandidatsPage() {
 
   const [showFilters, setShowFilters] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    const saved = localStorage.getItem("candidats.showFilters");
-    return saved != null ? saved === "1" : false;
+return false; 
   });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("candidats.showFilters", showFilters ? "1" : "0");

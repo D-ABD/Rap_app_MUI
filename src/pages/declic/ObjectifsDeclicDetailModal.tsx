@@ -43,8 +43,7 @@ export default function ObjectifsDeclicDetailModal({ open, onClose, centreId }: 
   // 📍 Sélection du centre
   useEffect(() => {
     if (centreId && objectifs.length > 0) {
-      const found =
-        objectifs.find((d: ObjectifDeclic) => d.centre?.id === centreId) ?? null;
+      const found = objectifs.find((d: ObjectifDeclic) => d.centre?.id === centreId) ?? null;
       setObjectif(found);
     } else {
       setObjectif(null);
@@ -72,8 +71,7 @@ export default function ObjectifsDeclicDetailModal({ open, onClose, centreId }: 
       0
     );
 
-    const tauxAtteinte =
-      totalObjectif > 0 ? (totalRealisation / totalObjectif) * 100 : null;
+    const tauxAtteinte = totalObjectif > 0 ? (totalRealisation / totalObjectif) * 100 : null;
 
     return {
       departement: objectif.departement,
@@ -85,8 +83,7 @@ export default function ObjectifsDeclicDetailModal({ open, onClose, centreId }: 
     };
   }, [objectif, objectifs]);
 
-  const fmtTaux = (val?: number | null) =>
-    val != null ? `${val.toFixed(1)} %` : "—";
+  const fmtTaux = (val?: number | null) => (val != null ? `${val.toFixed(1)} %` : "—");
 
   if (!open) return null;
 
@@ -184,12 +181,7 @@ export default function ObjectifsDeclicDetailModal({ open, onClose, centreId }: 
         <Typography component="div" variant="subtitle1" fontWeight={700}>
           🎯 Détail des objectifs — {objectif.centre?.nom ?? "Centre inconnu"}
         </Typography>
-        <Button
-          startIcon={<EditIcon />}
-          color="primary"
-          variant="contained"
-          onClick={handleEdit}
-        >
+        <Button startIcon={<EditIcon />} color="primary" variant="contained" onClick={handleEdit}>
           Modifier
         </Button>
       </DialogTitle>
@@ -211,9 +203,7 @@ export default function ObjectifsDeclicDetailModal({ open, onClose, centreId }: 
             <Grid item xs={12} md={6}>
               <Section title="🏙️ Cumul départemental">
                 {departementStats ? (
-                  departementFields.map((f, i) => (
-                    <Field key={i} label={f.label} value={f.value} />
-                  ))
+                  departementFields.map((f, i) => <Field key={i} label={f.label} value={f.value} />)
                 ) : (
                   <Typography variant="body2" color="text.secondary">
                     Aucun autre centre dans ce département.
@@ -254,10 +244,7 @@ export default function ObjectifsDeclicDetailModal({ open, onClose, centreId }: 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <Box sx={{ mb: 3 }}>
-      <Typography
-        variant="subtitle1"
-        sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: "primary.main", mb: 0.5 }}>
         {title}
       </Typography>
       <Divider sx={{ mb: 1 }} />

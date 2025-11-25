@@ -1,12 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import {
-  Box,
-  Stack,
-  Button,
-  TextField,
-  MenuItem,
-  Collapse,
-} from "@mui/material";
+import { Box, Stack, Button, TextField, MenuItem, Collapse } from "@mui/material";
 import { visuallyHidden } from "@mui/utils";
 import type { Choice, ObjectifPrepaFiltresValues } from "../../types/prepa";
 
@@ -87,11 +80,7 @@ export default function FiltresObjectifsPrepaPanel({
     <>
       {/* Bouton pour afficher/masquer */}
       <Stack direction="row" justifyContent="flex-end" mb={1.5}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => setShowFilters((prev) => !prev)}
-        >
+        <Button variant="outlined" size="small" onClick={() => setShowFilters((prev) => !prev)}>
           {showFilters ? "Masquer les filtres ▲" : "Afficher les filtres ▼"}
         </Button>
       </Stack>
@@ -118,10 +107,7 @@ export default function FiltresObjectifsPrepaPanel({
           <>
             {/* 🔍 Recherche */}
             <Stack direction="row" spacing={1} alignItems="center" mb={1.5} flexWrap="wrap">
-              <label
-                htmlFor="objectifs-search-input"
-                style={visuallyHidden as React.CSSProperties}
-              >
+              <label htmlFor="objectifs-search-input" style={visuallyHidden as React.CSSProperties}>
                 Rechercher un objectif Prépa
               </label>
 
@@ -206,8 +192,7 @@ export default function FiltresObjectifsPrepaPanel({
                 onChange={(e) =>
                   onChange({
                     ...values,
-                    departement:
-                      e.target.value === "" ? undefined : String(e.target.value),
+                    departement: e.target.value === "" ? undefined : String(e.target.value),
                     page: 1,
                   })
                 }

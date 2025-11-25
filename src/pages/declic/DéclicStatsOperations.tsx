@@ -92,9 +92,6 @@ export default function DeclicStatsOperations({
   // 🎯 Données opérationnelles Déclic unifiées IC + ateliers
   // ===========================================================================
   const stats = [
-
-
-
     // 🟣 Ateliers
     {
       label: "Présence ateliers (%)",
@@ -102,16 +99,12 @@ export default function DeclicStatsOperations({
       color: theme.palette.secondary.dark,
     },
 
-
-
     // 🔷 Présence globale
     {
       label: "Présence globale (%)",
       value: data.taux_presence_global ?? 0,
       color: theme.palette.primary.light,
     },
-
-
   ];
 
   // ===========================================================================
@@ -235,9 +228,7 @@ export default function DeclicStatsOperations({
                 transition: "all 0.2s ease",
                 "&:hover": {
                   transform: "translateY(-2px)",
-                  boxShadow: isDark
-                    ? "0 4px 14px rgba(0,0,0,0.7)"
-                    : "0 4px 12px rgba(0,0,0,0.08)",
+                  boxShadow: isDark ? "0 4px 14px rgba(0,0,0,0.7)" : "0 4px 12px rgba(0,0,0,0.08)",
                 },
               }}
             >
@@ -250,9 +241,7 @@ export default function DeclicStatsOperations({
                   lineHeight: 1.2,
                 }}
               >
-                {typeof s.value === "number"
-                  ? s.value.toLocaleString("fr-FR")
-                  : s.value}
+                {typeof s.value === "number" ? s.value.toLocaleString("fr-FR") : s.value}
               </Typography>
 
               <Typography

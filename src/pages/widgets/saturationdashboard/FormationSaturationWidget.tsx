@@ -1,10 +1,6 @@
 // src/pages/widgets/overviewDashboard/FormationSaturationWidget.tsx
 import * as React from "react";
-import {
-  Filters,
-  useFormationOverview,
-  useFormationGrouped,
-} from "../../../types/formationStats";
+import { Filters, useFormationOverview, useFormationGrouped } from "../../../types/formationStats";
 
 import {
   Box,
@@ -36,8 +32,7 @@ function omit<T extends object, K extends keyof T>(obj: T, keys: readonly K[]): 
 }
 
 function ColoredProgressBar({ value }: { value: number }) {
-  const status =
-    value >= 80 ? "error" : value >= 50 ? "warning" : "success";
+  const status = value >= 80 ? "error" : value >= 50 ? "warning" : "success";
 
   return (
     <LinearProgress
@@ -60,9 +55,7 @@ export default function FormationSaturationWidget({
   filters?: Filters;
 }) {
   const [localFilters, setLocalFilters] = React.useState<Filters>(filters ?? {});
-  const [includeArchived, setIncludeArchived] = React.useState<boolean>(
-    !!filters?.avec_archivees
-  );
+  const [includeArchived, setIncludeArchived] = React.useState<boolean>(!!filters?.avec_archivees);
 
   React.useEffect(() => {
     if (filters) setLocalFilters(filters);
@@ -77,10 +70,7 @@ export default function FormationSaturationWidget({
   /* --------------------------
   📊 DATA
   --------------------------- */
-  const centreQuery = useFormationGrouped(
-    "centre",
-    omit(effectiveFilters, ["centre"] as const)
-  );
+  const centreQuery = useFormationGrouped("centre", omit(effectiveFilters, ["centre"] as const));
   const deptQuery = useFormationGrouped(
     "departement",
     omit(effectiveFilters, ["departement"] as const)
@@ -131,9 +121,7 @@ export default function FormationSaturationWidget({
       <FormControl size="small" sx={{ minWidth: 160 }}>
         <Select
           value={localFilters.centre ?? ""}
-          onChange={(e) =>
-            setLocalFilters((f) => ({ ...f, centre: e.target.value || undefined }))
-          }
+          onChange={(e) => setLocalFilters((f) => ({ ...f, centre: e.target.value || undefined }))}
           disabled={centreQuery.isLoading}
           displayEmpty
         >

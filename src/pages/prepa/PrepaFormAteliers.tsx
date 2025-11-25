@@ -27,10 +27,7 @@ interface Props {
 }
 
 /* ===================== CHOIX PAR DÉFAUT ===================== */
-const TYPE_PREPA_CHOICES_FALLBACK = [
-  { value: "atelier_1", label: "Atelier 1" },
-
-];
+const TYPE_PREPA_CHOICES_FALLBACK = [{ value: "atelier_1", label: "Atelier 1" }];
 
 /* ===================== FORMULAIRE PRÉPA ===================== */
 export default function PrepaFormAteliers({
@@ -62,9 +59,7 @@ export default function PrepaFormAteliers({
   /* ===================== CHOIX DYNAMIQUES ===================== */
   const typeChoices = useMemo(
     () =>
-      meta?.type_prepa_choices?.length
-        ? meta.type_prepa_choices
-        : TYPE_PREPA_CHOICES_FALLBACK,
+      meta?.type_prepa_choices?.length ? meta.type_prepa_choices : TYPE_PREPA_CHOICES_FALLBACK,
     [meta?.type_prepa_choices]
   );
 
@@ -74,10 +69,7 @@ export default function PrepaFormAteliers({
   /* ===================== AUTO-CALCUL ABSENTS ===================== */
   useEffect(() => {
     // IC : absents = prescriptions - présents
-    if (
-      form.nombre_prescriptions !== undefined &&
-      form.nb_presents_info !== undefined
-    ) {
+    if (form.nombre_prescriptions !== undefined && form.nb_presents_info !== undefined) {
       setForm((prev) => ({
         ...prev,
         nb_absents_info: Math.max(
@@ -90,10 +82,7 @@ export default function PrepaFormAteliers({
 
   useEffect(() => {
     // Atelier Prépa : absents = inscrits - présents
-    if (
-      form.nb_inscrits_prepa !== undefined &&
-      form.nb_presents_prepa !== undefined
-    ) {
+    if (form.nb_inscrits_prepa !== undefined && form.nb_presents_prepa !== undefined) {
       setForm((prev) => ({
         ...prev,
         nb_absents_prepa: Math.max(
@@ -107,9 +96,7 @@ export default function PrepaFormAteliers({
   /* ===================== MISE À JOUR CENTRE LABEL ===================== */
   useEffect(() => {
     if (form.centre_id && meta?.centre_choices?.length) {
-      const opt = meta.centre_choices.find(
-        (c) => Number(c.value) === form.centre_id
-      );
+      const opt = meta.centre_choices.find((c) => Number(c.value) === form.centre_id);
       setCentreLabel(opt?.label ?? `#${form.centre_id}`);
       if (opt?.label) onCentreChange?.(opt.label);
     } else {
@@ -146,9 +133,7 @@ export default function PrepaFormAteliers({
                 fullWidth
                 required
                 value={form.type_prepa ?? ""}
-                onChange={(e) =>
-                  handleChange("type_prepa", e.target.value as string)
-                }
+                onChange={(e) => handleChange("type_prepa", e.target.value as string)}
               >
                 {typeChoices.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
@@ -177,16 +162,11 @@ export default function PrepaFormAteliers({
               <TextField
                 fullWidth
                 placeholder="— Aucun centre sélectionné —"
-                value={
-                  centreLabel || (form.centre_id ? `#${form.centre_id}` : "")
-                }
+                value={centreLabel || (form.centre_id ? `#${form.centre_id}` : "")}
                 InputProps={{ readOnly: true }}
               />
               <Stack direction="row" spacing={1} mt={1}>
-                <Button
-                  variant="outlined"
-                  onClick={() => setShowCentreModal(true)}
-                >
+                <Button variant="outlined" onClick={() => setShowCentreModal(true)}>
                   🏫 Sélectionner un centre
                 </Button>
                 {form.centre_id && (
@@ -224,10 +204,7 @@ export default function PrepaFormAteliers({
                     label={label}
                     value={(form as any)[key] ?? ""}
                     onChange={(e) =>
-                      handleChange(
-                        key as keyof Prepa,
-                        Number(e.target.value) as any
-                      )
+                      handleChange(key as keyof Prepa, Number(e.target.value) as any)
                     }
                   />
                 </Grid>
@@ -240,12 +217,7 @@ export default function PrepaFormAteliers({
                   fullWidth
                   label="Adhésions"
                   value={form.nb_adhesions ?? ""}
-                  onChange={(e) =>
-                    handleChange(
-                      "nb_adhesions",
-                      Number(e.target.value) as any
-                    )
-                  }
+                  onChange={(e) => handleChange("nb_adhesions", Number(e.target.value) as any)}
                 />
               </Grid>
             </Grid>
@@ -268,10 +240,7 @@ export default function PrepaFormAteliers({
                     label={label}
                     value={(form as any)[key] ?? ""}
                     onChange={(e) =>
-                      handleChange(
-                        key as keyof Prepa,
-                        Number(e.target.value) as any
-                      )
+                      handleChange(key as keyof Prepa, Number(e.target.value) as any)
                     }
                   />
                 </Grid>
@@ -324,9 +293,7 @@ export default function PrepaFormAteliers({
         onSelect={(centre) => {
           const c = centre as unknown as CentreLight;
           handleChange("centre_id", c.id);
-          const label = `${c.nom ?? "Centre"}${
-            c.departement ? ` (${c.departement})` : ""
-          }`;
+          const label = `${c.nom ?? "Centre"}${c.departement ? ` (${c.departement})` : ""}`;
           setCentreLabel(label);
           onCentreChange?.(label);
           setShowCentreModal(false);

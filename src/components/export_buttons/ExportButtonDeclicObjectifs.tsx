@@ -18,7 +18,10 @@ import type { ObjectifDeclic } from "src/types/declic";
 /* ------------------------------------------------------------------ */
 /* 🔧 Helpers utilitaires */
 /* ------------------------------------------------------------------ */
-function getFilenameFromDisposition(disposition?: string | null, fallback = "objectifs_declic.xlsx") {
+function getFilenameFromDisposition(
+  disposition?: string | null,
+  fallback = "objectifs_declic.xlsx"
+) {
   if (!disposition) return fallback;
   const match = /filename\*=UTF-8''([^;]+)|filename="([^"]+)"/i.exec(disposition);
   const raw = match?.[1] ?? match?.[2] ?? "";
@@ -35,10 +38,7 @@ function getErrorMessage(err: unknown): string {
     const data = err.response?.data;
     if (typeof data === "string") return data;
     if (data && typeof data === "object") {
-      const msg =
-        (data as any).message ??
-        (data as any).detail ??
-        (data as any).error;
+      const msg = (data as any).message ?? (data as any).detail ?? (data as any).error;
       if (typeof msg === "string") return msg;
     }
     return err.message;
@@ -52,7 +52,7 @@ function getErrorMessage(err: unknown): string {
 /* ------------------------------------------------------------------ */
 type Props = {
   data: ObjectifDeclic[];
-selectedIds: (string | number)[];
+  selectedIds: (string | number)[];
 };
 
 export default function ExportButtonObjectifsDeclic({ data, selectedIds }: Props) {
@@ -133,7 +133,8 @@ export default function ExportButtonObjectifsDeclic({ data, selectedIds }: Props
 
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
               Les filtres actifs (
-              <code>{typeof window !== "undefined" ? window.location.search : ""}</code>) seront appliqués automatiquement.
+              <code>{typeof window !== "undefined" ? window.location.search : ""}</code>) seront
+              appliqués automatiquement.
             </Typography>
 
             {busy && (
@@ -156,4 +157,3 @@ export default function ExportButtonObjectifsDeclic({ data, selectedIds }: Props
     </>
   );
 }
- 

@@ -20,6 +20,7 @@ import {
   Stack,
 } from "@mui/material";
 
+import DescriptionIcon from "@mui/icons-material/Description";
 import InfoIcon from "@mui/icons-material/Info";
 import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -48,14 +49,13 @@ export default function MainLayoutCandidat() {
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
 
-  // ✅ Contexte thème
+  // Theme context
   const themeContext = useContext(ThemeContext);
   if (!themeContext) {
     throw new Error("MainLayoutCandidat doit être utilisé dans un <ThemeProvider>");
   }
   const { mode, toggleTheme } = themeContext;
 
-  // ✅ Responsive
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -71,7 +71,7 @@ export default function MainLayoutCandidat() {
     <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       <CssBaseline />
 
-      {/* 🔹 Navbar */}
+      {/* HEADER */}
       <AppBar
         position="fixed"
         elevation={3}
@@ -83,19 +83,19 @@ export default function MainLayoutCandidat() {
         }}
       >
         <Toolbar sx={{ px: { xs: 1, sm: 2 }, minHeight: 56 }}>
-          {/* Bouton menu burger (mobile) */}
+          {/* Menu mobile */}
           <IconButton color="inherit" edge="start" onClick={toggleDrawer} sx={{ mr: 1 }}>
             <MenuIcon />
           </IconButton>
 
-          {/* Logo + titre */}
+          {/* Logo */}
           <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
             <img src={logo} alt="Logo" style={{ height: 28, marginRight: 8 }} />
             <Typography
               variant="h6"
-              noWrap
               component={Link}
               to="/"
+              noWrap
               sx={{
                 color: "inherit",
                 textDecoration: "none",
@@ -107,51 +107,62 @@ export default function MainLayoutCandidat() {
             </Typography>
           </Box>
 
-          {/* 🔹 Menu Desktop */}
+          {/* DESKTOP NAV */}
           {!isMobile && (
             <Stack direction="row" spacing={1} alignItems="center">
               <Button color="inherit" component={Link} to="/dashboard">
                 Dashboard
               </Button>
+
               <Button color="inherit" component={Link} to="/prospections/candidat">
                 Prospections
               </Button>
+
               <Button color="inherit" component={Link} to="/prospection-commentaires">
                 Commentaires prospections
               </Button>
+
               <Button color="inherit" component={Link} to="/partenaires/candidat">
                 Partenaires
               </Button>
+
+              {/* 🔹 AJOUT CVTHEQUE */}
+              <Button color="inherit" component={Link} to="/cvtheque/candidat">
+                CVThèque
+              </Button>
+
               <Button color="inherit" component={Link} to="/about">
                 À propos
               </Button>
             </Stack>
           )}
 
-          {/* Toggle thème */}
+          {/* Theme */}
           <IconButton color="inherit" onClick={toggleTheme}>
             {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
           </IconButton>
 
-          {/* Auth */}
+          {/* User */}
           {isAuthenticated ? (
             <>
               <IconButton color="inherit" onClick={(e) => setAnchorUser(e.currentTarget)}>
                 <AccountCircle />
               </IconButton>
+
               <Menu
                 anchorEl={anchorUser}
                 open={Boolean(anchorUser)}
                 onClose={() => setAnchorUser(null)}
-                PaperProps={{ sx: { borderRadius: 2, boxShadow: 3, mt: 1 } }}
               >
                 <MenuItem disabled>{user?.username || user?.email}</MenuItem>
                 {user?.role && <MenuItem disabled>🎭 Rôle : {user.role}</MenuItem>}
+
                 <MenuItem component={Link} to="/mon-profil" onClick={() => setAnchorUser(null)}>
-                  <AccountCircle fontSize="small" /> &nbsp;Mon profil
+                  Mon profil
                 </MenuItem>
+
                 <MenuItem onClick={handleLogout}>
-                  <LogoutIcon fontSize="small" /> &nbsp;Déconnexion
+                  <LogoutIcon fontSize="small" /> Déconnexion
                 </MenuItem>
               </Menu>
             </>
@@ -163,7 +174,7 @@ export default function MainLayoutCandidat() {
         </Toolbar>
       </AppBar>
 
-      {/* 🔹 Sidebar Drawer (mobile) */}
+      {/* DRAWER MOBILE */}
       <Drawer
         variant="temporary"
         open={open}
@@ -172,8 +183,6 @@ export default function MainLayoutCandidat() {
         sx={{
           "& .MuiDrawer-paper": {
             width: drawerWidth,
-            boxSizing: "border-box",
-            borderRight: (theme) => `1px solid ${theme.palette.divider}`,
             borderTopRightRadius: 12,
             borderBottomRightRadius: 12,
           },
@@ -181,6 +190,7 @@ export default function MainLayoutCandidat() {
       >
         <Toolbar />
         <Divider />
+
         <List>
           <ListItemButton
             component={Link}
@@ -230,6 +240,19 @@ export default function MainLayoutCandidat() {
             <ListItemText primary="Partenaires" />
           </ListItemButton>
 
+          {/* 🔹 AJOUT CVTHEQUE MOBILE */}
+          <ListItemButton
+            component={Link}
+            to="/cvtheque/candidat"
+            onClick={toggleDrawer}
+            selected={isActive("/cvtheque/candidat")}
+          >
+            <ListItemIcon>
+              <DescriptionIcon color="primary" />
+            </ListItemIcon>
+            <ListItemText primary="CVThèque" />
+          </ListItemButton>
+
           <ListItemButton
             component={Link}
             to="/about"
@@ -244,28 +267,27 @@ export default function MainLayoutCandidat() {
         </List>
       </Drawer>
 
-      {/* 🔹 Contenu principal */}
+      {/* CONTENT */}
       <Box
         component="main"
         sx={{
           flex: 1,
           p: { xs: 2, sm: 3 },
           mt: { xs: 7, sm: 8 },
-          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#f9f9f9" : "#121212"),
-          transition: "background-color 0.3s ease",
+          backgroundColor: (theme) =>
+            theme.palette.mode === "light" ? "#f9f9f9" : "#121212",
         }}
       >
         <Outlet />
       </Box>
 
-      {/* 🔹 Footer */}
+      {/* FOOTER */}
       <Box
         component="footer"
         sx={{
           py: 2,
           textAlign: "center",
           borderTop: (theme) => `1px solid ${theme.palette.divider}`,
-          backgroundColor: (theme) => (theme.palette.mode === "light" ? "#fafafa" : "#1a1a1a"),
         }}
       >
         <Typography variant="caption" color="text.secondary">

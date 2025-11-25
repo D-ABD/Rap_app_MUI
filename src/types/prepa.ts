@@ -74,10 +74,10 @@ export interface Prepa {
   nb_absents_prepa: number;
 
   // ---------- 🆕 Champs unifiés (backend) ----------
-  inscrits: number;          // IC → prescriptions / Atelier → inscrits
-  presents: number;          // unified: presents IC / AT
-  absents: number;           // unified
-  adhesions_ic: number;      // IC uniquement
+  inscrits: number; // IC → prescriptions / Atelier → inscrits
+  presents: number; // unified: presents IC / AT
+  absents: number; // unified
+  adhesions_ic: number; // IC uniquement
 
   // ---------- Taux & indicateurs ----------
   taux_prescription?: number;
@@ -86,8 +86,8 @@ export interface Prepa {
   taux_presence_prepa?: number;
 
   // ---------- 🆕 Nouveaux taux ----------
-  taux_presence_atelier?: number | null;  // ateliers
-  taux_presence_global?: number | null;   // global (IC ou Atelier)
+  taux_presence_atelier?: number | null; // ateliers
+  taux_presence_global?: number | null; // global (IC ou Atelier)
 
   objectif_annuel?: number;
   taux_atteinte_annuel?: number;
@@ -160,8 +160,8 @@ export interface PrepaFiltresValues {
   search?: string;
   type_prepa?: TypePrepa;
   centre?: number;
-  departement?: string;   // 🆕 pour filtrer par département
-  annee?: number;         // 🆕 pour filtrer par année
+  departement?: string; // 🆕 pour filtrer par département
+  annee?: number; // 🆕 pour filtrer par année
   date_min?: string;
   date_max?: string;
   ordering?: string;

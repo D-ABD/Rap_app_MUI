@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Card,
   CardHeader,
@@ -17,18 +17,25 @@ interface Props {
   setShowUsersModal: (v: boolean) => void;
 }
 
-/**
- * Section Assignations & visibilité du candidat
- * Gère le champ "vu_par" et ouvre la modale de sélection d’utilisateur.
- */
-export default function SectionAssignations({ form, setForm, setShowUsersModal }: Props) {
-  // ✅ Label dynamique simple basé sur form.vu_par
-  const vuParLabel =
-    typeof form.vu_par === "number"
-      ? `Utilisateur #${form.vu_par}`
-      : form.vu_par
-        ? String(form.vu_par)
-        : "";
+function SectionAssignations({ form, setForm, setShowUsersModal }: Props) {
+  // Memoise label pour éviter recalcul inutile
+  const vuParLabel = useMemo(() => {
+    if (typeof form.vu_par === "number") return `Utilisateur #${form.vu_par}`;
+    if (form.vu_par) return String(form.vu_par);
+    return "";
+  }, [form.vu_par]);
+
+  // Handlers optimisés
+  const openModal = useCallback(() => setShowUsersModal(true), [setShowUsersModal]);
+
+  const clearAssignation = useCallback(
+    () =>
+      setForm((f) => ({
+        ...f,
+        vu_par: undefined,
+      })),
+    [setForm]
+  );
 
   return (
     <Card variant="outlined">
@@ -43,20 +50,12 @@ export default function SectionAssignations({ form, setForm, setShowUsersModal }
         />
 
         <Box display="flex" gap={1} mt={1}>
-          <Button variant="outlined" onClick={() => setShowUsersModal(true)}>
+          <Button variant="outlined" onClick={openModal}>
             🔍 Choisir un utilisateur
           </Button>
+
           {form.vu_par && (
-            <Button
-              color="error"
-              variant="outlined"
-              onClick={() =>
-                setForm((f) => ({
-                  ...f,
-                  vu_par: undefined,
-                }))
-              }
-            >
+            <Button color="error" variant="outlined" onClick={clearAssignation}>
               ✖ Effacer
             </Button>
           )}
@@ -69,3 +68,5 @@ export default function SectionAssignations({ form, setForm, setShowUsersModal }
     </Card>
   );
 }
+
+export default React.memo(SectionAssignations);

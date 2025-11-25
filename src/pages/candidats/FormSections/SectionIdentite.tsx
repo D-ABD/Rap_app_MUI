@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   Card,
   CardHeader,
@@ -11,70 +11,111 @@ import {
   MenuItem,
   Checkbox,
   FormControlLabel,
+  Box,
+  Button,
 } from "@mui/material";
+
 import type { CandidatFormData, CandidatMeta } from "../../../types/candidat";
+import { formatFormation } from "./utils";
+import { FormationPick } from "../../../components/modals/FormationSelectModal";
 
 interface Props {
   form: CandidatFormData;
   setForm: React.Dispatch<React.SetStateAction<CandidatFormData>>;
   meta?: CandidatMeta | null;
+
+  // Formation
+  canEditFormation: boolean;
+  showFormationModal: boolean;
+  setShowFormationModal: (b: boolean) => void;
+  formationInfo: FormationPick | null;
 }
 
-export default function SectionIdentite({ form, setForm }: Props) {
-  const handleCheckbox =
-    (key: keyof CandidatFormData) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setForm((f) => ({ ...f, [key]: e.target.checked }));
+function SectionIdentite({
+  form,
+  setForm,
+  canEditFormation,
+  setShowFormationModal,
+  formationInfo,
+}: Props) {
+  /* ------------------ Helpers ------------------ */
+
+  const updateField = useCallback(
+    (key: keyof CandidatFormData) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setForm((f) => ({ ...f, [key]: e.target.value })),
+    [setForm]
+  );
+
+  const updateSelect = useCallback(
+    (key: keyof CandidatFormData) =>
+      (e: any) =>
+        setForm((f) => ({
+          ...f,
+          [key]: e.target.value === "" ? undefined : e.target.value,
+        })),
+    [setForm]
+  );
+
+  const handleCheckbox = useCallback(
+    (key: keyof CandidatFormData) =>
+      (e: React.ChangeEvent<HTMLInputElement>) =>
+        setForm((f) => ({ ...f, [key]: e.target.checked })),
+    [setForm]
+  );
+
+  const clearFormation = useCallback(
+    () => setForm((f) => ({ ...f, formation: undefined })),
+    [setForm]
+  );
+
+  const formationLabel = useMemo(() => {
+    if (formationInfo) return formatFormation(formationInfo);
+    if (form.formation) return `#${form.formation}`;
+    return "";
+  }, [formationInfo, form.formation]);
+
+  /* ------------------ UI ------------------ */
 
   return (
     <Card variant="outlined">
       <CardHeader
-        title="Identité du candidat"
-        subheader="Informations personnelles et coordonnées"
+        title="Identité — Adresse — Formation"
+        subheader="Données personnelles du candidat"
       />
+
       <CardContent>
         <Grid container spacing={2}>
-          {/* Nom et prénom */}
+
+          {/* -------------------- IDENTITÉ -------------------- */}
+
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               required
               label="Nom"
               value={form.nom ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, nom: e.target.value }))}
+              onChange={updateField("nom")}
             />
           </Grid>
+
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               required
               label="Prénom"
               value={form.prenom ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, prenom: e.target.value }))}
+              onChange={updateField("prenom")}
             />
           </Grid>
 
-          {/* Nom de naissance */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Nom de naissance"
-              value={form.nom_naissance ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, nom_naissance: e.target.value }))}
-            />
-          </Grid>
-
-          {/* Sexe (Select) */}
+          {/* Sexe */}
           <Grid item xs={12} md={6}>
             <FormControl fullWidth>
               <FormLabel>Sexe</FormLabel>
               <Select
                 value={form.sexe ?? ""}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    sexe: e.target.value === "" ? undefined : (e.target.value as "M" | "F" | null),
-                  }))
-                }
+                onChange={updateSelect("sexe")}
                 displayEmpty
               >
                 <MenuItem value="">
@@ -90,22 +131,24 @@ export default function SectionIdentite({ form, setForm }: Props) {
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
+              required
               type="email"
               label="Email"
               value={form.email ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              onChange={updateField("email")}
             />
           </Grid>
+
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
               label="Téléphone"
               value={form.telephone ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, telephone: e.target.value }))}
+              onChange={updateField("telephone")}
             />
           </Grid>
 
-          {/* Date et lieu de naissance */}
+          {/* Date naissance */}
           <Grid item xs={12} md={4}>
             <TextField
               fullWidth
@@ -113,76 +156,166 @@ export default function SectionIdentite({ form, setForm }: Props) {
               label="Date de naissance"
               InputLabelProps={{ shrink: true }}
               value={form.date_naissance ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, date_naissance: e.target.value }))}
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Département de naissance"
-              value={form.departement_naissance ?? ""}
-              onChange={(e) =>
-                setForm((f) => ({
-                  ...f,
-                  departement_naissance: e.target.value,
-                }))
-              }
-            />
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <TextField
-              fullWidth
-              label="Commune de naissance"
-              value={form.commune_naissance ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, commune_naissance: e.target.value }))}
+              onChange={updateField("date_naissance")}
             />
           </Grid>
 
-          {/* Pays & nationalité */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Pays de naissance"
-              placeholder="Saisie libre"
-              value={form.pays_naissance ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, pays_naissance: e.target.value }))}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Nationalité"
-              value={form.nationalite ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, nationalite: e.target.value }))}
-            />
-          </Grid>
-
-          {/* Numéro de sécurité sociale */}
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              label="Numéro de sécurité sociale (NIR)"
-              value={form.nir ?? ""}
-              onChange={(e) => setForm((f) => ({ ...f, nir: e.target.value }))}
-              inputProps={{ maxLength: 15 }}
-            />
-          </Grid>
-
-          {/* Checkboxes */}
+          {/* RQTH / Permis B */}
           <Grid item xs={12} md={3}>
             <FormControlLabel
-              control={<Checkbox checked={!!form.rqth} onChange={handleCheckbox("rqth")} />}
+              control={
+                <Checkbox checked={!!form.rqth} onChange={handleCheckbox("rqth")} />
+              }
               label="Reconnaissance RQTH"
             />
           </Grid>
+
           <Grid item xs={12} md={3}>
             <FormControlLabel
-              control={<Checkbox checked={!!form.permis_b} onChange={handleCheckbox("permis_b")} />}
+              control={
+                <Checkbox checked={!!form.permis_b} onChange={handleCheckbox("permis_b")} />
+              }
               label="Permis B"
             />
           </Grid>
+
+          {/* Numéro OSIA */}
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Numéro OSIA"
+              value={form.numero_osia ?? ""}
+              onChange={updateField("numero_osia")}
+            />
+          </Grid>
+
+          {/* -------------------- ADRESSE -------------------- */}
+
+          <Grid item xs={12}>
+            <hr />
+          </Grid>
+
+          <Grid item xs={12} md={2}>
+            <TextField
+              fullWidth
+              label="N°"
+              value={form.street_number ?? ""}
+              onChange={updateField("street_number")}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              label="Rue"
+              value={form.street_name ?? ""}
+              onChange={updateField("street_name")}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Complément"
+              value={form.street_complement ?? ""}
+              onChange={updateField("street_complement")}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <TextField
+              fullWidth
+              label="Code postal"
+              value={form.code_postal ?? ""}
+              onChange={updateField("code_postal")}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={8}>
+            <TextField
+              fullWidth
+              label="Ville"
+              value={form.ville ?? ""}
+              onChange={updateField("ville")}
+            />
+          </Grid>
+
+          {/* -------------------- FORMATION -------------------- */}
+
+          <Grid item xs={12}>
+            <hr />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              required
+              label="Formation sélectionnée"
+              value={formationLabel}
+              placeholder={canEditFormation ? "— Aucune sélection —" : "Non modifiable"}
+              InputProps={{ readOnly: true }}
+            />
+
+            {canEditFormation && (
+              <Box display="flex" gap={1} mt={1}>
+                <Button variant="outlined" onClick={() => setShowFormationModal(true)}>
+                  🔍 Sélectionner
+                </Button>
+
+                {form.formation && (
+                  <Button color="error" variant="outlined" onClick={clearFormation}>
+                    ✖ Effacer
+                  </Button>
+                )}
+              </Box>
+            )}
+          </Grid>
+
+          {/* Champs auto après sélection */}
+          {formationInfo && (
+            <>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Nom de la formation"
+                  value={formationInfo.nom ?? ""}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Centre"
+                  value={formationInfo.centre?.nom ?? ""}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Type d’offre"
+                  value={formationInfo.type_offre?.nom ?? ""}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="N° d’offre"
+                  value={formationInfo.num_offre ?? ""}
+                  InputProps={{ readOnly: true }}
+                />
+              </Grid>
+            </>
+          )}
+
         </Grid>
       </CardContent>
     </Card>
   );
 }
+
+export default React.memo(SectionIdentite);
